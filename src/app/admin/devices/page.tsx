@@ -16,14 +16,15 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal, PlusCircle } from "lucide-react";
 import { devices } from "@/lib/data";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
 export default function AdminDevicesPage() {
   return (
     <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
         <div className="flex items-center">
-            <h1 className="text-lg font-semibold md:text-2xl">Device Management</h1>
+            <h1 className="text-lg font-semibold md:text-2xl font-headline">Device Management</h1>
             <div className="ml-auto flex items-center gap-2">
-                <Button size="sm" variant="outline" className="h-8 gap-1">
+                <Button size="sm" variant="default" className="h-8 gap-1">
                 <PlusCircle className="h-3.5 w-3.5" />
                 <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
                     Add New Device
@@ -31,7 +32,11 @@ export default function AdminDevicesPage() {
                 </Button>
             </div>
         </div>
-        <div className="rounded-lg border shadow-sm">
+        <Card>
+          <CardHeader>
+            <CardTitle>Registered Devices</CardTitle>
+          </CardHeader>
+          <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
@@ -52,7 +57,7 @@ export default function AdminDevicesPage() {
                     <TableCell>{device.type}</TableCell>
                     <TableCell>
                       <Badge variant={device.status === 'Active' ? 'default' : device.status === 'Inactive' ? 'secondary' : 'destructive'}
-                        className={device.status === 'Active' ? 'bg-green-600' : ''}
+                        className={device.status === 'Active' ? 'bg-green-600 hover:bg-green-600/80' : device.status === 'Maintenance' ? 'bg-yellow-500 hover:bg-yellow-500/80' : ''}
                       >{device.status}</Badge>
                     </TableCell>
                     <TableCell>{device.assignedTo}</TableCell>
@@ -68,7 +73,7 @@ export default function AdminDevicesPage() {
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem>Edit</DropdownMenuItem>
                           <DropdownMenuItem>Reassign</DropdownMenuItem>
-                          <DropdownMenuItem className="text-destructive">Remove</DropdownMenuItem>
+                          <DropdownMenuItem className="text-destructive hover:text-destructive-foreground">Remove</DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
@@ -76,7 +81,8 @@ export default function AdminDevicesPage() {
                 ))}
               </TableBody>
             </Table>
-        </div>
+            </CardContent>
+        </Card>
     </main>
   );
 }

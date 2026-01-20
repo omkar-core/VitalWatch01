@@ -16,14 +16,16 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal, PlusCircle } from "lucide-react";
 import { users } from "@/lib/data";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import Image from "next/image";
 
 export default function AdminUsersPage() {
   return (
     <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
        <div className="flex items-center">
-        <h1 className="text-lg font-semibold md:text-2xl">User Management</h1>
+        <h1 className="text-lg font-semibold md:text-2xl font-headline">User Management</h1>
         <div className="ml-auto flex items-center gap-2">
-            <Button size="sm" variant="outline" className="h-8 gap-1">
+            <Button size="sm" variant="default" className="h-8 gap-1">
               <PlusCircle className="h-3.5 w-3.5" />
               <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
                 Add New User
@@ -31,7 +33,11 @@ export default function AdminUsersPage() {
             </Button>
           </div>
       </div>
-        <div className="rounded-lg border shadow-sm">
+        <Card>
+          <CardHeader>
+            <CardTitle>All Users</CardTitle>
+          </CardHeader>
+          <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
@@ -46,7 +52,10 @@ export default function AdminUsersPage() {
               <TableBody>
                 {users.map((user) => (
                   <TableRow key={user.id}>
-                    <TableCell className="font-medium">{user.name}</TableCell>
+                    <TableCell className="font-medium flex items-center gap-2">
+                       <Image src={user.avatarUrl} alt={user.name} width={32} height={32} className="rounded-full" data-ai-hint={user.avatarHint} />
+                      {user.name}
+                    </TableCell>
                     <TableCell>{user.email}</TableCell>
                     <TableCell>
                       <Badge variant="outline" className="capitalize">{user.role}</Badge>
@@ -62,7 +71,7 @@ export default function AdminUsersPage() {
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem>Edit</DropdownMenuItem>
                           <DropdownMenuItem>Deactivate</DropdownMenuItem>
-                          <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
+                          <DropdownMenuItem className="text-destructive hover:text-destructive-foreground">Delete</DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
@@ -70,7 +79,8 @@ export default function AdminUsersPage() {
                 ))}
               </TableBody>
             </Table>
-        </div>
+          </CardContent>
+        </Card>
     </main>
   );
 }

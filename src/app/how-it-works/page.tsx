@@ -2,40 +2,58 @@ import { VitalWatchLogo } from "@/components/icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ArrowDown } from "lucide-react";
+import { ArrowDown, Smartphone, Cloud, Database, BrainCircuit, Bell, LayoutDashboard } from "lucide-react";
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'How It Works - VitalWatch',
+  description: 'Learn about the streamlined process of our intelligent health monitoring platform, from data collection to AI-powered alerts.',
+};
+
 
 export default function HowItWorksPage() {
   const steps = [
     {
       step: 1,
-      title: "Register & Connect Devices",
-      description: "Patients and admins can easily set up profiles and connect approved monitoring devices to the platform."
+      title: "Patient Wears Sensors",
+      description: "Non-invasive, continuous monitoring through a CGM device and BP wristband.",
+      icon: <Smartphone />
     },
     {
       step: 2,
-      title: "Real-Time Data Sync",
-      description: "Connected devices securely transmit vital health data to the VitalWatch platform in real-time."
+      title: "Data Sync via Gateway",
+      description: "An ESP32 gateway collects data and sends it to the cloud, with offline buffering capability.",
+      icon: <Cloud />
     },
     {
       step: 3,
-      title: "Monitor & Analyze",
-      description: "Doctors monitor patient data through a centralized dashboard. The system flags any anomalies or critical changes."
+      title: "Secure Cloud Storage",
+      description: "Data is ingested by Azure IoT Hub and stored in a high-performance GridDB time-series database.",
+      icon: <Database />
     },
     {
       step: 4,
-      title: "AI-Powered Insights & Alerts",
-      description: "Our AI assistant generates summaries and potential diagnoses. Configurable alerts notify doctors of urgent issues."
+      title: "ML Analysis",
+      description: "Our AI model analyzes the data for anomaly detection, spike prediction, and risk classification.",
+      icon: <BrainCircuit />
     },
      {
       step: 5,
-      title: "Engage & Intervene",
-      description: "Doctors can communicate with patients, adjust care plans, and intervene proactively based on the data and insights provided."
+      title: "Intelligent Alerts",
+      description: "Doctors and patients receive SMS, WhatsApp, and push notifications for critical events.",
+      icon: <Bell />
+    },
+    {
+      step: 6,
+      title: "Dashboard Access",
+      description: "Care teams and patients access real-time data and insights through their respective portals.",
+      icon: <LayoutDashboard />
     },
   ];
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
-       <header className="px-4 lg:px-6 h-16 flex items-center bg-card border-b">
+       <header className="px-4 lg:px-6 h-16 flex items-center bg-card border-b sticky top-0 z-50">
         <Link href="/" className="flex items-center justify-center gap-2" prefetch={false}>
           <VitalWatchLogo className="h-6 w-6 text-primary" />
           <span className="text-xl font-headline font-bold text-foreground">VitalWatch</span>
@@ -44,6 +62,7 @@ export default function HowItWorksPage() {
           <Link href="/about" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>About</Link>
           <Link href="/how-it-works" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>How It Works</Link>
           <Link href="/features" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>Features</Link>
+          <Link href="/pricing" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>Pricing</Link>
           <Link href="/contact" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>Contact</Link>
           <Link href="/login" prefetch={false}>
             <Button>Login</Button>
@@ -67,17 +86,22 @@ export default function HowItWorksPage() {
           <div className="container px-4 md:px-6">
              <div className="relative flex flex-col items-center gap-8">
                 {steps.map((step, index) => (
-                  <div key={step.step} className="flex flex-col items-center text-center">
-                     <Card className="w-full max-w-md">
+                  <div key={step.step} className="flex flex-col items-center text-center w-full max-w-2xl">
+                     <Card className="w-full">
                        <CardHeader>
-                         <CardTitle className="flex items-center justify-center gap-4">
-                           <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-primary-foreground font-bold">{step.step}</span>
-                           <span className="font-headline text-2xl">{step.title}</span>
-                         </CardTitle>
+                         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                           <div className="flex items-center gap-4">
+                            <span className="flex items-center justify-center w-12 h-12 rounded-full bg-primary text-primary-foreground">
+                              {step.icon}
+                            </span>
+                            <span className="flex sm:hidden items-center justify-center w-8 h-8 rounded-full bg-primary text-primary-foreground font-bold">{step.step}</span>
+                           </div>
+                           <div className="text-center sm:text-left">
+                            <CardTitle className="font-headline text-2xl">{step.title}</CardTitle>
+                            <p className="text-muted-foreground mt-1">{step.description}</p>
+                           </div>
+                         </div>
                        </CardHeader>
-                       <CardContent>
-                         <p className="text-muted-foreground">{step.description}</p>
-                       </CardContent>
                      </Card>
                      {index < steps.length - 1 && <ArrowDown className="w-8 h-8 text-muted-foreground my-4" />}
                   </div>

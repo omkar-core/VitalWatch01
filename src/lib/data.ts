@@ -1,4 +1,4 @@
-import type { Patient, Alert, User, Device } from '@/lib/types';
+import type { Patient, Alert, User, Device, PricingTier } from '@/lib/types';
 import { placeholderImages } from '@/lib/placeholder-images';
 
 const patientAvatar1 = placeholderImages.find(p => p.id === 'patient-avatar-1');
@@ -22,6 +22,7 @@ export const patients: Patient[] = [
     lastSeen: '2 min ago',
     symptoms: 'Chest pain, shortness of breath, dizziness.',
     medicalHistory: 'History of hypertension and a previous myocardial infarction in 2020. Allergic to penicillin.',
+    conditions: ['Type 2 Diabetes', 'Hypertension'],
     vitals: [
       { time: '08:00', "Heart Rate": 95, "Blood Pressure": '145/92', "SPO2": 93, "Temperature": 37.1 },
       { time: '09:00', "Heart Rate": 102, "Blood Pressure": '150/96', "SPO2": 92, "Temperature": 37.2 },
@@ -41,6 +42,7 @@ export const patients: Patient[] = [
     lastSeen: '15 min ago',
     symptoms: 'Mild headache, fatigue.',
     medicalHistory: 'Diagnosed with Type 2 Diabetes, managed with Metformin. No known allergies.',
+    conditions: ['Type 2 Diabetes'],
     vitals: [
       { time: '08:00', "Heart Rate": 72, "Blood Pressure": '120/80', "SPO2": 98, "Temperature": 36.8 },
       { time: '09:00', "Heart Rate": 75, "Blood Pressure": '122/81', "SPO2": 98, "Temperature": 36.9 },
@@ -60,6 +62,7 @@ export const patients: Patient[] = [
     lastSeen: '5 min ago',
     symptoms: 'Persistent cough, low-grade fever.',
     medicalHistory: 'COPD diagnosed 5 years ago. Uses an inhaler daily.',
+    conditions: ['COPD'],
     vitals: [
       { time: '08:00', "Heart Rate": 88, "Blood Pressure": '130/85', "SPO2": 94, "Temperature": 37.5 },
       { time: '09:00', "Heart Rate": 90, "Blood Pressure": '132/86', "SPO2": 93, "Temperature": 37.6 },
@@ -79,6 +82,7 @@ export const patients: Patient[] = [
     lastSeen: '30 min ago',
     symptoms: 'None reported. Routine monitoring post-appendectomy.',
     medicalHistory: 'Appendectomy 3 days ago. Recovering well.',
+    conditions: ['Post-operative'],
     vitals: [
       { time: '08:00', "Heart Rate": 65, "Blood Pressure": '110/70', "SPO2": 99, "Temperature": 36.7 },
       { time: '09:00', "Heart Rate": 68, "Blood Pressure": '112/72', "SPO2": 99, "Temperature": 36.8 },
@@ -150,7 +154,7 @@ export const users: User[] = [
     name: 'Mark Chen',
     email: 'm.chen@clinic.com',
     role: 'admin',
-    avatarUrl: 'https://picsum.photos/seed/110/200/200',
+    avatarUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxhZG1pbiUyMHBvcnRyYWl0fGVufDB8fHx8MTc2ODgyNzEyMnww&ixlib=rb-4.1.0&q=80&w=200',
     avatarHint: 'admin portrait',
   },
    {
@@ -207,4 +211,50 @@ export const devices: Device[] = [
         assignedTo: 'Emily Williams (p004)',
         lastSync: '3 days ago',
     }
-]
+];
+
+export const pricingTiers: PricingTier[] = [
+    {
+      name: "Pilot Program",
+      price: "Free",
+      period: "for first 500 patients",
+      description: "Ideal for new clinics and pilot studies to validate our platform's impact.",
+      features: [
+        "Up to 500 patients",
+        "Continuous Monitoring",
+        "Real-time Alerts",
+        "Doctor & Patient Portals",
+        "Standard Support",
+      ],
+      cta: "Join the Pilot",
+    },
+    {
+      name: "Basic Plan",
+      price: "₹50",
+      period: "/ patient / month",
+      description: "Essential features for small to medium-sized clinics.",
+      features: [
+        "All features from Pilot",
+        "Up to 2,000 patients",
+        "Basic Analytics",
+        "Email & SMS Notifications",
+        "Dedicated Onboarding",
+      ],
+      cta: "Get Started",
+    },
+    {
+      name: "Enterprise",
+      price: "Custom",
+      period: "for large-scale deployments",
+      description: "Comprehensive solutions for large hospitals and district-level health programs.",
+      features: [
+        "All features from Basic",
+        "Unlimited Patients",
+        "Advanced Population Analytics",
+        "API & EMR Integration",
+        "24/7 Premium Support",
+        "Custom Branding",
+      ],
+      cta: "Contact Sales",
+    },
+  ];

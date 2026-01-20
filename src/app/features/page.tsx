@@ -2,45 +2,74 @@ import { VitalWatchLogo } from "@/components/icons";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle, HeartPulse, ShieldCheck, Users, Bot, LayoutGrid } from "lucide-react";
+import { CheckCircle, HeartPulse, ShieldCheck, Users, Bot, LayoutGrid, BarChart, Bell } from "lucide-react";
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Features - VitalWatch',
+  description: 'Explore the powerful features of VitalWatch for doctors, patients, and clinics.',
+};
+
 
 export default function FeaturesPage() {
-    const features = [
-    {
-      icon: <HeartPulse className="w-10 h-10 text-primary" />,
-      title: "Real-Time Monitoring",
-      description: "Doctors get instant access to patient vitals, enabling proactive care and timely interventions from a centralized clinical dashboard.",
-    },
-    {
-      icon: <Bot className="w-10 h-10 text-primary" />,
-      title: "AI-Powered Insights",
-      description: "Leverage generative AI for patient summaries and potential diagnostic suggestions to support clinical decisions and reduce workload.",
-    },
-    {
-      icon: <Users className="w-10 h-10 text-primary" />,
-      title: "Role-Based Portals",
-      description: "Secure, dedicated portals for Doctors, Patients, and Administrators, each with a tailored interface and relevant tools.",
-    },
-    {
-      icon: <ShieldCheck className="w-10 h-10 text-primary" />,
-      title: "Secure & Scalable",
-      description: "A robust platform for clinics and hospitals with comprehensive admin controls for users, devices, and system settings.",
-    },
-    {
-      icon: <CheckCircle className="w-10 h-10 text-primary" />,
-      title: "Patient-Centric Tools",
-      description: "Empower patients with access to their health data, trend visualizations, and secure communication channels to their care team.",
-    },
-    {
-      icon: <LayoutGrid className="w-10 h-10 text-primary" />,
-      title: "Comprehensive Admin Dashboards",
-      description: "System administrators can easily manage users, devices, monitor system health, and generate reports from a powerful admin portal.",
-    },
-  ];
+    const doctorFeatures = [
+      {
+        icon: <LayoutGrid className="w-10 h-10 text-primary" />,
+        title: "Multi-Patient Monitoring",
+        description: "Oversee all your patients from a single, intuitive dashboard with real-time data updates.",
+      },
+      {
+        icon: <Bell className="w-10 h-10 text-primary" />,
+        title: "Real-Time Alerts",
+        description: "Receive instant SMS and in-app notifications for critical changes in patient vitals.",
+      },
+      {
+        icon: <BarChart className="w-10 h-10 text-primary" />,
+        title: "Trend Visualization",
+        description: "Analyze long-term health data with interactive charts to identify patterns and track progress.",
+      },
+    ];
+
+    const patientFeatures = [
+      {
+        icon: <HeartPulse className="w-10 h-10 text-primary" />,
+        title: "Continuous Tracking",
+        description: "Your health data is automatically and continuously monitored without manual effort.",
+      },
+      {
+        icon: <Bot className="w-10 h-10 text-primary" />,
+        title: "Personalized Insights",
+        description: "Receive AI-powered advice and summaries to better understand your health status.",
+      },
+      {
+        icon: <CheckCircle className="w-10 h-10 text-primary" />,
+        title: "Alert Notifications",
+        description: "Get notified about important health events and advice from your care team.",
+      },
+    ];
+    
+    const clinicFeatures = [
+       {
+        icon: <ShieldCheck className="w-10 h-10 text-primary" />,
+        title: "Device Management",
+        description: "Easily enroll, assign, and monitor the status of all connected health devices.",
+      },
+       {
+        icon: <Users className="w-10 h-10 text-primary" />,
+        title: "Patient Enrollment",
+        description: "A streamlined process for onboarding new patients onto the monitoring platform.",
+      },
+      {
+        icon: <LayoutGrid className="w-10 h-10 text-primary" />,
+        title: "Reporting Tools",
+        description: "Generate population-level reports to track outcomes and clinic performance.",
+      },
+    ]
+
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      <header className="px-4 lg:px-6 h-16 flex items-center bg-card border-b">
+       <header className="px-4 lg:px-6 h-16 flex items-center bg-card border-b sticky top-0 z-50">
         <Link href="/" className="flex items-center justify-center gap-2" prefetch={false}>
           <VitalWatchLogo className="h-6 w-6 text-primary" />
           <span className="text-xl font-headline font-bold text-foreground">VitalWatch</span>
@@ -49,6 +78,7 @@ export default function FeaturesPage() {
           <Link href="/about" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>About</Link>
           <Link href="/how-it-works" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>How It Works</Link>
           <Link href="/features" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>Features</Link>
+          <Link href="/pricing" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>Pricing</Link>
           <Link href="/contact" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>Contact</Link>
           <Link href="/login" prefetch={false}>
             <Button>Login</Button>
@@ -63,16 +93,56 @@ export default function FeaturesPage() {
                  <div className="inline-block rounded-lg bg-secondary px-3 py-1 text-sm">Key Features</div>
                 <h1 className="text-4xl font-bold font-headline tracking-tighter sm:text-5xl md:text-6xl">Smarter, Faster, More Connected Care</h1>
                 <p className="mx-auto max-w-[900px] text-muted-foreground md:text-xl">
-                    Our platform is designed from the ground up to enhance clinical workflows, empower patients, and simplify healthcare administration.
+                    Our platform is designed from the ground up for doctors, patients, and clinics to enhance clinical workflows, empower patients, and simplify healthcare administration.
                 </p>
               </div>
             </div>
           </div>
         </section>
-        <section id="features" className="w-full py-12 md:py-24 lg:py-32 bg-card">
+
+        <section id="doctor-features" className="w-full py-12 md:py-24 lg:py-32 bg-card">
           <div className="container px-4 md:px-6">
+             <h2 className="text-3xl font-bold font-headline tracking-tighter sm:text-4xl md:text-5xl text-center mb-12">For Doctors</h2>
             <div className="mx-auto grid max-w-5xl items-start gap-8 sm:grid-cols-2 md:gap-12 lg:max-w-none lg:grid-cols-3">
-              {features.map((feature) => (
+              {doctorFeatures.map((feature) => (
+                <Card key={feature.title} className="bg-background/50 hover:bg-background transition-colors duration-300 h-full">
+                  <CardHeader className="flex flex-col items-center text-center gap-4">
+                    {feature.icon}
+                    <CardTitle className="font-headline text-2xl">{feature.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="text-center text-muted-foreground">
+                    {feature.description}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section id="patient-features" className="w-full py-12 md:py-24 lg:py-32">
+          <div className="container px-4 md:px-6">
+             <h2 className="text-3xl font-bold font-headline tracking-tighter sm:text-4xl md:text-5xl text-center mb-12">For Patients</h2>
+            <div className="mx-auto grid max-w-5xl items-start gap-8 sm:grid-cols-2 md:gap-12 lg:max-w-none lg:grid-cols-3">
+              {patientFeatures.map((feature) => (
+                <Card key={feature.title} className="bg-card/50 hover:bg-card transition-colors duration-300 h-full">
+                  <CardHeader className="flex flex-col items-center text-center gap-4">
+                    {feature.icon}
+                    <CardTitle className="font-headline text-2xl">{feature.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="text-center text-muted-foreground">
+                    {feature.description}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </section>
+        
+        <section id="clinic-features" className="w-full py-12 md:py-24 lg:py-32 bg-card">
+          <div className="container px-4 md:px-6">
+             <h2 className="text-3xl font-bold font-headline tracking-tighter sm:text-4xl md:text-5xl text-center mb-12">For Clinics & Admins</h2>
+            <div className="mx-auto grid max-w-5xl items-start gap-8 sm:grid-cols-2 md:gap-12 lg:max-w-none lg:grid-cols-3">
+              {clinicFeatures.map((feature) => (
                 <Card key={feature.title} className="bg-background/50 hover:bg-background transition-colors duration-300 h-full">
                   <CardHeader className="flex flex-col items-center text-center gap-4">
                     {feature.icon}

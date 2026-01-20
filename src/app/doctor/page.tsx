@@ -1,14 +1,22 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { users, patients, alerts } from "@/lib/data";
-import { Users, AlertTriangle, Bell } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { alerts, patients } from "@/lib/data";
+import { Users, AlertTriangle, Bell, Activity, Phone, Check, MessageSquare } from "lucide-react";
 import { VitalsChart } from "@/components/dashboard/vitals-chart";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import {
+  Table,
+  TableHeader,
+  TableRow,
+  TableHead,
+  TableBody,
+  TableCell,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 
 export default function DoctorDashboard() {
-  const criticalPatients = patients.filter(p => p.status === 'Critical').length;
-  const needsReviewPatients = patients.filter(p => p.status === 'Needs Review').length;
-  const unreadAlerts = alerts.filter(a => !a.isRead).length;
+  const unreadAlerts = alerts.filter(a => !a.isRead);
+  const criticalPatients = patients.filter(p => p.status === 'Critical');
 
   const summaryCards = [
     {
@@ -18,18 +26,18 @@ export default function DoctorDashboard() {
     },
     {
       title: "Active Alerts",
-      value: unreadAlerts,
+      value: unreadAlerts.length,
       icon: <Bell className="h-6 w-6 text-muted-foreground" />,
     },
     {
-      title: "Critical Status",
-      value: criticalPatients,
-      icon: <AlertTriangle className="h-6 w-6 text-red-500" />,
+      title: "Critical Risk",
+      value: criticalPatients.length,
+      icon: <AlertTriangle className="h-6 w-6 text-destructive" />,
     },
     {
-      title: "Needs Review",
-      value: needsReviewPatients,
-      icon: <Users className="h-6 w-6 text-yellow-500" />,
+      title: "Readings Today",
+      value: "14,610",
+      icon: <Activity className="h-6 w-6 text-muted-foreground" />,
     },
   ];
 
@@ -48,36 +56,97 @@ export default function DoctorDashboard() {
                 </Card>
             ))}
         </div>
+
+        <Card>
+            <CardHeader>
+                <CardTitle className="text-destructive flex items-center gap-2"><AlertTriangle /> Critical Alerts (Requires Immediate Attention)</CardTitle>
+                <CardDescription>Patients with vitals that have crossed critical thresholds.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                {alerts.filter(a => a.severity === 'High' && !a.isRead).slice(0,2).map(alert => (
+                    <div key={alert.id} className="p-4 border rounded-lg flex flex-wrap items-center justify-between gap-4 bg-destructive/10 border-destructive/20">
+                        <div className="flex-1 min-w-[200px]">
+                            <p className="font-bold">{alert.patientName}</p>
+                            <p className="text-sm"><span className="text-destructive font-semibold">{alert.message}</span> at {alert.timestamp}</p>
+                        </div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                            <Button size="sm" asChild><Link href={`/doctor/patients/${alert.patientId}`}><Users className="mr-2"/> View Details</Link></Button>
+                            <Button size="sm" variant="outline"><Phone className="mr-2"/> Call Patient</Button>
+                            <Button size="sm" variant="ghost"><Check className="mr-2"/> Acknowledge</Button>
+                        </div>
+                    </div>
+                ))}
+            </CardContent>
+        </Card>
+
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
             <Card className="lg:col-span-4">
                 <CardHeader>
-                    <CardTitle>Overall Patient Vitals Trend</CardTitle>
+                    <CardTitle>Patient Quick View</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <VitalsChart data={patients[0].vitals} />
+                     <Table>
+                        <TableHeader>
+                            <TableRow>
+                            <TableHead>Name</TableHead>
+                            <TableHead>Glucose</TableHead>
+                            <TableHead>BP</TableHead>
+                            <TableHead>Risk</TableHead>
+                            <TableHead>Action</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {patients.slice(0,4).map(p => (
+                                <TableRow key={p.id}>
+                                    <TableCell className="font-medium">{p.name}</TableCell>
+                                    <TableCell>
+                                        <span className={p.vitals[p.vitals.length-1]['Heart Rate'] > 100 ? 'text-destructive font-bold' : ''}>
+                                            {p.vitals[p.vitals.length-1]['Heart Rate']}
+                                        </span>
+                                    </TableCell>
+                                    <TableCell>{p.vitals[p.vitals.length-1]['Blood Pressure']}</TableCell>
+                                    <TableCell>
+                                        <Badge variant={p.status === 'Critical' ? 'destructive' : p.status === 'Needs Review' ? 'secondary' : 'outline'}>{p.status}</Badge>
+                                    </TableCell>
+                                    <TableCell>
+                                        <Button asChild variant="link" size="sm"><Link href={`/doctor/patients/${p.id}`}>View</Link></Button>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                     <Button variant="secondary" className="mt-4 w-full" asChild><Link href="/doctor/patients">View All Patients</Link></Button>
                 </CardContent>
             </Card>
              <Card className="lg:col-span-3">
                 <CardHeader className="flex flex-row items-center justify-between">
-                    <CardTitle>Recent Alerts</CardTitle>
+                    <CardTitle>Recent Notifications</CardTitle>
                     <Button asChild variant="secondary" size="sm">
                         <Link href="/doctor/alerts">View All</Link>
                     </Button>
                 </CardHeader>
                 <CardContent>
                     <div className="space-y-4">
-                        {alerts.slice(0, 4).map(alert => (
-                            <div key={alert.id} className="flex items-start gap-4">
-                                <div className="flex-shrink-0">
-                                    <AlertTriangle className={`h-5 w-5 ${alert.severity === 'High' ? 'text-red-500' : 'text-yellow-500'}`} />
+                        {alerts.slice(0, 3).map(alert => (
+                            <div key={alert.id} className="flex items-start gap-3">
+                                <div className="flex-shrink-0 pt-1">
+                                    <Bell className={`h-4 w-4 ${alert.severity === 'High' ? 'text-destructive' : 'text-yellow-500'}`} />
                                 </div>
                                 <div>
-                                    <p className="font-medium">{alert.patientName}</p>
-                                    <p className="text-sm text-muted-foreground">{alert.message}</p>
+                                    <p className="text-sm font-medium leading-tight">{alert.patientName}: {alert.message}</p>
                                     <p className="text-xs text-muted-foreground">{alert.timestamp}</p>
                                 </div>
                             </div>
                         ))}
+                         <div className="flex items-start gap-3">
+                                <div className="flex-shrink-0 pt-1">
+                                    <MessageSquare className={`h-4 w-4 text-blue-500`} />
+                                </div>
+                                <div>
+                                    <p className="text-sm font-medium leading-tight">Ramaiah S. acknowledged taking medication</p>
+                                    <p className="text-xs text-muted-foreground">45m ago</p>
+                                </div>
+                            </div>
                     </div>
                 </CardContent>
             </Card>

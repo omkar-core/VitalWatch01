@@ -17,6 +17,7 @@ export type Patient = {
   lastSeen: string;
   symptoms: string;
   medicalHistory: string;
+  conditions: string[];
   vitals: Vital[];
 };
 
@@ -47,4 +48,13 @@ export type Device = {
   status: 'Active' | 'Inactive' | 'Maintenance';
   assignedTo: string;
   lastSync: string;
+};
+
+export type PricingTier = {
+    name: string;
+    price: string;
+    period: string;
+    description: string;
+    features: string[];
+    cta: string;
 };
