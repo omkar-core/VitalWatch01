@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -16,9 +16,63 @@ export function AiAssistant({ patient }: { patient: Patient }) {
   const [isDiagnosisPending, startDiagnosisTransition] = useTransition();
   
   const [summary, setSummary] = useState("");
+  const [displayedSummary, setDisplayedSummary] = useState("");
+  const [isSummaryStreaming, setIsSummaryStreaming] = useState(false);
+
   const [diagnosis, setDiagnosis] = useState<{ diagnoses: string[], reasoning: string } | null>(null);
+  const [displayedReasoning, setDisplayedReasoning] = useState("");
+  const [isDiagnosisStreaming, setIsDiagnosisStreaming] = useState(false);
+
+  useEffect(() => {
+    if (summary) {
+      setDisplayedSummary("");
+      const chars = summary.split('');
+      let i = 0;
+      setIsSummaryStreaming(true);
+      const intervalId = setInterval(() => {
+        if (i < chars.length) {
+          setDisplayedSummary((prev) => prev + chars[i]);
+          i++;
+        } else {
+          clearInterval(intervalId);
+          setIsSummaryStreaming(false);
+        }
+      }, 20);
+      return () => {
+          clearInterval(intervalId);
+          setIsSummaryStreaming(false);
+      };
+    } else {
+      setDisplayedSummary("");
+    }
+  }, [summary]);
+
+  useEffect(() => {
+    if (diagnosis?.reasoning) {
+      setDisplayedReasoning("");
+      const chars = diagnosis.reasoning.split('');
+      let i = 0;
+      setIsDiagnosisStreaming(true);
+      const intervalId = setInterval(() => {
+        if (i < chars.length) {
+          setDisplayedReasoning((prev) => prev + chars[i]);
+          i++;
+        } else {
+          clearInterval(intervalId);
+          setIsDiagnosisStreaming(false);
+        }
+      }, 20);
+      return () => {
+          clearInterval(intervalId);
+          setIsDiagnosisStreaming(false);
+      };
+    } else {
+        setDisplayedReasoning("");
+    }
+  }, [diagnosis]);
 
   const handleGenerateSummary = async () => {
+    setSummary("");
     startSummaryTransition(async () => {
       const result = await generatePatientSummaryAction({
         medicalHistory: patient.medicalHistory,
@@ -30,7 +84,6 @@ export function AiAssistant({ patient }: { patient: Patient }) {
           title: "Error Generating Summary",
           description: result.error,
         });
-        setSummary("");
       } else if (result.data) {
         setSummary(result.data.summary);
       }
@@ -39,6 +92,7 @@ export function AiAssistant({ patient }: { patient: Patient }) {
 
   const handleSuggestDiagnosis = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setDiagnosis(null);
     const formData = new FormData(event.currentTarget);
     const symptoms = formData.get("symptoms") as string;
     const medicalHistory = formData.get("medicalHistory") as string;
@@ -51,7 +105,6 @@ export function AiAssistant({ patient }: { patient: Patient }) {
                 title: "Error Suggesting Diagnoses",
                 description: result.error,
             });
-            setDiagnosis(null);
         } else if (result.data) {
             setDiagnosis(result.data);
         }
@@ -74,10 +127,11 @@ export function AiAssistant({ patient }: { patient: Patient }) {
             {isSummaryPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Generate Summary
           </Button>
-          {isSummaryPending && <p className="text-sm text-muted-foreground mt-2">Generating summary...</p>}
-          {summary && (
-            <div className="mt-4 p-4 bg-muted/50 rounded-lg text-sm">
-              {summary}
+          {isSummaryPending && !displayedSummary && <p className="text-sm text-muted-foreground mt-2">Generating summary...</p>}
+          { (displayedSummary || isSummaryStreaming) && (
+            <div className="mt-4 p-4 bg-muted/50 rounded-lg text-sm min-h-[120px]">
+              {displayedSummary}
+              {isSummaryStreaming && <span className="inline-block w-2 h-4 bg-foreground animate-pulse ml-1" />}
             </div>
           )}
         </div>
@@ -97,19 +151,26 @@ export function AiAssistant({ patient }: { patient: Patient }) {
               Suggest Diagnoses
             </Button>
           </form>
-          {isDiagnosisPending && <p className="text-sm text-muted-foreground mt-2">Analyzing data...</p>}
-          {diagnosis && (
-            <div className="mt-4 p-4 bg-muted/50 rounded-lg space-y-4">
-                <div>
-                    <h4 className="font-semibold">Potential Diagnoses:</h4>
-                    <ul className="list-disc list-inside">
-                        {diagnosis.diagnoses.map((d, i) => <li key={i}>{d}</li>)}
-                    </ul>
-                </div>
-                 <div>
-                    <h4 className="font-semibold">Reasoning:</h4>
-                    <p className="text-sm">{diagnosis.reasoning}</p>
-                </div>
+          {isDiagnosisPending && !diagnosis && <p className="text-sm text-muted-foreground mt-2">Analyzing data...</p>}
+          { (diagnosis || isDiagnosisStreaming) && (
+            <div className="mt-4 p-4 bg-muted/50 rounded-lg space-y-4 min-h-[240px]">
+                {diagnosis && (
+                    <div>
+                        <h4 className="font-semibold">Potential Diagnoses:</h4>
+                        <ul className="list-disc list-inside">
+                            {diagnosis.diagnoses.map((d, i) => <li key={i}>{d}</li>)}
+                        </ul>
+                    </div>
+                )}
+                 {(displayedReasoning || isDiagnosisStreaming) && (
+                     <div>
+                        <h4 className="font-semibold">Reasoning:</h4>
+                        <p className="text-sm">
+                            {displayedReasoning}
+                            {isDiagnosisStreaming && <span className="inline-block w-2 h-4 bg-foreground animate-pulse ml-1" />}
+                        </p>
+                    </div>
+                 )}
             </div>
           )}
         </div>
