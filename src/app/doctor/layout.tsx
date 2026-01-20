@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/sidebar";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { VitalWatchLogo } from "@/components/icons";
-import { Settings, LayoutDashboard, Users, Bell, MessageSquare } from "lucide-react";
+import { Settings, LayoutDashboard, Users, Bell, BarChart, LifeBuoy } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { alerts } from "@/lib/data";
 
@@ -43,27 +43,27 @@ export default function DoctorLayout({
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Patients">
-                <Link href="#">
+              <SidebarMenuButton asChild tooltip="Patient Management">
+                <Link href="/doctor/patients">
                   <Users />
-                  <span>Patients</span>
+                  <span>Patient Management</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Alerts">
-                <Link href="#">
+              <SidebarMenuButton asChild tooltip="Alerts & Notifications">
+                <Link href="/doctor/alerts">
                   <Bell />
-                  <span>Alerts</span>
+                  <span>Alerts & Notifications</span>
                   {unreadAlerts > 0 && <Badge variant="destructive" className="ml-auto">{unreadAlerts}</Badge>}
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
              <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Messages">
-                <Link href="#">
-                  <MessageSquare />
-                  <span>Messages</span>
+              <SidebarMenuButton asChild tooltip="Analytics & Reports">
+                <Link href="/doctor/analytics">
+                  <BarChart />
+                  <span>Analytics & Reports</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -73,9 +73,17 @@ export default function DoctorLayout({
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton asChild tooltip="Settings">
-                <Link href="#">
+                <Link href="/doctor/settings">
                   <Settings />
                   <span>Settings</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild tooltip="Support">
+                <Link href="/doctor/support">
+                  <LifeBuoy />
+                  <span>Support</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>

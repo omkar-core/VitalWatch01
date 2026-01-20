@@ -12,8 +12,7 @@ import {
 } from "@/components/ui/sidebar";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { VitalWatchLogo } from "@/components/icons";
-import { Button } from "@/components/ui/button";
-import { Settings, Users, TabletSmartphone } from "lucide-react";
+import { Settings, Users, TabletSmartphone, LayoutGrid, BarChart, HardDrive } from "lucide-react";
 
 export default function AdminLayout({
   children,
@@ -32,8 +31,16 @@ export default function AdminLayout({
         <SidebarContent>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="User Management">
+              <SidebarMenuButton asChild tooltip="Overview">
                 <Link href="/admin">
+                  <LayoutGrid />
+                  <span>Overview</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild tooltip="User Management">
+                <Link href="/admin/users">
                   <Users />
                   <span>User Management</span>
                 </Link>
@@ -41,9 +48,25 @@ export default function AdminLayout({
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton asChild tooltip="Device Management">
-                <Link href="/admin">
+                <Link href="/admin/devices">
                   <TabletSmartphone />
                   <span>Device Management</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+             <SidebarMenuItem>
+              <SidebarMenuButton asChild tooltip="System Monitoring">
+                <Link href="/admin/monitoring">
+                  <HardDrive />
+                  <span>System Monitoring</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild tooltip="Reports">
+                <Link href="/admin/reports">
+                  <BarChart />
+                  <span>Reports</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -52,10 +75,10 @@ export default function AdminLayout({
         <SidebarFooter>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Settings">
-                <Link href="#">
+              <SidebarMenuButton asChild tooltip="Configuration">
+                <Link href="/admin/configuration">
                   <Settings />
-                  <span>Settings</span>
+                  <span>Configuration</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
