@@ -3,35 +3,27 @@ import { users, devices, patients } from "@/lib/data";
 import { Users, TabletSmartphone, Activity, HardDrive, BarChart } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableHeader,
-  TableRow,
-  TableHead,
-  TableBody,
-  TableCell,
-} from "@/components/ui/table";
 
 export default function AdminPage() {
     const summaryCards = [
     {
-      title: "Total Users",
-      value: users.length,
+      title: "Total Patients",
+      value: patients.length,
       icon: <Users className="h-6 w-6 text-muted-foreground" />,
     },
     {
-      title: "Registered Devices",
-      value: devices.length,
-      icon: <TabletSmartphone className="h-6 w-6 text-muted-foreground" />,
+      title: "Active Doctors",
+      value: users.filter(u => u.role === 'doctor').length,
+      icon: <Users className="h-6 w-6 text-muted-foreground" />,
     },
     {
-      title: "Monitored Patients",
-      value: patients.length,
-      icon: <Activity className="h-6 w-6 text-muted-foreground" />,
+      title: "Devices Online",
+      value: devices.filter(d => d.status === 'Active').length,
+      icon: <TabletSmartphone className="h-6 w-6 text-muted-foreground" />,
     },
      {
-      title: "System Status",
-      value: "Operational",
+      title: "System Health",
+      value: "Good",
       icon: <HardDrive className="h-6 w-6 text-green-500" />,
     },
   ];
@@ -40,7 +32,7 @@ export default function AdminPage() {
   return (
     <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
       <div className="flex items-center">
-        <h1 className="text-lg font-semibold md:text-2xl font-headline">Overview Dashboard</h1>
+        <h1 className="text-lg font-semibold md:text-2xl font-headline">System Overview</h1>
       </div>
        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             {summaryCards.map((card) => (
@@ -55,49 +47,58 @@ export default function AdminPage() {
                 </Card>
             ))}
         </div>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="lg:col-span-4">
+      <div className="grid gap-6 md:grid-cols-2">
+        <Card>
             <CardHeader>
-                <CardTitle>Recent Activity</CardTitle>
+                <CardTitle>Program Metrics (Last 30 Days)</CardTitle>
             </CardHeader>
-            <CardContent>
-                 <Table>
-                    <TableHeader>
-                        <TableRow>
-                        <TableHead>User</TableHead>
-                        <TableHead>Action</TableHead>
-                        <TableHead>Timestamp</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        <TableRow>
-                            <TableCell>Dr. Evelyn Reed</TableCell>
-                            <TableCell>Acknowledged critical alert for John Doe</TableCell>
-                            <TableCell>5m ago</TableCell>
-                        </TableRow>
-                        <TableRow>
-                            <TableCell>admin@vital.watch</TableCell>
-                            <TableCell>Added new device 'dev-spo2-06'</TableCell>
-                            <TableCell>1h ago</TableCell>
-                        </TableRow>
-                         <TableRow>
-                            <TableCell>Jane Smith</TableCell>
-                            <TableCell>Logged in</TableCell>
-                            <TableCell>2h ago</TableCell>
-                        </TableRow>
-                    </TableBody>
-                </Table>
+            <CardContent className="grid grid-cols-2 gap-4 text-sm">
+                <div className="space-y-1">
+                    <p className="text-muted-foreground">Patients Enrolled</p>
+                    <p className="font-semibold text-lg">{patients.length}</p>
+                </div>
+                 <div className="space-y-1">
+                    <p className="text-muted-foreground">Emergency Preventions</p>
+                    <p className="font-semibold text-lg">18</p>
+                </div>
+                 <div className="space-y-1">
+                    <p className="text-muted-foreground">Alert Response Rate</p>
+                    <p className="font-semibold text-lg">94%</p>
+                </div>
+                 <div className="space-y-1">
+                    <p className="text-muted-foreground">Data Capture Rate</p>
+                    <p className="font-semibold text-lg">98.5%</p>
+                </div>
+                 <div className="space-y-1">
+                    <p className="text-muted-foreground">System Uptime</p>
+                    <p className="font-semibold text-lg">99.95%</p>
+                </div>
             </CardContent>
         </Card>
-        <Card className="lg:col-span-3">
+        <Card>
              <CardHeader>
-                <CardTitle>Quick Actions</CardTitle>
+                <CardTitle>Device Management</CardTitle>
             </CardHeader>
-            <CardContent className="flex flex-col gap-4">
-                <Button asChild><Link href="/admin/users">Manage Users</Link></Button>
-                <Button asChild variant="secondary"><Link href="/admin/devices">Manage Devices</Link></Button>
-                <Button asChild variant="secondary"><Link href="/admin/reports">Generate Reports</Link></Button>
-                <Button asChild variant="outline"><Link href="/admin/configuration">System Configuration</Link></Button>
+            <CardContent className="grid grid-cols-2 gap-4 text-sm">
+                 <div className="space-y-1">
+                    <p className="text-muted-foreground">Total Devices</p>
+                    <p className="font-semibold text-lg">{devices.length}</p>
+                </div>
+                 <div className="space-y-1">
+                    <p className="text-muted-foreground">Active</p>
+                    <p className="font-semibold text-lg">{devices.filter(d => d.status === 'Active').length} (96%)</p>
+                </div>
+                 <div className="space-y-1">
+                    <p className="text-muted-foreground">Low Battery</p>
+                    <p className="font-semibold text-lg text-yellow-600">23</p>
+                </div>
+                 <div className="space-y-1">
+                    <p className="text-muted-foreground">Connection Issues</p>
+                    <p className="font-semibold text-lg text-destructive">5</p>
+                </div>
+                <div className="col-span-2">
+                    <Button asChild variant="secondary" className="w-full mt-2"><Link href="/admin/devices">View Device Status →</Link></Button>
+                </div>
             </CardContent>
         </Card>
       </div>

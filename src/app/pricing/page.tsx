@@ -43,12 +43,27 @@ export default function PricingPage() {
       variant: "default",
     },
     {
+      name: "Standard Plan",
+      price: "₹100",
+      period: "/ patient / month",
+      description: "Advanced features for growing healthcare organizations.",
+      features: [
+        "All features from Basic",
+        "Up to 10,000 patients",
+        "Population Health Analytics",
+        "WhatsApp Notifications",
+        "Priority Support",
+      ],
+      cta: "Choose Standard",
+      variant: "secondary",
+    },
+    {
       name: "Enterprise",
       price: "Custom",
       period: "for large-scale deployments",
       description: "Comprehensive solutions for large hospitals and district-level health programs.",
       features: [
-        "All features from Basic",
+        "All features from Standard",
         "Unlimited Patients",
         "Advanced Population Analytics",
         "API & EMR Integration",
@@ -94,7 +109,7 @@ export default function PricingPage() {
         </section>
 
         <section className="w-full py-12 md:py-24 lg:py-32 bg-card">
-          <div className="container grid items-start gap-8 px-4 md:px-6 lg:grid-cols-3 lg:gap-12">
+          <div className="container grid items-stretch gap-8 px-4 md:px-6 lg:grid-cols-4">
             {tiers.map((tier) => (
               <Card key={tier.name} className="flex flex-col h-full">
                 <CardHeader>

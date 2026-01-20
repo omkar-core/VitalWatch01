@@ -3,7 +3,7 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { placeholderImages } from "@/lib/placeholder-images";
-import { CheckCircle, HeartPulse, ShieldCheck, Users, Bot, Cloud, BarChart } from "lucide-react";
+import { CheckCircle, HeartPulse, ShieldCheck, Users, Bot, Cloud, BarChart, Database } from "lucide-react";
 import { VitalWatchLogo } from "@/components/icons";
 
 export default function LandingPage() {
@@ -27,6 +27,16 @@ export default function LandingPage() {
     },
     {
       icon: <CheckCircle className="w-8 h-8 text-primary" />,
+      title: "SMS/WhatsApp Notifications",
+      description: "Instant alerts delivered to doctors and patients.",
+    },
+     {
+      icon: <BarChart className="w-8 h-8 text-primary" />,
+      title: "ML-Powered Analysis",
+      description: "Gain deep insights from health data patterns.",
+    },
+    {
+      icon: <Database className="w-8 h-8 text-primary" />,
       title: "GridDB Time-Series Storage",
       description: "Built on a high-performance, scalable time-series database.",
     },
@@ -121,7 +131,7 @@ export default function LandingPage() {
                 </p>
               </div>
             </div>
-            <div className="mx-auto grid max-w-5xl items-start gap-8 sm:grid-cols-2 md:gap-12 lg:max-w-none lg:grid-cols-4 mt-12">
+            <div className="mx-auto grid max-w-5xl items-start gap-8 sm:grid-cols-2 md:gap-12 lg:max-w-none lg:grid-cols-3 mt-12">
               {features.map((feature) => (
                 <Card key={feature.title} className="bg-background/50 hover:bg-background transition-colors duration-300 h-full">
                   <CardHeader className="flex flex-col items-center text-center gap-4">

@@ -5,16 +5,17 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import type { UserRole } from "@/lib/types";
 import { Loader2 } from "lucide-react";
+import Link from "next/link";
 
 export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialRole = searchParams.get("role") as UserRole | null;
 
-  const [role, setRole] = useState<UserRole | "">(initialRole || "");
+  const [role, setRole] = useState<UserRole | "">(initialRole || "doctor");
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -32,17 +33,40 @@ export function LoginForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="role">I am a...</Label>
-        <Select value={role} onValueChange={(value) => setRole(value as UserRole)} required>
-          <SelectTrigger id="role" aria-label="Select role">
-            <SelectValue placeholder="Select your role" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="doctor">Doctor</SelectItem>
-            <SelectItem value="patient">Patient</SelectItem>
-            <SelectItem value="admin">Clinic Admin</SelectItem>
-          </SelectContent>
-        </Select>
+        <Label>I am a...</Label>
+        <RadioGroup
+          defaultValue={role}
+          onValueChange={(value) => setRole(value as UserRole)}
+          className="grid grid-cols-3 gap-4"
+        >
+          <div>
+            <RadioGroupItem value="doctor" id="doctor" className="peer sr-only" />
+            <Label
+              htmlFor="doctor"
+              className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
+            >
+              Doctor
+            </Label>
+          </div>
+          <div>
+            <RadioGroupItem value="patient" id="patient" className="peer sr-only" />
+             <Label
+              htmlFor="patient"
+              className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
+            >
+              Patient
+            </Label>
+          </div>
+          <div>
+            <RadioGroupItem value="admin" id="admin" className="peer sr-only" />
+             <Label
+              htmlFor="admin"
+              className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
+            >
+              Admin
+            </Label>
+          </div>
+        </RadioGroup>
       </div>
       <div className="space-y-2">
         <Label htmlFor="email">Email</Label>

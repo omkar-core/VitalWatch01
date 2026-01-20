@@ -2,7 +2,7 @@ import { VitalWatchLogo } from "@/components/icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ArrowDown, Smartphone, Cloud, Database, BrainCircuit, Bell, LayoutDashboard } from "lucide-react";
+import { ArrowDown, Smartphone, Cloud, Database, BrainCircuit, Bell, LayoutDashboard, Wifi } from "lucide-react";
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -21,32 +21,38 @@ export default function HowItWorksPage() {
     },
     {
       step: 2,
-      title: "Data Sync via Gateway",
-      description: "An ESP32 gateway collects data and sends it to the cloud, with offline buffering capability.",
-      icon: <Cloud />
+      title: "ESP32 Gateway Syncs Data",
+      description: "A dedicated gateway collects data via Bluetooth and securely sends it to the cloud over Wi-Fi. Features offline buffering to prevent data loss.",
+      icon: <Wifi />
     },
     {
       step: 3,
-      title: "Secure Cloud Storage",
-      description: "Data is ingested by Azure IoT Hub and stored in a high-performance GridDB time-series database.",
-      icon: <Database />
+      title: "Secure Cloud Ingestion via Azure IoT Hub",
+      description: "Data is ingested using the secure and scalable MQTT protocol, ensuring every data point is authenticated and encrypted.",
+      icon: <Cloud />
     },
     {
       step: 4,
-      title: "ML Analysis",
-      description: "Our AI model analyzes the data for anomaly detection, spike prediction, and risk classification.",
-      icon: <BrainCircuit />
+      title: "High-Performance Storage in GridDB",
+      description: "Vital signs are stored in a GridDB time-series database, optimized for massive write throughput and rapid query performance.",
+      icon: <Database />
     },
      {
       step: 5,
-      title: "Intelligent Alerts",
-      description: "Doctors and patients receive SMS, WhatsApp, and push notifications for critical events.",
-      icon: <Bell />
+      title: "Real-time ML Analysis",
+      description: "Our AI models analyze incoming data for anomaly detection, predict glucose spikes, and classify patient risk levels in real-time.",
+      icon: <BrainCircuit />
     },
     {
       step: 6,
-      title: "Dashboard Access",
-      description: "Care teams and patients access real-time data and insights through their respective portals.",
+      title: "Intelligent Alerts Triggered",
+      description: "Doctors and patients receive instant SMS, WhatsApp, and push notifications for critical events, enabling timely intervention.",
+      icon: <Bell />
+    },
+    {
+      step: 7,
+      title: "Dashboard Access for Care Teams and Patients",
+      description: "Care teams and patients access real-time data, trends, and insights through their respective secure web portals.",
       icon: <LayoutDashboard />
     },
   ];

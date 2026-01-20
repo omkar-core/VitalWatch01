@@ -2,6 +2,12 @@ import { VitalWatchLogo } from "@/components/icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'About - VitalWatch',
+  description: 'Our mission is to revolutionize remote patient monitoring with intelligent, real-time health data.',
+};
 
 export default function AboutPage() {
   return (
@@ -15,6 +21,7 @@ export default function AboutPage() {
           <Link href="/about" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>About</Link>
           <Link href="/how-it-works" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>How It Works</Link>
           <Link href="/features" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>Features</Link>
+          <Link href="/pricing" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>Pricing</Link>
           <Link href="/contact" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>Contact</Link>
           <Link href="/login" prefetch={false}>
             <Button>Login</Button>
@@ -34,6 +41,7 @@ export default function AboutPage() {
             </div>
           </div>
         </section>
+        
         <section className="w-full py-12 md:py-24 lg:py-32 bg-card">
           <div className="container grid items-center gap-6 px-4 md:px-6 lg:grid-cols-2 lg:gap-10">
             <div className="space-y-4">
@@ -51,6 +59,26 @@ export default function AboutPage() {
             </div>
           </div>
         </section>
+        
+        <section className="w-full py-12 md:py-24 lg:py-32">
+          <div className="container px-4 md:px-6">
+            <h2 className="text-3xl font-bold font-headline tracking-tighter sm:text-4xl md:text-5xl text-center mb-12">Technology Philosophy</h2>
+            <div className="mx-auto max-w-3xl text-center space-y-6">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Why GridDB Cloud?</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <p className="text-muted-foreground">
+                            For a system that processes millions of data points per second, we needed a database that was not only fast but also incredibly reliable and scalable. GridDB Cloud's time-series capabilities allow us to query vast amounts of vital sign data with millisecond latency, which is crucial for real-time analysis and alerting. Its hybrid in-memory architecture ensures that the most recent, most critical data is always available for immediate processing by our ML models.
+                        </p>
+                    </CardContent>
+                </Card>
+                <p className="text-muted-foreground">We combine GridDB's power with Azure IoT Hub for secure device communication and a robust ML pipeline for predictive analytics, creating a healthcare platform that's truly ahead of the curve.</p>
+            </div>
+          </div>
+        </section>
+
       </main>
       <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">
         <p className="text-xs text-muted-foreground">&copy; 2024 VitalWatch. All rights reserved.</p>

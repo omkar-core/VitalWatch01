@@ -8,27 +8,41 @@ import {
   YAxis,
   Tooltip,
   Legend,
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
 } from "recharts";
 import {
   ChartContainer,
   ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent
 } from "@/components/ui/chart";
 import type { Vital } from "@/lib/types";
 
 interface VitalsChartProps {
-  data: Vital[];
+  data: any[];
+  dataKey1: string;
+  label1: string;
+  color1: string;
+  dataKey2?: string;
+  label2?: string;
+  color2?: string;
 }
 
-export function VitalsChart({ data }: VitalsChartProps) {
+export function VitalsChart({ data, dataKey1, label1, color1, dataKey2, label2, color2 }: VitalsChartProps) {
   const chartConfig = {
-    heartRate: {
-      label: "Heart Rate",
-      color: "hsl(var(--chart-1))",
+    [dataKey1]: {
+      label: label1,
+      color: color1,
     },
-    spo2: {
-      label: "SPO2",
-      color: "hsl(var(--chart-2))",
-    },
+    ...(dataKey2 && label2 && color2 && {
+      [dataKey2]: {
+        label: label2,
+        color: color2,
+      },
+    }),
   };
 
   return (
@@ -43,37 +57,37 @@ export function VitalsChart({ data }: VitalsChartProps) {
         />
         <YAxis
           yAxisId="left"
-          stroke="hsl(var(--chart-1))"
+          stroke={color1}
           tickLine={false}
           axisLine={false}
           tickMargin={8}
           />
-        <YAxis
+        {dataKey2 && <YAxis
           yAxisId="right"
           orientation="right"
-          stroke="hsl(var(--chart-2))"
+          stroke={color2}
           tickLine={false}
           axisLine={false}
           tickMargin={8}
-        />
+        />}
         <Tooltip content={<ChartTooltipContent />} />
         <Legend />
         <Line
           yAxisId="left"
           type="monotone"
-          dataKey="Heart Rate"
-          stroke="hsl(var(--chart-1))"
+          dataKey={dataKey1}
+          stroke={color1}
           strokeWidth={2}
           dot={false}
         />
-        <Line
-          yAxisId="right"
+        {dataKey2 && <Line
+          yAxisId={dataKey2 && "right"}
           type="monotone"
-          dataKey="SPO2"
-          stroke="hsl(var(--chart-2))"
+          dataKey={dataKey2}
+          stroke={color2}
           strokeWidth={2}
           dot={false}
-        />
+        />}
       </LineChart>
     </ChartContainer>
   );

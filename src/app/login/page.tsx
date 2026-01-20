@@ -2,8 +2,6 @@ import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { VitalWatchLogo } from "@/components/icons";
 import { LoginForm } from "@/components/auth/login-form";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { RegisterForm } from "@/components/auth/register-form";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {

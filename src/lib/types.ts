@@ -1,7 +1,9 @@
 export type Vital = {
   time: string;
+  "Glucose": number;
+  "Systolic": number;
+  "Diastolic": number;
   "Heart Rate": number;
-  "Blood Pressure": string;
   "SPO2": number;
   "Temperature": number;
 };
@@ -25,10 +27,12 @@ export type Alert = {
   id: string;
   patientId: string;
   patientName: string;
-  severity: 'High' | 'Medium' | 'Low';
+  severity: 'Critical' | 'High' | 'Medium' | 'Low' | 'Predictive';
   message: string;
   timestamp: string;
   isRead: boolean;
+  trend: string;
+  prediction: string;
 };
 
 export type UserRole = 'doctor' | 'patient' | 'admin';
