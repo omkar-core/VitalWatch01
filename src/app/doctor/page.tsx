@@ -17,6 +17,7 @@ import { Badge } from "@/components/ui/badge";
 export default function DoctorDashboard() {
   const unreadAlerts = alerts.filter(a => !a.isRead);
   const criticalPatients = patients.filter(p => p.status === 'Critical');
+  const criticalAndHighAlerts = alerts.filter(a => (a.severity === 'Critical' || a.severity === 'High') && !a.isRead);
 
   const summaryCards = [
     {
@@ -63,19 +64,23 @@ export default function DoctorDashboard() {
                 <CardDescription>Patients with vitals that have crossed critical thresholds.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-                {alerts.filter(a => a.severity === 'High' && !a.isRead).slice(0,2).map(alert => (
-                    <div key={alert.id} className="p-4 border rounded-lg flex flex-wrap items-center justify-between gap-4 bg-destructive/10 border-destructive/20">
-                        <div className="flex-1 min-w-[200px]">
-                            <p className="font-bold">{alert.patientName}</p>
-                            <p className="text-sm"><span className="text-destructive font-semibold">{alert.message}</span> at {alert.timestamp}</p>
+                 {criticalAndHighAlerts.length > 0 ? (
+                    criticalAndHighAlerts.slice(0, 2).map(alert => (
+                        <div key={alert.id} className="p-4 border rounded-lg flex flex-wrap items-center justify-between gap-4 bg-destructive/10 border-destructive/20">
+                            <div className="flex-1 min-w-[200px]">
+                                <p className="font-bold">{alert.patientName}</p>
+                                <p className="text-sm"><span className="text-destructive font-semibold">{alert.message}</span> at {alert.timestamp}</p>
+                            </div>
+                            <div className="flex items-center gap-2 flex-wrap">
+                                <Button size="sm" asChild><Link href={`/doctor/patients/${alert.patientId}`}><Users className="mr-2"/> View Details</Link></Button>
+                                <Button size="sm" variant="outline"><Phone className="mr-2"/> Call Patient</Button>
+                                <Button size="sm" variant="ghost"><Check className="mr-2"/> Acknowledge</Button>
+                            </div>
                         </div>
-                        <div className="flex items-center gap-2 flex-wrap">
-                            <Button size="sm" asChild><Link href={`/doctor/patients/${alert.patientId}`}><Users className="mr-2"/> View Details</Link></Button>
-                            <Button size="sm" variant="outline"><Phone className="mr-2"/> Call Patient</Button>
-                            <Button size="sm" variant="ghost"><Check className="mr-2"/> Acknowledge</Button>
-                        </div>
-                    </div>
-                ))}
+                    ))
+                 ) : (
+                    <p className="text-sm text-muted-foreground">No critical alerts at this time.</p>
+                 )}
             </CardContent>
         </Card>
 
@@ -96,23 +101,26 @@ export default function DoctorDashboard() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {patients.slice(0,4).map(p => (
+                            {patients.slice(0,4).map(p => {
+                                const latestVitals = p.vitals[p.vitals.length-1];
+                                return (
                                 <TableRow key={p.id}>
                                     <TableCell className="font-medium">{p.name}</TableCell>
                                     <TableCell>
-                                        <span className={p.vitals[p.vitals.length-1]['Heart Rate'] > 100 ? 'text-destructive font-bold' : ''}>
-                                            {p.vitals[p.vitals.length-1]['Heart Rate']}
+                                        <span className={latestVitals['Glucose'] > 180 ? 'text-destructive font-bold' : ''}>
+                                            {latestVitals['Glucose']}
                                         </span>
                                     </TableCell>
-                                    <TableCell>{p.vitals[p.vitals.length-1]['Blood Pressure']}</TableCell>
+                                    <TableCell>{`${latestVitals['Systolic']}/${latestVitals['Diastolic']}`}</TableCell>
                                     <TableCell>
-                                        <Badge variant={p.status === 'Critical' ? 'destructive' : p.status === 'Needs Review' ? 'secondary' : 'outline'}>{p.status}</Badge>
+                                        <Badge variant={p.status === 'Critical' ? 'destructive' : p.status === 'Needs Review' ? 'secondary' : 'default'} className={p.status === 'Stable' ? 'bg-green-500 hover:bg-green-500/80' : ''}>{p.status}</Badge>
                                     </TableCell>
                                     <TableCell>
                                         <Button asChild variant="link" size="sm"><Link href={`/doctor/patients/${p.id}`}>View</Link></Button>
                                     </TableCell>
                                 </TableRow>
-                            ))}
+                            )})
+                            }
                         </TableBody>
                     </Table>
                      <Button variant="secondary" className="mt-4 w-full" asChild><Link href="/doctor/patients">View All Patients</Link></Button>
@@ -130,7 +138,7 @@ export default function DoctorDashboard() {
                         {alerts.slice(0, 3).map(alert => (
                             <div key={alert.id} className="flex items-start gap-3">
                                 <div className="flex-shrink-0 pt-1">
-                                    <Bell className={`h-4 w-4 ${alert.severity === 'High' ? 'text-destructive' : 'text-yellow-500'}`} />
+                                    <Bell className={`h-4 w-4 ${alert.severity === 'Critical' || alert.severity === 'High' ? 'text-destructive' : 'text-yellow-500'}`} />
                                 </div>
                                 <div>
                                     <p className="text-sm font-medium leading-tight">{alert.patientName}: {alert.message}</p>
