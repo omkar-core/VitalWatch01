@@ -41,10 +41,10 @@ export default function PatientDetailPage() {
   const latestVitals = patient.vitals[patient.vitals.length - 1];
 
   const vitalCards = [
-    { title: "Glucose", value: `${latestVitals['Heart Rate']} mg/dL`, icon: <HeartPulse />, status: patient.status === 'Critical' ? "Critical" : "High" },
-    { title: "Blood Pressure", value: latestVitals['Blood Pressure'], icon: <Droplets />, status: "High" },
-    { title: "Heart Rate", value: `92 BPM`, icon: <HeartPulse />, status: "Normal" },
-    { title: "SpO2", value: `${latestVitals['SPO2']}%`, icon: <Wind />, status: "Normal" },
+    { title: "Glucose", value: `${latestVitals['Glucose']} mg/dL`, icon: <HeartPulse />, status: latestVitals['Glucose'] > 180 ? 'High' : latestVitals['Glucose'] < 70 ? 'Low' : 'Normal' },
+    { title: "Blood Pressure", value: `${latestVitals['Systolic']}/${latestVitals['Diastolic']}`, icon: <Droplets />, status: latestVitals['Systolic'] > 140 ? 'High' : 'Normal' },
+    { title: "Heart Rate", value: `${latestVitals['Heart Rate']} BPM`, icon: <HeartPulse />, status: "Normal" },
+    { title: "SpO2", value: `${latestVitals['SPO2']}%`, icon: <Wind />, status: latestVitals['SPO2'] < 95 ? 'Low' : 'Normal' },
   ];
 
   return (
@@ -76,7 +76,7 @@ export default function PatientDetailPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <p className="text-sm"><strong>Conditions:</strong> Type 2 Diabetes, Hypertension Stage 1</p>
+              <p className="text-sm"><strong>Conditions:</strong> {patient.conditions.join(', ')}</p>
               <p className="text-sm text-muted-foreground">Enrolled: 15 Dec 2024 | Device: CGM_LIBRE_45678</p>
             </CardContent>
           </Card>
@@ -93,7 +93,7 @@ export default function PatientDetailPage() {
                             {vital.icon} {vital.title}
                         </div>
                         <p className="text-2xl font-bold">{vital.value}</p>
-                        <Badge variant={vital.status === 'Critical' || vital.status === "High" ? 'destructive' : 'default'} className="w-fit">{vital.status}</Badge>
+                        <Badge variant={vital.status === 'High' || vital.status === 'Low' ? 'destructive' : 'default'} className="w-fit">{vital.status}</Badge>
                     </div>
                 ))}
             </CardContent>
@@ -104,7 +104,15 @@ export default function PatientDetailPage() {
               <CardTitle>Glucose & BP Trend (Last 24 Hours)</CardTitle>
             </CardHeader>
             <CardContent>
-              <VitalsChart data={patient.vitals} />
+              <VitalsChart 
+                data={patient.vitals} 
+                dataKey1="Glucose" 
+                label1="Glucose (mg/dL)" 
+                color1="hsl(var(--chart-1))" 
+                dataKey2="Systolic"
+                label2="BP (Systolic)"
+                color2="hsl(var(--chart-2))"
+              />
             </CardContent>
           </Card>
 

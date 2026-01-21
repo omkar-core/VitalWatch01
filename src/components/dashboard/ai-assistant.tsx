@@ -26,18 +26,18 @@ export function AiAssistant({ patient }: { patient: Patient }) {
   useEffect(() => {
     if (summary) {
       setDisplayedSummary("");
-      const chars = summary.split('');
+      const words = summary.split(/(\s+)/);
       let i = 0;
       setIsSummaryStreaming(true);
       const intervalId = setInterval(() => {
-        if (i < chars.length) {
-          setDisplayedSummary((prev) => prev + chars[i]);
+        if (i < words.length) {
+          setDisplayedSummary((prev) => prev + words[i]);
           i++;
         } else {
           clearInterval(intervalId);
           setIsSummaryStreaming(false);
         }
-      }, 20);
+      }, 50);
       return () => {
           clearInterval(intervalId);
           setIsSummaryStreaming(false);
@@ -50,18 +50,18 @@ export function AiAssistant({ patient }: { patient: Patient }) {
   useEffect(() => {
     if (diagnosis?.reasoning) {
       setDisplayedReasoning("");
-      const chars = diagnosis.reasoning.split('');
+      const words = diagnosis.reasoning.split(/(\s+)/);
       let i = 0;
       setIsDiagnosisStreaming(true);
       const intervalId = setInterval(() => {
-        if (i < chars.length) {
-          setDisplayedReasoning((prev) => prev + chars[i]);
+        if (i < words.length) {
+          setDisplayedReasoning((prev) => prev + words[i]);
           i++;
         } else {
           clearInterval(intervalId);
           setIsDiagnosisStreaming(false);
         }
-      }, 20);
+      }, 50);
       return () => {
           clearInterval(intervalId);
           setIsDiagnosisStreaming(false);
@@ -74,9 +74,10 @@ export function AiAssistant({ patient }: { patient: Patient }) {
   const handleGenerateSummary = async () => {
     setSummary("");
     startSummaryTransition(async () => {
+      const latestVitals = patient.vitals[patient.vitals.length - 1];
       const result = await generatePatientSummaryAction({
         medicalHistory: patient.medicalHistory,
-        currentHealthStatus: `Current symptoms: ${patient.symptoms}. Latest vitals are heart rate: ${patient.vitals[patient.vitals.length - 1]['Heart Rate']}, blood pressure: ${patient.vitals[patient.vitals.length - 1]['Blood Pressure']}, SPO2: ${patient.vitals[patient.vitals.length - 1]['SPO2']}%.`
+        currentHealthStatus: `Current symptoms: ${patient.symptoms}. Latest vitals are heart rate: ${latestVitals['Heart Rate']}, blood pressure: ${latestVitals['Systolic']}/${latestVitals['Diastolic']}, SPO2: ${latestVitals['SPO2']}%.`
       });
       if (result.error) {
         toast({
