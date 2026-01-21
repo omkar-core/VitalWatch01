@@ -1,7 +1,13 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { BarChart, LineChart, PieChart, ScatterChart } from "recharts";
+import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, XAxis, YAxis, Tooltip } from "recharts";
 import { ChartContainer, ChartTooltipContent } from "@/components/ui/chart";
 import { Server, Database, MessageCircle, AlertTriangle } from "lucide-react";
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'System Monitoring - Admin Portal | VitalWatch',
+  description: 'Monitor the real-time performance and health of the VitalWatch system components.',
+};
 
 export default function AdminMonitoringPage() {
     const gridDbData = [

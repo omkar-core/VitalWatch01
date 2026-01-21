@@ -4,6 +4,12 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Settings - Doctor Portal | VitalWatch',
+  description: 'Manage your profile, notification preferences, and other settings.',
+};
 
 export default function DoctorSettingsPage() {
   return (

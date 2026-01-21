@@ -13,6 +13,12 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Dashboard - Doctor Portal | VitalWatch',
+  description: 'Your central hub for patient monitoring, alerts, and quick actions.',
+};
 
 export default function DoctorDashboard() {
   const unreadAlerts = alerts.filter(a => !a.isRead);
@@ -135,7 +141,7 @@ export default function DoctorDashboard() {
                 </CardHeader>
                 <CardContent>
                     <div className="space-y-4">
-                        {alerts.slice(0, 3).map(alert => (
+                        {alerts.filter(a => !a.isRead).slice(0, 3).map(alert => (
                             <div key={alert.id} className="flex items-start gap-3">
                                 <div className="flex-shrink-0 pt-1">
                                     <Bell className={`h-4 w-4 ${alert.severity === 'Critical' || alert.severity === 'High' ? 'text-destructive' : 'text-yellow-500'}`} />

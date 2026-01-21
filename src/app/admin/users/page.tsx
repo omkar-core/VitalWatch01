@@ -20,11 +20,18 @@ import { users } from "@/lib/data";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import Image from "next/image";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
+import type { Metadata } from 'next';
+import type { User } from "@/lib/types";
 
 export default function AdminUsersPage() {
+
+    useEffect(() => {
+        document.title = "User Management - Admin Portal | VitalWatch";
+    }, []);
+
   const allUsers = users;
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -43,13 +50,13 @@ export default function AdminUsersPage() {
         <div className="ml-auto flex items-center gap-2">
             <Button size="sm" variant="outline" className="h-8 gap-1">
               <Upload className="h-3.5 w-3.5" />
-              <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+              <span className="sr-only sm:not-sr-only sm:whitespace-rap">
                 Import from CSV
               </span>
             </Button>
             <Button size="sm" variant="default" className="h-8 gap-1">
               <PlusCircle className="h-3.5 w-3.5" />
-              <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+              <span className="sr-only sm:not-sr-only sm:whitespace-rap">
                 Add New User
               </span>
             </Button>
@@ -88,7 +95,7 @@ export default function AdminUsersPage() {
 }
 
 
-function UserTable({ users }: { users: (typeof users) }) {
+function UserTable({ users }: { users: User[] }) {
     return (
         <Table>
             <TableHeader>

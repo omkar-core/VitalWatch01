@@ -1,5 +1,11 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertTriangle, Info } from "lucide-react";
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Alerts & Advice - Patient Portal | VitalWatch',
+  description: 'View important health alerts and advice from your care team.',
+};
 
 export default function PatientAlertsPage() {
   const alerts = [

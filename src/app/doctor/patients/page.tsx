@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -22,10 +22,16 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
+import type { Metadata } from 'next';
 
 
 export default function DoctorPatientsPage() {
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
+
+  useEffect(() => {
+    document.title = "Patient Management - Doctor Portal | VitalWatch";
+  }, []);
+
 
   const getStatusColor = (status: Patient["status"]) => {
     switch (status) {
@@ -71,35 +77,38 @@ export default function DoctorPatientsPage() {
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {patients.map((patient) => (
-                    <TableRow key={patient.id}>
-                        <TableCell className="font-medium">
-                            <div className="flex items-center gap-3">
-                                <Image src={patient.avatarUrl} alt={patient.name} width={32} height={32} className="rounded-full object-cover" data-ai-hint={patient.avatarHint} />
-                                {patient.name}
-                            </div>
-                        </TableCell>
-                        <TableCell>{patient.conditions.join(', ')}</TableCell>
-                        <TableCell>
-                            <span className={patient.vitals[patient.vitals.length-1]['Heart Rate'] > 180 ? 'text-destructive font-bold' : ''}>
-                                {patient.vitals[patient.vitals.length-1]['Heart Rate']} mg/dL
-                            </span>
-                        </TableCell>
-                         <TableCell>{patient.vitals[patient.vitals.length-1]['Blood Pressure']}</TableCell>
-                        <TableCell>
-                            <Badge variant={patient.status === 'Critical' ? 'destructive' : patient.status === 'Needs Review' ? 'secondary' : 'default'}
-                            className={patient.status === 'Stable' ? 'bg-green-500' : ''}>
-                                {patient.status}
-                            </Badge>
-                        </TableCell>
-                        <TableCell>{patient.lastSeen}</TableCell>
-                        <TableCell>
-                            <Button variant="outline" size="sm" asChild>
-                                <Link href={`/doctor/patients/${patient.id}`}>View</Link>
-                            </Button>
-                        </TableCell>
-                    </TableRow>
-                    ))}
+                    {patients.map((patient) => {
+                      const latestVitals = patient.vitals[patient.vitals.length - 1];
+                      return (
+                        <TableRow key={patient.id}>
+                            <TableCell className="font-medium">
+                                <div className="flex items-center gap-3">
+                                    <Image src={patient.avatarUrl} alt={patient.name} width={32} height={32} className="rounded-full object-cover" data-ai-hint={patient.avatarHint} />
+                                    {patient.name}
+                                </div>
+                            </TableCell>
+                            <TableCell>{patient.conditions.join(', ')}</TableCell>
+                            <TableCell>
+                                <span className={latestVitals.Glucose > 180 ? 'text-destructive font-bold' : ''}>
+                                    {latestVitals.Glucose} mg/dL
+                                </span>
+                            </TableCell>
+                            <TableCell>{`${latestVitals.Systolic}/${latestVitals.Diastolic}`}</TableCell>
+                            <TableCell>
+                                <Badge variant={patient.status === 'Critical' ? 'destructive' : patient.status === 'Needs Review' ? 'secondary' : 'default'}
+                                className={patient.status === 'Stable' ? 'bg-green-500 hover:bg-green-500/80' : ''}>
+                                    {patient.status}
+                                </Badge>
+                            </TableCell>
+                            <TableCell>{patient.lastSeen}</TableCell>
+                            <TableCell>
+                                <Button variant="outline" size="sm" asChild>
+                                    <Link href={`/doctor/patients/${patient.id}`}>View</Link>
+                                </Button>
+                            </TableCell>
+                        </TableRow>
+                      )
+                    })}
                 </TableBody>
                 </Table>
             </div>

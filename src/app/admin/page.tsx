@@ -3,6 +3,12 @@ import { users, devices, patients } from "@/lib/data";
 import { Users, TabletSmartphone, Activity, HardDrive, BarChart } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Overview - Admin Portal | VitalWatch',
+  description: 'High-level overview of the VitalWatch system, including key metrics and statuses.',
+};
 
 export default function AdminPage() {
     const summaryCards = [

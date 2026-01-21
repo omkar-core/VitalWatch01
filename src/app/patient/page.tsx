@@ -5,6 +5,12 @@ import { HeartPulse, Droplets, Calendar, MessageCircle, AlertTriangle, CheckCirc
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'My Dashboard - Patient Portal | VitalWatch',
+  description: 'Your personal health dashboard for monitoring vitals, alerts, and appointments.',
+};
 
 export default function PatientPage() {
   const patient = patients[0]; // Mock data for Ramaiah S.

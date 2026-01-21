@@ -1,6 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Appointments - Patient Portal | VitalWatch',
+  description: 'Manage your upcoming and past appointments with your care team.',
+};
+
 
 export default function PatientAppointmentsPage() {
     const appointments = [

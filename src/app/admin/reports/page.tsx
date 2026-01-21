@@ -3,6 +3,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { FileDown } from "lucide-react";
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Reports - Admin Portal | VitalWatch',
+  description: 'Generate and export detailed clinical, operational, and financial reports.',
+};
 
 export default function AdminReportsPage() {
   const reportGroups = [

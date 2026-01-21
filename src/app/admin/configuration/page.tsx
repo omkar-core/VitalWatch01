@@ -3,6 +3,12 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Configuration - Admin Portal | VitalWatch',
+  description: 'Manage global system settings for the VitalWatch platform.',
+};
 
 export default function AdminConfigurationPage() {
   return (
@@ -27,7 +33,7 @@ export default function AdminConfigurationPage() {
                     Temporarily disable access to the platform for all users except admins.
                   </p>
                 </div>
-                <Switch id="maintenance-mode" />
+                <Switch id="maintenance-mode" aria-label="Toggle maintenance mode" />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="session-timeout">Session Timeout (minutes)</Label>

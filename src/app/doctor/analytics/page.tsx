@@ -4,6 +4,12 @@ import { BarChart, LineChart, Users, FileDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Analytics & Reports - Doctor Portal | VitalWatch',
+  description: 'Analyze population health trends and generate reports for your patients.',
+};
 
 export default function DoctorAnalyticsPage() {
   return (

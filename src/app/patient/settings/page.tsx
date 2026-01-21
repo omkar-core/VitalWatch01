@@ -4,6 +4,12 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { BatteryFull, Smartphone, Trash2 } from "lucide-react"
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Settings - Patient Portal | VitalWatch',
+  description: 'Manage your profile, device, and communication preferences.',
+};
 
 export default function PatientSettingsPage() {
   return (

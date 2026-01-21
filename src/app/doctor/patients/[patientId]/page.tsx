@@ -1,6 +1,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { patients } from "@/lib/data";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,15 @@ export default function PatientDetailPage() {
 
   const patient = patients.find((p) => p.id === patientId);
 
+  useEffect(() => {
+    if (patient) {
+      document.title = `${patient.name} - Patient Details | VitalWatch`;
+    } else {
+      document.title = 'Patient Not Found | VitalWatch';
+    }
+  }, [patient]);
+
+
   if (!patient) {
     return (
       <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed shadow-sm p-4">
@@ -40,11 +50,36 @@ export default function PatientDetailPage() {
 
   const latestVitals = patient.vitals[patient.vitals.length - 1];
 
+  // Define alert thresholds for dynamic status calculation
+  const thresholds = {
+      glucose: { high: 300, low: 70 },
+      bp: { highSystolic: 160, highDiastolic: 100 },
+      spo2: { low: 95 }
+  };
+
+  const getGlucoseStatus = (glucose: number) => {
+      if (glucose > thresholds.glucose.high) return 'Critical';
+      if (glucose < thresholds.glucose.low) return 'Low';
+      if (glucose > 180) return 'High';
+      return 'Normal';
+  }
+
+  const getBpStatus = (systolic: number, diastolic: number) => {
+      if (systolic > thresholds.bp.highSystolic || diastolic > thresholds.bp.highDiastolic) return 'High';
+      return 'Normal';
+  }
+
+  const getSpo2Status = (spo2: number) => {
+      if (spo2 < thresholds.spo2.low) return 'Low';
+      return 'Normal';
+  }
+
+
   const vitalCards = [
-    { title: "Glucose", value: `${latestVitals['Glucose']} mg/dL`, icon: <HeartPulse />, status: latestVitals['Glucose'] > 180 ? 'High' : latestVitals['Glucose'] < 70 ? 'Low' : 'Normal' },
-    { title: "Blood Pressure", value: `${latestVitals['Systolic']}/${latestVitals['Diastolic']}`, icon: <Droplets />, status: latestVitals['Systolic'] > 140 ? 'High' : 'Normal' },
+    { title: "Glucose", value: `${latestVitals['Glucose']} mg/dL`, icon: <HeartPulse />, status: getGlucoseStatus(latestVitals['Glucose']) },
+    { title: "Blood Pressure", value: `${latestVitals['Systolic']}/${latestVitals['Diastolic']}`, icon: <Droplets />, status: getBpStatus(latestVitals['Systolic'], latestVitals['Diastolic']) },
     { title: "Heart Rate", value: `${latestVitals['Heart Rate']} BPM`, icon: <HeartPulse />, status: "Normal" },
-    { title: "SpO2", value: `${latestVitals['SPO2']}%`, icon: <Wind />, status: latestVitals['SPO2'] < 95 ? 'Low' : 'Normal' },
+    { title: "SpO2", value: `${latestVitals['SPO2']}%`, icon: <Wind />, status: getSpo2Status(latestVitals['SPO2']) },
   ];
 
   return (
@@ -93,7 +128,7 @@ export default function PatientDetailPage() {
                             {vital.icon} {vital.title}
                         </div>
                         <p className="text-2xl font-bold">{vital.value}</p>
-                        <Badge variant={vital.status === 'High' || vital.status === 'Low' ? 'destructive' : 'default'} className="w-fit">{vital.status}</Badge>
+                        <Badge variant={vital.status === 'High' || vital.status === 'Low' || vital.status === 'Critical' ? 'destructive' : 'default'} className="w-fit">{vital.status}</Badge>
                     </div>
                 ))}
             </CardContent>
@@ -131,8 +166,8 @@ export default function PatientDetailPage() {
                 <div className="mt-4">
                     <h4 className="font-semibold">Alert Thresholds</h4>
                     <ul className="list-disc list-inside text-muted-foreground">
-                        <li>Glucose: High &gt; 300, Low &lt; 70</li>
-                        <li>BP: High &gt; 160/100</li>
+                        <li>Glucose: High &gt; {thresholds.glucose.high}, Low &lt; {thresholds.glucose.low}</li>
+                        <li>BP: High &gt; {thresholds.bp.highSystolic}/{thresholds.bp.highDiastolic}</li>
                     </ul>
                 </div>
                  <div className="mt-4 flex gap-2">

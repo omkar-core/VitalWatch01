@@ -5,6 +5,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Contact Us - VitalWatch',
+  description: 'Get in touch with the VitalWatch team for support, partnerships, or any inquiries.',
+};
+
 
 export default function ContactPage() {
   return (
@@ -18,6 +25,7 @@ export default function ContactPage() {
           <Link href="/about" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>About</Link>
           <Link href="/how-it-works" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>How It Works</Link>
           <Link href="/features" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>Features</Link>
+           <Link href="/pricing" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>Pricing</Link>
           <Link href="/contact" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>Contact</Link>
           <Link href="/login" prefetch={false}>
             <Button>Login</Button>

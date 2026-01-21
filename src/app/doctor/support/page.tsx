@@ -3,6 +3,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Support - Doctor Portal | VitalWatch',
+  description: 'Get help and support for the VitalWatch platform.',
+};
 
 export default function DoctorSupportPage() {
   return (

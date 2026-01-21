@@ -10,10 +10,18 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { alerts } from "@/lib/data";
 import { AlertTriangle, Check } from "lucide-react";
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Alerts & Notifications - Doctor Portal | VitalWatch',
+  description: 'View and manage real-time patient health alerts and notifications.',
+};
 
 export default function DoctorAlertsPage() {
   const getSeverityClass = (severity: string) => {
     switch (severity) {
+      case "Critical":
+        return "text-destructive";
       case "High":
         return "text-destructive";
       case "Medium":
@@ -29,7 +37,7 @@ export default function DoctorAlertsPage() {
         <h1 className="text-lg font-semibold md:text-2xl">Alerts & Notifications</h1>
       </div>
       <div
-        className="flex flex-1 justify-center rounded-lg border border-dashed shadow-sm"
+        className="flex flex-1 justify-center rounded-lg border border-dashed shadow-sm p-4"
       >
         <Table>
           <TableHeader>
