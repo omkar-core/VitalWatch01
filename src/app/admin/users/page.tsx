@@ -1,3 +1,4 @@
+"use client";
 import {
   Table,
   TableHeader,
@@ -19,10 +20,21 @@ import { users } from "@/lib/data";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import Image from "next/image";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { Search } from "lucide-react";
 
 export default function AdminUsersPage() {
-  const doctors = users.filter(u => u.role === 'doctor');
-  const patients = users.filter(u => u.role === 'patient');
+  const allUsers = users;
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const filteredUsers = allUsers.filter(user =>
+    user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.email.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const doctors = filteredUsers.filter(u => u.role === 'doctor');
+  const patients = filteredUsers.filter(u => u.role === 'patient');
 
   return (
     <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
@@ -45,12 +57,16 @@ export default function AdminUsersPage() {
       </div>
         <Card>
             <Tabs defaultValue="doctors">
-                <CardHeader>
-                    <TabsList className="grid w-full grid-cols-3">
+                <CardHeader className="flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                    <TabsList className="grid w-full grid-cols-3 max-w-md">
                         <TabsTrigger value="doctors">Doctors ({doctors.length})</TabsTrigger>
                         <TabsTrigger value="patients">Patients ({patients.length})</TabsTrigger>
                         <TabsTrigger value="staff">Staff</TabsTrigger>
                     </TabsList>
+                     <div className="relative w-full max-w-sm">
+                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input placeholder="Search users..." className="pl-8" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+                    </div>
                 </CardHeader>
                 <CardContent>
                     <TabsContent value="doctors">
@@ -89,7 +105,7 @@ function UserTable({ users }: { users: (typeof users) }) {
             {users.map((user) => (
                 <TableRow key={user.id}>
                 <TableCell className="font-medium flex items-center gap-2">
-                    <Image src={user.avatarUrl} alt={user.name} width={32} height={32} className="rounded-full" data-ai-hint={user.avatarHint} />
+                    <Image src={user.avatarUrl} alt={user.name} width={32} height={32} className="rounded-full object-cover" data-ai-hint={user.avatarHint} />
                     {user.name}
                 </TableCell>
                 <TableCell>{user.email}</TableCell>

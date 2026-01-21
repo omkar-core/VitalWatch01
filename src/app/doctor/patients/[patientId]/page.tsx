@@ -62,7 +62,7 @@ export default function PatientDetailPage() {
             <CardHeader>
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
-                  <Image src={patient.avatarUrl} alt={patient.name} width={64} height={64} className="rounded-full" data-ai-hint={patient.avatarHint}/>
+                  <Image src={patient.avatarUrl} alt={patient.name} width={64} height={64} className="rounded-full object-cover" data-ai-hint={patient.avatarHint}/>
                   <div>
                     <CardTitle className="text-2xl font-headline">{patient.name}</CardTitle>
                     <CardDescription>{patient.age} y/o {patient.gender} | ID: {patient.id}</CardDescription>

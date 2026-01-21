@@ -75,7 +75,7 @@ export default function DoctorPatientsPage() {
                     <TableRow key={patient.id}>
                         <TableCell className="font-medium">
                             <div className="flex items-center gap-3">
-                                <Image src={patient.avatarUrl} alt={patient.name} width={32} height={32} className="rounded-full" data-ai-hint={patient.avatarHint} />
+                                <Image src={patient.avatarUrl} alt={patient.name} width={32} height={32} className="rounded-full object-cover" data-ai-hint={patient.avatarHint} />
                                 {patient.name}
                             </div>
                         </TableCell>

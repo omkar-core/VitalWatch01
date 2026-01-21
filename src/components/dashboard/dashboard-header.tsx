@@ -30,8 +30,8 @@ export function DashboardHeader({ userRole, title }: DashboardHeaderProps) {
       </div>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="secondary" size="icon" className="rounded-full">
-            {userImage && <Image src={userImage.imageUrl} width={36} height={36} alt="User Avatar" className="rounded-full" data-ai-hint={userImage.imageHint}/>}
+          <Button variant="ghost" className="relative h-9 w-9 rounded-full">
+            {userImage && <Image src={userImage.imageUrl} alt="User Avatar" fill className="rounded-full object-cover" data-ai-hint={userImage.imageHint} />}
             <span className="sr-only">Toggle user menu</span>
           </Button>
         </DropdownMenuTrigger>
