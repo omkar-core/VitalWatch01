@@ -21,6 +21,7 @@ type DashboardHeaderProps = {
 
 export function DashboardHeader({ userRole, title }: DashboardHeaderProps) {
     const userImage = placeholderImages.find(p => p.id === 'doctor-avatar-female');
+    const settingsPath = userRole === 'admin' ? '/admin/configuration' : `/${userRole}/settings`;
 
   return (
     <header className="flex h-14 items-center gap-4 border-b bg-card px-4 lg:h-[60px] lg:px-6 sticky top-0 z-30">
@@ -38,14 +39,18 @@ export function DashboardHeader({ userRole, title }: DashboardHeaderProps) {
         <DropdownMenuContent align="end">
           <DropdownMenuLabel>My Account</DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>
-            <UserIcon className="mr-2 h-4 w-4" />
-            <span>Profile</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <Settings className="mr-2 h-4 w-4" />
-            <span>Settings</span>
-          </DropdownMenuItem>
+          <Link href={settingsPath}>
+            <DropdownMenuItem>
+              <UserIcon className="mr-2 h-4 w-4" />
+              <span>Profile</span>
+            </DropdownMenuItem>
+          </Link>
+          <Link href={settingsPath}>
+            <DropdownMenuItem>
+              <Settings className="mr-2 h-4 w-4" />
+              <span>Settings</span>
+            </DropdownMenuItem>
+          </Link>
           <DropdownMenuSeparator />
           <Link href="/login">
             <DropdownMenuItem>
