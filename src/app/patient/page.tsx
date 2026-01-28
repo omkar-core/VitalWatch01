@@ -1,20 +1,50 @@
+'use client';
+
+import * as React from 'react';
 import { VitalsChart } from "@/components/dashboard/vitals-chart";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { patients } from "@/lib/data";
-import { HeartPulse, Droplets, Calendar, MessageCircle, AlertTriangle, CheckCircle } from "lucide-react";
+import { HeartPulse, Droplets, Calendar, MessageCircle, AlertTriangle, CheckCircle, Wifi, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
-import type { Metadata } from 'next';
-
-export const metadata: Metadata = {
-  title: 'My Dashboard - Patient Portal | VitalWatch',
-  description: 'Your personal health dashboard for monitoring vitals, alerts, and appointments.',
-};
+import { useFirestore } from '@/firebase/provider';
+import { useToast } from '@/hooks/use-toast';
+import { sendCommandToDevice } from '@/lib/device-commands';
 
 export default function PatientPage() {
+  React.useEffect(() => {
+    document.title = 'My Dashboard - Patient Portal | VitalWatch';
+  }, []);
+
   const patient = patients[0]; // Mock data for Ramaiah S.
   const latestVitals = patient.vitals[patient.vitals.length - 1];
+  
+  const firestore = useFirestore();
+  const { toast } = useToast();
+  const [isSyncing, setIsSyncing] = React.useState(false);
+
+  const handleDeviceSync = async () => {
+      setIsSyncing(true);
+      try {
+          // This would come from the authenticated user's profile in a real app.
+          const deviceId = 'CGM_LIBRE_45678';
+          sendCommandToDevice(firestore, deviceId, 'start_scan');
+          toast({
+            title: 'Scan Initiated',
+            description: `A request has been sent to your device to start a new scan.`,
+          });
+      } catch (error: any) {
+          toast({
+            variant: 'destructive',
+            title: 'Scan Failed',
+            description: error.message || 'Could not initiate device scan.',
+          });
+      } finally {
+        // Use a timeout to give user feedback, even though the command sends quickly
+        setTimeout(() => setIsSyncing(false), 1500);
+      }
+  };
 
   const vitalCards = [
     {
@@ -39,7 +69,13 @@ export default function PatientPage() {
 
   return (
     <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
-        <h1 className="font-headline text-2xl font-bold">Welcome, {patient.name.split(' ')[0]}!</h1>
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <h1 className="font-headline text-2xl font-bold">Welcome, {patient.name.split(' ')[0]}!</h1>
+          <Button onClick={handleDeviceSync} disabled={isSyncing}>
+            {isSyncing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wifi className="mr-2 h-4 w-4" />}
+            {isSyncing ? 'Scanning...' : 'Scan Vitals Now'}
+          </Button>
+        </div>
         
         <Card className="bg-destructive/10 border-destructive">
             <CardHeader>
