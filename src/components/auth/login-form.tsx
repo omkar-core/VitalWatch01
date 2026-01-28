@@ -37,7 +37,7 @@ export function LoginForm() {
         <RadioGroup
           defaultValue={role}
           onValueChange={(value) => setRole(value as UserRole)}
-          className="grid grid-cols-3 gap-4"
+          className="grid grid-cols-2 gap-4"
         >
           <div>
             <RadioGroupItem value="doctor" id="doctor" className="peer sr-only" />
@@ -55,15 +55,6 @@ export function LoginForm() {
               className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
             >
               Patient
-            </Label>
-          </div>
-          <div>
-            <RadioGroupItem value="admin" id="admin" className="peer sr-only" />
-             <Label
-              htmlFor="admin"
-              className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
-            >
-              Admin
             </Label>
           </div>
         </RadioGroup>

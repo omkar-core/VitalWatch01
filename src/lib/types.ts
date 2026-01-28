@@ -35,13 +35,13 @@ export type Alert = {
   prediction: string;
 };
 
-export type UserRole = 'doctor' | 'patient' | 'admin';
+export type UserRole = 'doctor' | 'patient';
 
 export type User = {
   id: string;
   name: string;
   email: string;
-  role: UserRole;
+  role: UserRole | 'admin';
   avatarUrl: string;
   avatarHint: string;
 };
@@ -61,4 +61,5 @@ export type PricingTier = {
     description: string;
     features: string[];
     cta: string;
+    variant: "default" | "secondary";
 };

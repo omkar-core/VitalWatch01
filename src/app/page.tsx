@@ -186,7 +186,7 @@ export default function LandingPage() {
               </p>
              <div className="mt-8 flex justify-center gap-4 flex-wrap">
                 <Button size="lg" asChild><Link href="/register?role=doctor">For Doctors: Request Demo</Link></Button>
-                <Button size="lg" variant="secondary" asChild><Link href="/register?role=admin">For Clinics: Partner With Us</Link></Button>
+                <Button size="lg" variant="secondary" asChild><Link href="/contact">For Clinics: Partner With Us</Link></Button>
                 <Button size="lg" variant="outline" asChild><Link href="/about">For Patients: Learn More</Link></Button>
              </div>
            </div>

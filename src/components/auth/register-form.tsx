@@ -31,10 +31,9 @@ export function RegisterForm() {
 
   return (
     <Tabs defaultValue={initialRole} className="w-full">
-      <TabsList className="grid w-full grid-cols-3">
+      <TabsList className="grid w-full grid-cols-2">
         <TabsTrigger value="doctor">Doctor</TabsTrigger>
         <TabsTrigger value="patient">Patient</TabsTrigger>
-        <TabsTrigger value="admin">Clinic Admin</TabsTrigger>
       </TabsList>
       <form onSubmit={handleSubmit}>
         <TabsContent value="doctor">
@@ -97,31 +96,6 @@ export function RegisterForm() {
                 <div className="space-y-2">
                     <Label htmlFor="patient-password">Password</Label>
                     <Input id="patient-password" name="password" type="password" required />
-                </div>
-            </div>
-        </TabsContent>
-        <TabsContent value="admin">
-            <input type="hidden" name="role" value="admin" />
-            <div className="space-y-4 pt-4">
-                 <div className="space-y-2">
-                    <Label htmlFor="admin-clinic-name">Clinic Name</Label>
-                    <Input id="admin-clinic-name" name="clinicName" placeholder="Community Health Center" required />
-                </div>
-                 <div className="space-y-2">
-                    <Label htmlFor="admin-reg-number">Registration Number</Label>
-                    <Input id="admin-reg-number" name="regNumber" placeholder="CLNC12345" required />
-                </div>
-                 <div className="space-y-2">
-                    <Label htmlFor="admin-contact">Admin Contact Name</Label>
-                    <Input id="admin-contact" name="contactName" placeholder="Admin Name" required />
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="admin-email">Admin Email</Label>
-                    <Input id="admin-email" name="email" type="email" placeholder="admin@example.com" required />
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="admin-password">Password</Label>
-                    <Input id="admin-password" name="password" type="password" required />
                 </div>
             </div>
         </TabsContent>
