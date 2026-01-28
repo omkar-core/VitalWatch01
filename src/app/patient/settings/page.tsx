@@ -1,17 +1,44 @@
+"use client";
+
+import * as React from "react";
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { BatteryFull, Smartphone, Trash2 } from "lucide-react"
+import { BatteryFull, Smartphone, Trash2, Wifi, Loader2 } from "lucide-react"
 import type { Metadata } from 'next';
-
-export const metadata: Metadata = {
-  title: 'Settings - Patient Portal | VitalWatch',
-  description: 'Manage your profile, device, and communication preferences.',
-};
+import { sendCommandToDevice } from "@/lib/device-commands";
+import { useFirestore } from "@/firebase/provider";
+import { useToast } from "@/hooks/use-toast";
 
 export default function PatientSettingsPage() {
+    const firestore = useFirestore();
+    const { toast } = useToast();
+    const [isSyncing, setIsSyncing] = React.useState(false);
+
+    const handleDeviceSync = async () => {
+        setIsSyncing(true);
+        try {
+            // In a real app, the device ID would come from the user's profile.
+            // For this demo, we'll hardcode it based on the mock data.
+            const deviceId = 'CGM_LIBRE_45678';
+            await sendCommandToDevice(firestore, deviceId, 'start_scan');
+            toast({
+            title: 'Sync Initiated',
+            description: `A request has been sent to sync with device ${deviceId}.`,
+            });
+        } catch (error: any) {
+            toast({
+            variant: 'destructive',
+            title: 'Sync Failed',
+            description: error.message || 'Could not initiate device sync.',
+            });
+        } finally {
+            setIsSyncing(false);
+        }
+    };
+
   return (
     <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
       <div className="flex items-center">
@@ -64,6 +91,10 @@ export default function PatientSettingsPage() {
                         <span>85%</span>
                     </div>
                 </div>
+                <Button onClick={handleDeviceSync} disabled={isSyncing} className="w-full">
+                    {isSyncing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wifi className="mr-2" />}
+                    {isSyncing ? 'Syncing...' : 'Sync Device Now'}
+                </Button>
             </CardContent>
           </Card>
 

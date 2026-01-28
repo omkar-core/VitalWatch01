@@ -8,7 +8,8 @@
         "uid": { "type": "string" },
         "email": { "type": "string", "format": "email" },
         "displayName": { "type": "string" },
-        "role": { "type": "string", "enum": ["doctor", "patient", "admin"] }
+        "role": { "type": "string", "enum": ["doctor", "patient", "admin"] },
+        "deviceId": { "type": "string", "description": "The ID of the IoT device assigned to the user." }
       },
       "required": ["uid", "email", "role"]
     },
@@ -33,6 +34,17 @@
             "severity": { "type": "string" },
             "timestamp": { "type": "string", "format": "date-time" }
         }
+    },
+    "deviceCommand": {
+        "title": "Device Command",
+        "description": "A command to be sent to a device.",
+        "type": "object",
+        "properties": {
+            "command": { "type": "string" },
+            "timestamp": { "type": "string", "format": "date-time" },
+            "status": { "type": "string", "enum": ["pending", "sent", "acknowledged"]}
+        },
+        "required": ["command", "timestamp", "status"]
     }
   },
   "auth": {
@@ -50,6 +62,10 @@
     "/alerts/{alertId}": {
         "schema": { "$ref": "#/entities/alert" },
         "description": "Stores patient alerts."
+    },
+    "/deviceCommands/{deviceId}": {
+        "schema": { "$ref": "#/entities/deviceCommand" },
+        "description": "Stores commands to be sent to IoT devices."
     }
   }
 }

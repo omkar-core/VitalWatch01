@@ -26,5 +26,13 @@ service cloud.firestore {
                   || resource.data.patientId == request.auth.uid;
       allow write: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'doctor';
     }
+
+    // Doctors and admins can read device commands for debugging.
+    // Patients can create commands for their own assigned device.
+    match /deviceCommands/{deviceId} {
+      allow read: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['doctor', 'admin'];
+      allow create: if request.auth.uid != null &&
+                     get(/databases/$(database)/documents/users/$(request.auth.uid)).data.deviceId == deviceId;
+    }
   }
 }
