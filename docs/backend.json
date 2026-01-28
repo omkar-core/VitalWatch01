@@ -1,0 +1,55 @@
+{
+  "entities": {
+    "user": {
+      "title": "User",
+      "description": "A user of the application.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "displayName": { "type": "string" },
+        "role": { "type": "string", "enum": ["doctor", "patient", "admin"] }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "patient": {
+        "title": "Patient",
+        "description": "A patient record.",
+        "type": "object",
+        "properties": {
+            "name": { "type": "string" },
+            "age": { "type": "number" },
+            "gender": { "type": "string" },
+            "conditions": { "type": "array", "items": { "type": "string" } }
+        }
+    },
+    "alert": {
+        "title": "Alert",
+        "description": "An alert for a patient.",
+        "type": "object",
+        "properties": {
+            "patientId": { "type": "string" },
+            "message": { "type": "string" },
+            "severity": { "type": "string" },
+            "timestamp": { "type": "string", "format": "date-time" }
+        }
+    }
+  },
+  "auth": {
+    "providers": ["password", "google.com"]
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/user" },
+      "description": "Stores public user profile information."
+    },
+    "/patients/{patientId}": {
+        "schema": { "$ref": "#/entities/patient" },
+        "description": "Stores patient health records."
+    },
+    "/alerts/{alertId}": {
+        "schema": { "$ref": "#/entities/alert" },
+        "description": "Stores patient alerts."
+    }
+  }
+}
