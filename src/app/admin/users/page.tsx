@@ -15,33 +15,35 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, PlusCircle, Upload } from "lucide-react";
-import { users } from "@/lib/data";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { MoreHorizontal, PlusCircle, Upload, Search, Loader2 } from "lucide-react";
+import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import Image from "next/image";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
+import type { UserProfile } from "@/lib/types";
+import { useCollection } from "@/firebase/firestore/use-collection";
+import { collection, query, where } from "firebase/firestore";
+import { useFirestore } from "@/firebase/provider";
+import { Skeleton } from "@/components/ui/skeleton";
 import type { Metadata } from 'next';
-import type { User } from "@/lib/types";
 
 export default function AdminUsersPage() {
-
-    useEffect(() => {
-        document.title = "User Management - Admin Portal | VitalWatch";
-    }, []);
-
-  const allUsers = users;
   const [searchTerm, setSearchTerm] = useState('');
+  const firestore = useFirestore();
+  
+  const usersQuery = query(collection(firestore, 'users'));
+  const { data: allUsers, loading } = useCollection<UserProfile>(usersQuery);
 
-  const filteredUsers = allUsers.filter(user =>
-    user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  const filteredUsers = allUsers?.filter(user =>
+    user.displayName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  ) || [];
 
   const doctors = filteredUsers.filter(u => u.role === 'doctor');
   const patients = filteredUsers.filter(u => u.role === 'patient');
+  const staff = filteredUsers.filter(u => u.role === 'admin');
+
 
   return (
     <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
@@ -66,9 +68,9 @@ export default function AdminUsersPage() {
             <Tabs defaultValue="doctors">
                 <CardHeader className="flex-col md:flex-row items-start md:items-center justify-between gap-4">
                     <TabsList className="grid w-full grid-cols-3 max-w-md">
-                        <TabsTrigger value="doctors">Doctors ({doctors.length})</TabsTrigger>
-                        <TabsTrigger value="patients">Patients ({patients.length})</TabsTrigger>
-                        <TabsTrigger value="staff">Staff</TabsTrigger>
+                        <TabsTrigger value="doctors">Doctors ({loading ? '...' : doctors.length})</TabsTrigger>
+                        <TabsTrigger value="patients">Patients ({loading ? '...' : patients.length})</TabsTrigger>
+                        <TabsTrigger value="staff">Staff ({loading ? '...' : staff.length})</TabsTrigger>
                     </TabsList>
                      <div className="relative w-full max-w-sm">
                         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -76,17 +78,25 @@ export default function AdminUsersPage() {
                     </div>
                 </CardHeader>
                 <CardContent>
-                    <TabsContent value="doctors">
-                        <UserTable users={doctors} />
-                    </TabsContent>
-                    <TabsContent value="patients">
-                         <UserTable users={patients} />
-                    </TabsContent>
-                     <TabsContent value="staff">
-                        <div className="text-center py-12 text-muted-foreground">
-                            Staff management coming soon.
+                    {loading ? (
+                        <div className="space-y-2">
+                            <Skeleton className="h-12 w-full" />
+                            <Skeleton className="h-12 w-full" />
+                            <Skeleton className="h-12 w-full" />
                         </div>
-                    </TabsContent>
+                    ) : (
+                        <>
+                            <TabsContent value="doctors">
+                                <UserTable users={doctors} />
+                            </TabsContent>
+                            <TabsContent value="patients">
+                                <UserTable users={patients} />
+                            </TabsContent>
+                            <TabsContent value="staff">
+                                 <UserTable users={staff} />
+                            </TabsContent>
+                        </>
+                    )}
                 </CardContent>
             </Tabs>
         </Card>
@@ -95,7 +105,11 @@ export default function AdminUsersPage() {
 }
 
 
-function UserTable({ users }: { users: User[] }) {
+function UserTable({ users }: { users: UserProfile[] }) {
+    if (users.length === 0) {
+        return <div className="text-center py-12 text-muted-foreground">No users in this category.</div>
+    }
+
     return (
         <Table>
             <TableHeader>
@@ -110,10 +124,10 @@ function UserTable({ users }: { users: User[] }) {
             </TableHeader>
             <TableBody>
             {users.map((user) => (
-                <TableRow key={user.id}>
+                <TableRow key={user.uid}>
                 <TableCell className="font-medium flex items-center gap-2">
-                    <Image src={user.avatarUrl} alt={user.name} width={32} height={32} className="rounded-full object-cover" data-ai-hint={user.avatarHint} />
-                    {user.name}
+                    <Image src={user.avatarUrl || `https://i.pravatar.cc/150?u=${user.uid}`} alt={user.displayName} width={32} height={32} className="rounded-full object-cover" />
+                    {user.displayName}
                 </TableCell>
                 <TableCell>{user.email}</TableCell>
                 <TableCell>

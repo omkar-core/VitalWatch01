@@ -10,13 +10,14 @@ export type Vital = {
 
 export type Patient = {
   id: string;
+  userId: string;
   name: string;
   age: number;
-  gender: 'Male' | 'Female';
+  gender: 'Male' | 'Female' | 'Other';
   avatarUrl: string;
   avatarHint: string;
   status: 'Stable' | 'Critical' | 'Needs Review';
-  lastSeen: string;
+  lastSeen: string; // This would likely be a timestamp in a real app
   symptoms: string;
   medicalHistory: string;
   conditions: string[];
@@ -29,22 +30,23 @@ export type Alert = {
   patientName: string;
   severity: 'Critical' | 'High' | 'Medium' | 'Low' | 'Predictive';
   message: string;
-  timestamp: string;
+  timestamp: string; // This would be a Firestore Timestamp in a real app
   isRead: boolean;
   trend: string;
   prediction: string;
 };
 
-export type UserRole = 'doctor' | 'patient';
+export type UserRole = 'doctor' | 'patient' | 'admin';
 
-export type User = {
-  id: string;
-  name: string;
+export type UserProfile = {
+  uid: string;
   email: string;
-  role: UserRole | 'admin';
-  avatarUrl: string;
-  avatarHint: string;
+  displayName: string;
+  role: UserRole;
+  avatarUrl?: string;
+  deviceId?: string;
 };
+
 
 export type Device = {
   id: string;

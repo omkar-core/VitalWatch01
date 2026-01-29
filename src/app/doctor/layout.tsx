@@ -1,4 +1,7 @@
+'use client';
+import * as React from 'react';
 import Link from "next/link";
+import { useRouter } from 'next/navigation';
 import {
   SidebarProvider,
   Sidebar,
@@ -12,16 +15,43 @@ import {
 } from "@/components/ui/sidebar";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { VitalWatchLogo } from "@/components/icons";
-import { Settings, LayoutDashboard, Users, Bell, BarChart, LifeBuoy } from "lucide-react";
+import { Settings, LayoutDashboard, Users, Bell, BarChart, LifeBuoy, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { alerts } from "@/lib/data";
+import { useUser } from '@/firebase/auth/use-user';
+import { useCollection } from '@/firebase/firestore/use-collection';
+import { collection, query, where } from 'firebase/firestore';
+import { useFirestore } from '@/firebase/provider';
+import type { Alert } from '@/lib/types';
+
 
 export default function DoctorLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const unreadAlerts = alerts.filter(a => !a.isRead).length;
+  const { user, userProfile, loading } = useUser();
+  const router = useRouter();
+  const firestore = useFirestore();
+
+  const alertsQuery = userProfile ? query(collection(firestore, 'alerts')) : null;
+  const { data: alerts } = useCollection<Alert>(alertsQuery);
+  const unreadAlerts = alerts?.filter(a => !a.isRead).length || 0;
+
+  React.useEffect(() => {
+    if (!loading) {
+      if (!user || userProfile?.role !== 'doctor') {
+        router.push('/login');
+      }
+    }
+  }, [user, userProfile, loading, router]);
+
+  if (loading || !user || userProfile?.role !== 'doctor') {
+    return (
+        <div className="flex h-screen w-full items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+    );
+  }
 
   return (
     <SidebarProvider>
@@ -91,7 +121,7 @@ export default function DoctorLayout({
         </SidebarFooter>
       </Sidebar>
       <SidebarInset className="bg-background">
-        <DashboardHeader userRole="doctor" title="Clinical Dashboard" />
+        <DashboardHeader title="Clinical Dashboard" />
         {children}
       </SidebarInset>
     </SidebarProvider>

@@ -1,17 +1,17 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { onSnapshot, collection, Query, DocumentData } from 'firebase/firestore';
-import { useFirestore } from '../provider';
+import { onSnapshot, Query, DocumentData } from 'firebase/firestore';
+import { errorEmitter } from '../error-emitter';
+import { FirestorePermissionError } from '../errors';
 
 export const useCollection = <T extends DocumentData>(query: Query<T> | null) => {
   const [data, setData] = useState<T[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const firestore = useFirestore();
 
   useEffect(() => {
-    if (!firestore || !query) {
+    if (!query) {
       setData(null);
       setLoading(false);
       return;
@@ -27,16 +27,21 @@ export const useCollection = <T extends DocumentData>(query: Query<T> | null) =>
         }));
         setData(docs);
         setLoading(false);
+        setError(null);
       },
       (err) => {
-        console.error(err);
-        setError(err);
+        const permissionError = new FirestorePermissionError({
+          path: query.path,
+          operation: 'list',
+        });
+        errorEmitter.emit('permission-error', permissionError);
+        setError(permissionError);
         setLoading(false);
       }
     );
 
     return () => unsubscribe();
-  }, [firestore, query]);
+  }, [query]);
 
   return { data, loading, error };
 };

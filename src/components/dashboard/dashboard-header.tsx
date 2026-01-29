@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -10,18 +12,20 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import type { User } from "@/lib/types";
+import type { UserProfile } from "@/lib/types";
 import { LogOut, Settings, User as UserIcon } from "lucide-react";
-import { placeholderImages } from "@/lib/placeholder-images";
+import { useUser } from "@/firebase/auth/use-user";
+import { signOutWithGoogle } from "@/firebase/auth/auth-service";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-type DashboardHeaderProps = {
-  userRole: 'doctor' | 'patient' | 'admin';
-  title: string;
-};
+export function DashboardHeader({ title }: { title: string }) {
+  const { user, userProfile, loading } = useUser();
+  const settingsPath = userProfile ? `/${userProfile.role}/settings` : '/login';
 
-export function DashboardHeader({ userRole, title }: DashboardHeaderProps) {
-    const userImage = placeholderImages.find(p => p.id === 'doctor-avatar-female');
-    const settingsPath = userRole === 'admin' ? '/admin/configuration' : `/${userRole}/settings`;
+  const getInitials = (name: string | null | undefined) => {
+    if (!name) return 'U';
+    return name.split(' ').map(n => n[0]).join('');
+  }
 
   return (
     <header className="flex h-14 items-center gap-4 border-b bg-card px-4 lg:h-[60px] lg:px-6 sticky top-0 z-30">
@@ -32,32 +36,33 @@ export function DashboardHeader({ userRole, title }: DashboardHeaderProps) {
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="relative h-9 w-9 rounded-full">
-            {userImage && <Image src={userImage.imageUrl} alt="User Avatar" fill className="rounded-full object-cover" data-ai-hint={userImage.imageHint} />}
+            <Avatar>
+                <AvatarImage src={userProfile?.avatarUrl || user?.photoURL || ''} alt={userProfile?.displayName || 'User Avatar'} />
+                <AvatarFallback>{loading ? '' : getInitials(userProfile?.displayName || user?.displayName)}</AvatarFallback>
+            </Avatar>
             <span className="sr-only">Toggle user menu</span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuLabel>My Account</DropdownMenuLabel>
+          <DropdownMenuLabel>{userProfile?.displayName || 'My Account'}</DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <Link href={settingsPath}>
-            <DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link href={settingsPath}>
               <UserIcon className="mr-2 h-4 w-4" />
               <span>Profile</span>
-            </DropdownMenuItem>
-          </Link>
-          <Link href={settingsPath}>
-            <DropdownMenuItem>
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link href={settingsPath}>
               <Settings className="mr-2 h-4 w-4" />
               <span>Settings</span>
-            </DropdownMenuItem>
-          </Link>
+            </Link>
+          </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <Link href="/login">
-            <DropdownMenuItem>
+          <DropdownMenuItem onClick={signOutWithGoogle}>
               <LogOut className="mr-2 h-4 w-4" />
               <span>Logout</span>
-            </DropdownMenuItem>
-          </Link>
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </header>
