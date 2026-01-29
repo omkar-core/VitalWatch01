@@ -1,4 +1,4 @@
-import type { Patient, Alert, User, Device, PricingTier } from '@/lib/types';
+import type { Patient, Alert, User, Device } from '@/lib/types';
 import { placeholderImages } from '@/lib/placeholder-images';
 
 const patientAvatar1 = placeholderImages.find(p => p.id === 'patient-avatar-1');
@@ -231,49 +231,3 @@ export const devices: Device[] = [
         lastSync: '3 days ago',
     }
 ];
-
-export const pricingTiers: PricingTier[] = [
-    {
-      name: "Pilot Program",
-      price: "Free",
-      period: "for first 500 patients",
-      description: "Ideal for new clinics and pilot studies to validate our platform's impact.",
-      features: [
-        "Up to 500 patients",
-        "Continuous Monitoring",
-        "Real-time Alerts",
-        "Doctor & Patient Portals",
-        "Standard Support",
-      ],
-      cta: "Join the Pilot",
-    },
-    {
-      name: "Basic Plan",
-      price: "₹50",
-      period: "/ patient / month",
-      description: "Essential features for small to medium-sized clinics.",
-      features: [
-        "All features from Pilot",
-        "Up to 2,000 patients",
-        "Basic Analytics",
-        "Email & SMS Notifications",
-        "Dedicated Onboarding",
-      ],
-      cta: "Get Started",
-    },
-    {
-      name: "Enterprise",
-      price: "Custom",
-      period: "for large-scale deployments",
-      description: "Comprehensive solutions for large hospitals and district-level health programs.",
-      features: [
-        "All features from Basic",
-        "Unlimited Patients",
-        "Advanced Population Analytics",
-        "API & EMR Integration",
-        "24/7 Premium Support",
-        "Custom Branding",
-      ],
-      cta: "Contact Sales",
-    },
-  ];

@@ -53,13 +53,3 @@ export type Device = {
   assignedTo: string;
   lastSync: string;
 };
-
-export type PricingTier = {
-    name: string;
-    price: string;
-    period: string;
-    description: string;
-    features: string[];
-    cta: string;
-    variant: "default" | "secondary";
-};
