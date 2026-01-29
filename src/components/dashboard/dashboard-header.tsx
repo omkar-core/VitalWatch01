@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,15 +13,20 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import type { UserProfile } from "@/lib/types";
 import { LogOut, Settings, User as UserIcon } from "lucide-react";
 import { useUser } from "@/firebase/auth/use-user";
-import { signOutWithGoogle } from "@/firebase/auth/auth-service";
+import { signOutUser } from "@/firebase/auth/auth-service";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export function DashboardHeader({ title }: { title: string }) {
+  const router = useRouter();
   const { user, userProfile, loading } = useUser();
   const settingsPath = userProfile ? `/${userProfile.role}/settings` : '/login';
+
+  const handleSignOut = async () => {
+    await signOutUser();
+    router.push('/login');
+  };
 
   const getInitials = (name: string | null | undefined) => {
     if (!name) return 'U';
@@ -59,7 +65,7 @@ export function DashboardHeader({ title }: { title: string }) {
             </Link>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={signOutWithGoogle}>
+          <DropdownMenuItem onClick={handleSignOut}>
               <LogOut className="mr-2 h-4 w-4" />
               <span>Logout</span>
           </DropdownMenuItem>
