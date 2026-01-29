@@ -89,9 +89,6 @@ export default function LandingPage() {
                 <Link href="/register" prefetch={false}>
                   <Button size="lg">Get Started</Button>
                 </Link>
-                <Link href="/how-it-works" prefetch={false}>
-                  <Button size="lg" variant="secondary">Watch Demo</Button>
-                </Link>
               </div>
             </div>
           </div>
