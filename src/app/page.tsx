@@ -44,7 +44,7 @@ export default function LandingPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      <header className="px-4 lg:px-6 h-16 flex items-center bg-card border-b sticky top-0 z-50">
+      <header className="px-4 lg:px-6 h-16 flex items-center bg-card/80 backdrop-blur-sm border-b sticky top-0 z-50">
         <Link href="/" className="flex items-center justify-center gap-2" prefetch={false}>
           <VitalWatchLogo className="h-6 w-6 text-primary" />
           <span className="text-xl font-headline font-bold text-foreground">VitalWatch</span>
@@ -100,17 +100,17 @@ export default function LandingPage() {
                 <h2 className="text-3xl font-bold font-headline tracking-tighter sm:text-5xl">The Current Crisis</h2>
               </div>
               <div className="grid gap-6 md:grid-cols-3">
-                  <Card className="text-center">
-                      <CardHeader><CardTitle className="text-4xl font-bold">90M</CardTitle></CardHeader>
-                      <CardContent><p className="text-muted-foreground">diabetics in India, a number rapidly growing.</p></CardContent>
+                  <Card className="text-center p-6">
+                      <CardHeader className="p-0"><CardTitle className="text-4xl font-bold">90M</CardTitle></CardHeader>
+                      <CardContent className="p-0 pt-2"><p className="text-muted-foreground">diabetics in India, a number rapidly growing.</p></CardContent>
                   </Card>
-                   <Card className="text-center">
-                      <CardHeader><CardTitle className="text-4xl font-bold">157M</CardTitle></CardHeader>
-                      <CardContent><p className="text-muted-foreground">projected diabetics by 2050 if trends continue.</p></CardContent>
+                   <Card className="text-center p-6">
+                      <CardHeader className="p-0"><CardTitle className="text-4xl font-bold">157M</CardTitle></CardHeader>
+                      <CardContent className="p-0 pt-2"><p className="text-muted-foreground">projected diabetics by 2050 if trends continue.</p></CardContent>
                   </Card>
-                   <Card className="text-center">
-                      <CardHeader><CardTitle className="text-4xl font-bold">30%</CardTitle></CardHeader>
-                      <CardContent><p className="text-muted-foreground">of adults in rural India are hypertensive.</p></CardContent>
+                   <Card className="text-center p-6">
+                      <CardHeader className="p-0"><CardTitle className="text-4xl font-bold">30%</CardTitle></CardHeader>
+                      <CardContent className="p-0 pt-2"><p className="text-muted-foreground">of adults in rural India are hypertensive.</p></CardContent>
                   </Card>
               </div>
           </div>
@@ -129,7 +129,7 @@ export default function LandingPage() {
             </div>
             <div className="mx-auto grid max-w-5xl items-start gap-8 sm:grid-cols-2 md:gap-12 lg:max-w-none lg:grid-cols-3 mt-12">
               {features.map((feature) => (
-                <Card key={feature.title} className="bg-background/50 hover:bg-background transition-colors duration-300 h-full">
+                <Card key={feature.title} className="bg-background/50 hover:bg-background transition-all hover:shadow-lg hover:-translate-y-1 duration-300 h-full">
                   <CardHeader className="flex flex-col items-center text-center gap-4">
                     {feature.icon}
                     <CardTitle className="font-headline text-xl">{feature.title}</CardTitle>
@@ -183,7 +183,6 @@ export default function LandingPage() {
              <div className="mt-8 flex justify-center gap-4 flex-wrap">
                 <Button size="lg" asChild><Link href="/register?role=doctor">For Doctors: Request Demo</Link></Button>
                 <Button size="lg" variant="secondary" asChild><Link href="/contact">For Clinics: Partner With Us</Link></Button>
-                <Button size="lg" variant="outline" asChild><Link href="/about">For Patients: Learn More</Link></Button>
              </div>
            </div>
         </section>

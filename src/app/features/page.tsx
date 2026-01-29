@@ -69,7 +69,7 @@ export default function FeaturesPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
-       <header className="px-4 lg:px-6 h-16 flex items-center bg-card border-b sticky top-0 z-50">
+       <header className="px-4 lg:px-6 h-16 flex items-center bg-card/80 backdrop-blur-sm border-b sticky top-0 z-50">
         <Link href="/" className="flex items-center justify-center gap-2" prefetch={false}>
           <VitalWatchLogo className="h-6 w-6 text-primary" />
           <span className="text-xl font-headline font-bold text-foreground">VitalWatch</span>
@@ -104,10 +104,10 @@ export default function FeaturesPage() {
              <h2 className="text-3xl font-bold font-headline tracking-tighter sm:text-4xl md:text-5xl text-center mb-12">For Doctors</h2>
             <div className="mx-auto grid max-w-5xl items-start gap-8 sm:grid-cols-2 md:gap-12 lg:max-w-none lg:grid-cols-3">
               {doctorFeatures.map((feature) => (
-                <Card key={feature.title} className="bg-background/50 hover:bg-background transition-colors duration-300 h-full">
+                <Card key={feature.title} className="bg-background/50 hover:bg-background transition-all hover:shadow-lg hover:-translate-y-1 duration-300 h-full">
                   <CardHeader className="flex flex-col items-center text-center gap-4">
                     {feature.icon}
-                    <CardTitle className="font-headline text-2xl">{feature.title}</CardTitle>
+                    <CardTitle className="text-2xl">{feature.title}</CardTitle>
                   </CardHeader>
                   <CardContent className="text-center text-muted-foreground">
                     {feature.description}
@@ -123,10 +123,10 @@ export default function FeaturesPage() {
              <h2 className="text-3xl font-bold font-headline tracking-tighter sm:text-4xl md:text-5xl text-center mb-12">For Patients</h2>
             <div className="mx-auto grid max-w-5xl items-start gap-8 sm:grid-cols-2 md:gap-12 lg:max-w-none lg:grid-cols-3">
               {patientFeatures.map((feature) => (
-                <Card key={feature.title} className="bg-card/50 hover:bg-card transition-colors duration-300 h-full">
+                <Card key={feature.title} className="bg-card/50 hover:bg-card transition-all hover:shadow-lg hover:-translate-y-1 duration-300 h-full">
                   <CardHeader className="flex flex-col items-center text-center gap-4">
                     {feature.icon}
-                    <CardTitle className="font-headline text-2xl">{feature.title}</CardTitle>
+                    <CardTitle className="text-2xl">{feature.title}</CardTitle>
                   </CardHeader>
                   <CardContent className="text-center text-muted-foreground">
                     {feature.description}
@@ -142,10 +142,10 @@ export default function FeaturesPage() {
              <h2 className="text-3xl font-bold font-headline tracking-tighter sm:text-4xl md:text-5xl text-center mb-12">For Clinics & Admins</h2>
             <div className="mx-auto grid max-w-5xl items-start gap-8 sm:grid-cols-2 md:gap-12 lg:max-w-none lg:grid-cols-3">
               {clinicFeatures.map((feature) => (
-                <Card key={feature.title} className="bg-background/50 hover:bg-background transition-colors duration-300 h-full">
+                <Card key={feature.title} className="bg-background/50 hover:bg-background transition-all hover:shadow-lg hover:-translate-y-1 duration-300 h-full">
                   <CardHeader className="flex flex-col items-center text-center gap-4">
                     {feature.icon}
-                    <CardTitle className="font-headline text-2xl">{feature.title}</CardTitle>
+                    <CardTitle className="text-2xl">{feature.title}</CardTitle>
                   </CardHeader>
                   <CardContent className="text-center text-muted-foreground">
                     {feature.description}

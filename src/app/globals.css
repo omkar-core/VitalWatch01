@@ -8,7 +8,7 @@ body {
 
 @layer base {
   :root {
-    --background: 216 20% 94%;
+    --background: 220 30% 96%;
     --foreground: 220 39% 20%;
     --card: 0 0% 100%;
     --card-foreground: 220 39% 20%;
@@ -16,16 +16,16 @@ body {
     --popover-foreground: 220 39% 20%;
     --primary: 220 39% 26%;
     --primary-foreground: 0 0% 98%;
-    --secondary: 216 20% 90%;
+    --secondary: 220 20% 90%;
     --secondary-foreground: 220 39% 26%;
-    --muted: 216 20% 96%;
+    --muted: 220 20% 94%;
     --muted-foreground: 220 20% 45%;
     --accent: 34 45% 64%;
     --accent-foreground: 220 39% 20%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    --border: 216 20% 85%;
-    --input: 216 20% 88%;
+    --border: 220 20% 90%;
+    --input: 220 20% 92%;
     --ring: 220 39% 26%;
     --chart-1: 220 70% 50%;
     --chart-2: 34 45% 64%;

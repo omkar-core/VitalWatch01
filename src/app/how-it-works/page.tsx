@@ -59,7 +59,7 @@ export default function HowItWorksPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
-       <header className="px-4 lg:px-6 h-16 flex items-center bg-card border-b sticky top-0 z-50">
+       <header className="px-4 lg:px-6 h-16 flex items-center bg-card/80 backdrop-blur-sm border-b sticky top-0 z-50">
         <Link href="/" className="flex items-center justify-center gap-2" prefetch={false}>
           <VitalWatchLogo className="h-6 w-6 text-primary" />
           <span className="text-xl font-headline font-bold text-foreground">VitalWatch</span>
@@ -92,7 +92,7 @@ export default function HowItWorksPage() {
              <div className="relative flex flex-col items-center gap-8">
                 {steps.map((step, index) => (
                   <div key={step.step} className="flex flex-col items-center text-center w-full max-w-2xl">
-                     <Card className="w-full">
+                     <Card className="w-full transition-all hover:shadow-lg">
                        <CardHeader>
                          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                            <div className="flex items-center gap-4">
@@ -102,7 +102,7 @@ export default function HowItWorksPage() {
                             <span className="flex sm:hidden items-center justify-center w-8 h-8 rounded-full bg-primary text-primary-foreground font-bold">{step.step}</span>
                            </div>
                            <div className="text-center sm:text-left">
-                            <CardTitle className="font-headline text-2xl">{step.title}</CardTitle>
+                            <CardTitle className="text-2xl">{step.title}</CardTitle>
                             <p className="text-muted-foreground mt-1">{step.description}</p>
                            </div>
                          </div>

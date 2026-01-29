@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 export default function ContactPage() {
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      <header className="px-4 lg:px-6 h-16 flex items-center bg-card border-b">
+      <header className="px-4 lg:px-6 h-16 flex items-center bg-card/80 backdrop-blur-sm border-b sticky top-0 z-50">
         <Link href="/" className="flex items-center justify-center gap-2" prefetch={false}>
           <VitalWatchLogo className="h-6 w-6 text-primary" />
           <span className="text-xl font-headline font-bold text-foreground">VitalWatch</span>
@@ -44,11 +44,11 @@ export default function ContactPage() {
             </div>
           </div>
         </section>
-        <section className="w-full py-12 md:py-24 lg:py-32 bg-card">
+        <section className="w-full pb-12 md:pb-24 lg:pb-32">
           <div className="container px-4 md:px-6">
             <Card className="max-w-2xl mx-auto">
               <CardHeader>
-                <CardTitle className="font-headline text-2xl">Send us a message</CardTitle>
+                <CardTitle className="text-2xl">Send us a message</CardTitle>
               </CardHeader>
               <CardContent>
                 <form className="space-y-4">

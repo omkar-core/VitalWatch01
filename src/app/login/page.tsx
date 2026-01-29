@@ -21,8 +21,8 @@ export default function LoginPage() {
         </div>
         <Card>
           <CardHeader>
-            <CardTitle className="text-2xl font-headline">Account Access</CardTitle>
-            <CardDescription>Select your role to sign in to your portal.</CardDescription>
+            <CardTitle className="text-2xl">Account Access</CardTitle>
+            <CardDescription>Enter your credentials to access your portal.</CardDescription>
           </CardHeader>
           <CardContent>
             <LoginForm />
