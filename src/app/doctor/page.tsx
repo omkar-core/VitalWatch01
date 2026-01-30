@@ -74,7 +74,7 @@ export default function DoctorDashboard() {
             ))}
         </div>
 
-        <Card className="transition-all hover:shadow-xl hover:-translate-y-1">
+        <Card className="transition-all hover:shadow-xl hover:-translate-y-1 border-2 border-destructive/50 bg-destructive/5">
             <CardHeader>
                 <CardTitle className="text-destructive flex items-center gap-2"><AlertTriangle /> Critical Alerts (Requires Immediate Attention)</CardTitle>
                 <CardDescription>Patients with vitals that have crossed critical thresholds.</CardDescription>
@@ -88,7 +88,7 @@ export default function DoctorDashboard() {
                     criticalAlerts.map(alert => {
                         const patient = patients?.find(p => p.patient_id === alert.patient_id);
                         return (
-                          <div key={alert.alert_id} className="p-4 border rounded-lg flex flex-wrap items-center justify-between gap-4 bg-destructive/10 border-destructive/20">
+                          <div key={alert.alert_id} className="p-4 border rounded-lg flex flex-wrap items-center justify-between gap-4 bg-background/50 border-destructive/20">
                               <div className="flex-1 min-w-[200px]">
                                   <p className="font-bold">{patient?.name || 'Unknown Patient'}</p>
                                   <p className="text-sm"><span className="text-destructive font-semibold">{alert.alert_message}</span></p>

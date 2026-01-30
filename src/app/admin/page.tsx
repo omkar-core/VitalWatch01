@@ -1,42 +1,50 @@
 'use client';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, TabletSmartphone, HardDrive } from "lucide-react";
+import { Users, TabletSmartphone, HardDrive, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { mockAllUsers, mockDevices } from "@/lib/mock-data";
 import { Skeleton } from "@/components/ui/skeleton";
+import useSWR from 'swr';
+import type { UserProfile, PatientProfile } from "@/lib/types";
+
+const fetcher = (url: string) => fetch(url).then(res => res.json());
 
 export default function AdminPage() {
-    const patients = mockAllUsers.filter(u => u.role === 'patient');
-    const doctors = mockAllUsers.filter(u => u.role === 'doctor');
-    const devices = mockDevices;
+    const { data: allUsers, isLoading: usersLoading } = useSWR<UserProfile[]>('/api/users', fetcher);
+    const { data: patientProfiles, isLoading: devicesLoading } = useSWR<PatientProfile[]>('/api/patients', fetcher);
 
-    const activeDevices = devices?.filter(d => d.status === 'Active').length || 0;
+    const loading = usersLoading || devicesLoading;
+
+    const patients = allUsers?.filter(u => u.role === 'patient');
+    const doctors = allUsers?.filter(u => u.role === 'doctor');
+    const devices = patientProfiles;
+
+    const activeDevices = devices?.filter(d => d.is_active).length || 0;
 
     const summaryCards = [
         {
-        title: "Total Patients",
-        value: patients?.length || 0,
-        icon: <Users className="h-6 w-6 text-muted-foreground" />,
-        loading: false,
+            title: "Total Patients",
+            value: patients?.length || 0,
+            icon: <Users className="h-6 w-6 text-muted-foreground" />,
+            loading: usersLoading,
         },
         {
-        title: "Active Doctors",
-        value: doctors?.length || 0,
-        icon: <Users className="h-6 w-6 text-muted-foreground" />,
-        loading: false,
+            title: "Active Doctors",
+            value: doctors?.length || 0,
+            icon: <Users className="h-6 w-6 text-muted-foreground" />,
+            loading: usersLoading,
         },
         {
-        title: "Devices Online",
-        value: activeDevices,
-        icon: <TabletSmartphone className="h-6 w-6 text-muted-foreground" />,
-        loading: false,
+            title: "Devices Online",
+            value: activeDevices,
+            icon: <TabletSmartphone className="h-6 w-6 text-muted-foreground" />,
+            loading: devicesLoading,
         },
         {
-        title: "System Health",
-        value: "Good",
-        icon: <HardDrive className="h-6 w-6 text-green-500" />,
-        loading: false,
+            title: "System Health",
+            value: "Good",
+            icon: <HardDrive className="h-6 w-6 text-green-500" />,
+            loading: false,
         },
   ];
 
@@ -65,26 +73,30 @@ export default function AdminPage() {
                 <CardTitle>Program Metrics (Last 30 Days)</CardTitle>
             </CardHeader>
             <CardContent className="grid grid-cols-2 gap-4 text-sm">
-                <div className="space-y-1">
-                    <p className="text-muted-foreground">Patients Enrolled</p>
-                    <p className="font-semibold text-lg">{patients?.length || 0}</p>
-                </div>
-                 <div className="space-y-1">
-                    <p className="text-muted-foreground">Emergency Preventions</p>
-                    <p className="font-semibold text-lg">18</p>
-                </div>
-                 <div className="space-y-1">
-                    <p className="text-muted-foreground">Alert Response Rate</p>
-                    <p className="font-semibold text-lg">94%</p>
-                </div>
-                 <div className="space-y-1">
-                    <p className="text-muted-foreground">Data Capture Rate</p>
-                    <p className="font-semibold text-lg">98.5%</p>
-                </div>
-                 <div className="space-y-1">
-                    <p className="text-muted-foreground">System Uptime</p>
-                    <p className="font-semibold text-lg">99.95%</p>
-                </div>
+                 {loading ? <Skeleton className="h-24 w-full col-span-2"/> : (
+                    <>
+                        <div className="space-y-1">
+                            <p className="text-muted-foreground">Patients Enrolled</p>
+                            <p className="font-semibold text-lg">{patients?.length || 0}</p>
+                        </div>
+                        <div className="space-y-1">
+                            <p className="text-muted-foreground">Emergency Preventions</p>
+                            <p className="font-semibold text-lg">18</p>
+                        </div>
+                        <div className="space-y-1">
+                            <p className="text-muted-foreground">Alert Response Rate</p>
+                            <p className="font-semibold text-lg">94%</p>
+                        </div>
+                        <div className="space-y-1">
+                            <p className="text-muted-foreground">Data Capture Rate</p>
+                            <p className="font-semibold text-lg">98.5%</p>
+                        </div>
+                        <div className="space-y-1">
+                            <p className="text-muted-foreground">System Uptime</p>
+                            <p className="font-semibold text-lg">99.95%</p>
+                        </div>
+                    </>
+                )}
             </CardContent>
         </Card>
         <Card className="transition-all hover:shadow-xl hover:-translate-y-1">
@@ -92,25 +104,29 @@ export default function AdminPage() {
                 <CardTitle>Device Management</CardTitle>
             </CardHeader>
             <CardContent className="grid grid-cols-2 gap-4 text-sm">
-                 <div className="space-y-1">
-                    <p className="text-muted-foreground">Total Devices</p>
-                    <p className="font-semibold text-lg">{devices?.length || 0}</p>
-                </div>
-                 <div className="space-y-1">
-                    <p className="text-muted-foreground">Active</p>
-                    <p className="font-semibold text-lg">{activeDevices} ({devices && devices.length > 0 ? Math.round((activeDevices / devices.length) * 100) : 0}%)</p>
-                </div>
-                 <div className="space-y-1">
-                    <p className="text-muted-foreground">Low Battery</p>
-                    <p className="font-semibold text-lg text-yellow-600">23</p>
-                </div>
-                 <div className="space-y-1">
-                    <p className="text-muted-foreground">Connection Issues</p>
-                    <p className="font-semibold text-lg text-destructive">5</p>
-                </div>
-                <div className="col-span-2">
-                    <Button asChild variant="secondary" className="w-full mt-2"><Link href="/admin/devices">View Device Status →</Link></Button>
-                </div>
+                 {loading ? <Skeleton className="h-24 w-full col-span-2"/> : (
+                    <>
+                        <div className="space-y-1">
+                            <p className="text-muted-foreground">Total Devices</p>
+                            <p className="font-semibold text-lg">{devices?.length || 0}</p>
+                        </div>
+                        <div className="space-y-1">
+                            <p className="text-muted-foreground">Active</p>
+                            <p className="font-semibold text-lg">{activeDevices} ({devices && devices.length > 0 ? Math.round((activeDevices / devices.length) * 100) : 0}%)</p>
+                        </div>
+                        <div className="space-y-1">
+                            <p className="text-muted-foreground">Low Battery</p>
+                            <p className="font-semibold text-lg text-yellow-600">23</p>
+                        </div>
+                        <div className="space-y-1">
+                            <p className="text-muted-foreground">Connection Issues</p>
+                            <p className="font-semibold text-lg text-destructive">5</p>
+                        </div>
+                        <div className="col-span-2">
+                            <Button asChild variant="secondary" className="w-full mt-2"><Link href="/admin/devices">View Device Status →</Link></Button>
+                        </div>
+                    </>
+                 )}
             </CardContent>
         </Card>
       </div>
