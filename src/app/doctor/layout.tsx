@@ -18,8 +18,7 @@ import { VitalWatchLogo } from "@/components/icons";
 import { Settings, LayoutDashboard, Users, Bell, BarChart, LifeBuoy, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useUser } from '@/firebase/auth/use-user';
-import { useCollection } from 'react-firebase-hooks/firestore';
-import { collection, query, where } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, type DocumentData } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 
 
@@ -28,26 +27,48 @@ export default function DoctorLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { user, userProfile, loading } = useUser();
+  const { user, userProfile, loading: userLoading } = useUser();
   const router = useRouter();
   const firestore = useFirestore();
 
-  const [alerts, alertsLoading, alertsError] = useCollection(
-    firestore ? query(
-      collection(firestore, "alert_history"),
-      where("acknowledged", "==", false)
-      // In a real app, you'd likely also filter by doctorId
-    ) : null
-  );
-
-  const unreadAlerts = alerts ? alerts.docs.length : 0;
-
+  const [alerts, setAlerts] = React.useState<DocumentData[]>([]);
+  const [alertsLoading, setAlertsLoading] = React.useState(true);
+  const [alertsError, setAlertsError] = React.useState<Error | null>(null);
 
   React.useEffect(() => {
-    if (!loading && (!user || userProfile?.role !== 'doctor')) {
+    if (!firestore) {
+      setAlertsLoading(false);
+      return;
+    }
+    
+    const alertsQuery = query(
+      collection(firestore, "alert_history"),
+      where("acknowledged", "==", false)
+    );
+
+    const unsubscribe = onSnapshot(alertsQuery, 
+      (querySnapshot) => {
+        setAlerts(querySnapshot.docs);
+        setAlertsLoading(false);
+      },
+      (error) => {
+        console.error("Error fetching alerts:", error);
+        setAlertsError(error);
+        setAlertsLoading(false);
+      }
+    );
+
+    return () => unsubscribe();
+  }, [firestore]);
+
+  const unreadAlerts = alerts.length;
+  const loading = userLoading || alertsLoading;
+
+  React.useEffect(() => {
+    if (!userLoading && (!user || userProfile?.role !== 'doctor')) {
       router.push('/login');
     }
-  }, [user, userProfile, loading, router]);
+  }, [user, userProfile, userLoading, router]);
   
   if (loading || !user || userProfile?.role !== 'doctor') {
     return (
