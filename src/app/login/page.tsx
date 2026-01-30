@@ -29,9 +29,6 @@ export default function LoginPage() {
         case 'patient':
           router.replace('/patient');
           break;
-        case 'admin':
-          router.replace('/admin');
-          break;
         default:
           router.replace('/'); // Fallback
       }

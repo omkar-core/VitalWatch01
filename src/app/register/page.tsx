@@ -33,9 +33,6 @@ export default function RegisterPage() {
                 <Button asChild>
                     <Link href="/patient">Patient Dashboard</Link>
                 </Button>
-                 <Button asChild>
-                    <Link href="/admin">Admin Dashboard</Link>
-                </Button>
             </div>
           </CardContent>
         </Card>

@@ -82,7 +82,7 @@
         "uid": { "type": "string" },
         "email": { "type": "string", "format": "email" },
         "displayName": { "type": "string" },
-        "role": { "type": "string", "enum": ["doctor", "patient", "admin"] }
+        "role": { "type": "string", "enum": ["doctor", "patient"] }
       },
       "required": ["uid", "email", "role", "displayName"]
     }

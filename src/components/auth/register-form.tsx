@@ -32,7 +32,7 @@ const formSchema = z.object({
   displayName: z.string().min(2, 'Display name must be at least 2 characters'),
   email: z.string().email(),
   password: z.string().min(6, 'Password must be at least 6 characters'),
-  role: z.enum(['doctor', 'patient', 'admin'], {
+  role: z.enum(['doctor', 'patient'], {
     required_error: 'You need to select a role.',
   }),
 });
@@ -134,7 +134,6 @@ export function RegisterForm() {
                 <SelectContent>
                   <SelectItem value="doctor">Doctor</SelectItem>
                   <SelectItem value="patient">Patient</SelectItem>
-                  <SelectItem value="admin">Admin</SelectItem>
                 </SelectContent>
               </Select>
               <FormDescription>
