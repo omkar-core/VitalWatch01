@@ -1,6 +1,5 @@
 'use client';
 import {
-  getAuth,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
@@ -10,14 +9,13 @@ import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { getFirebase } from '..';
 import type { UserRole, PatientProfile } from '@/lib/types';
 
-const { auth, firestore } = getFirebase();
-
 export async function signUp(
   email: string,
   password: string,
   displayName: string,
   role: UserRole
 ) {
+  const { auth, firestore } = getFirebase();
   const userCredential = await createUserWithEmailAndPassword(
     auth,
     email,
@@ -25,7 +23,9 @@ export async function signUp(
   );
   const user = userCredential.user;
 
-  const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=random`;
+  const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(
+    displayName
+  )}&background=random`;
 
   // Update profile in Firebase Auth
   await updateProfile(user, { displayName, photoURL: avatarUrl });
@@ -71,27 +71,31 @@ export async function signUp(
       emergency_contact_name: '',
       emergency_contact_phone: '',
     };
-    
+
     // Fire-and-forget the profile creation to make the UI faster.
     // The dashboard will handle the brief period where the profile might not exist yet.
     fetch('/api/patients', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newProfile)
-    }).catch(e => {
-        console.error("Failed to create patient profile in GridDB in the background:", e);
-        // In a real app, you might add this to a retry queue or notify an admin.
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newProfile),
+    }).catch((e) => {
+      console.error(
+        'Failed to create patient profile in GridDB in the background:',
+        e
+      );
+      // In a real app, you might add this to a retry queue or notify an admin.
     });
   }
-
 
   return user;
 }
 
 export async function login(email: string, password: string) {
+  const { auth } = getFirebase();
   return signInWithEmailAndPassword(auth, email, password);
 }
 
 export async function logout() {
+  const { auth } = getFirebase();
   return signOut(auth);
 }
