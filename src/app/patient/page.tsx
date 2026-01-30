@@ -1,18 +1,13 @@
 'use client';
 
 import * as React from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from '@/components/ui/skeleton';
-import { HeartPulse, Droplets, Thermometer, Wind, Wifi, Bot, ShieldCheck, Loader2, Info } from "lucide-react";
+import { HeartPulse, Droplets, Thermometer, Wind, Wifi, Bot, ShieldCheck, Loader2, Info, Activity } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
-import { useUser } from '@/firebase/auth/use-user';
-import { collection, limit, onSnapshot, query, orderBy } from 'firebase/firestore';
-import { useFirestore } from '@/firebase/provider';
 import type { Vital } from '@/lib/types';
-import { useCollection } from '@/firebase/firestore/use-collection';
-import { EstimateHealthMetricsOutput } from '@/ai/flows/suggest-initial-diagnoses';
+import { mockVitals, mockEstimations, mockPatients } from "@/lib/mock-data";
 import { cn } from '@/lib/utils';
-import { triggerVitalsScanAndAnalysis } from '@/app/actions';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 // Helper function to get status colors
@@ -34,52 +29,33 @@ const getStatusColor = (status: string) => {
 };
 
 export default function PatientPage() {
-  const { user, userProfile, loading: userLoading } = useUser();
-  const firestore = useFirestore();
   const { toast } = useToast();
   const [isSyncing, setIsSyncing] = React.useState(false);
 
-  const vitalsQuery = React.useMemo(() =>
-    user ? query(collection(firestore, `users/${user.uid}/vitals`), orderBy("timestamp", "desc"), limit(1)) : null,
-    [user, firestore]
-  );
-  const { data: vitalsData, loading: loadingVitals } = useCollection<Vital>(vitalsQuery);
-
-  const estimationsQuery = React.useMemo(() =>
-    user ? query(collection(firestore, `users/${user.uid}/estimations`), orderBy("timestamp", "desc"), limit(1)) : null,
-    [user, firestore]
-  );
-  const { data: estimationsData, loading: loadingEstimations } = useCollection<EstimateHealthMetricsOutput>(estimationsQuery);
+  const patient = mockPatients[0];
+  const vitalsData = mockVitals[patient.uid] || [];
+  const estimationsData = mockEstimations[patient.uid] || [];
 
   const latestVital = vitalsData && vitalsData.length > 0 ? vitalsData[0] : null;
   const latestEstimation = estimationsData && estimationsData.length > 0 ? estimationsData[0] : null;
 
   const handleDeviceSync = async () => {
-    if (!user || !userProfile) return;
     if (isSyncing) return;
     
     setIsSyncing(true);
     toast({
         title: 'Initiating Scan...',
-        description: `Requesting a new reading from your device. This will take a moment.`,
+        description: `Requesting a new reading from your device. (Mock Action)`,
     });
 
-    const result = await triggerVitalsScanAndAnalysis(user.uid);
-    
-    setIsSyncing(false);
-    
-    if (result.error) {
-        toast({
-            variant: 'destructive',
-            title: 'Scan Failed',
-            description: result.error,
-        });
-    } else {
+    // Simulate a scan
+    setTimeout(() => {
+        setIsSyncing(false);
         toast({
             title: 'Scan Complete!',
-            description: `Your latest vitals have been recorded and analyzed.`,
+            description: `Your latest vitals have been recorded and analyzed. (Mock Data)`,
         });
-    }
+    }, 3000);
   };
 
   const bp = latestVital ? {
@@ -98,7 +74,7 @@ export default function PatientPage() {
   const glucose = latestVital ? latestVital["Glucose"] : null;
   const glucoseStatus = glucose ? (glucose > 180 ? 'Critical' : (glucose > 140 ? 'High' : 'Normal')) : 'Normal';
 
-  const isLoading = userLoading || loadingVitals || loadingEstimations;
+  const isLoading = false;
 
   return (
     <div className="p-4 space-y-4">
@@ -126,7 +102,7 @@ export default function PatientPage() {
             <Card className={cn("border-2", glucoseStatus === 'Critical' ? "border-destructive bg-destructive/5" : "border-transparent")}>
                 <CardHeader className="pb-2">
                     <CardTitle className="text-sm font-semibold text-muted-foreground flex items-center justify-between">
-                        <span className='flex items-center gap-2'><span className={cn('h-2 w-2 rounded-full', getStatusColor(glucoseStatus))}></span>GLUCOSE LEVEL</span>
+                         <span className='flex items-center gap-2'><Droplets className='text-red-500'/>GLUCOSE LEVEL</span>
                         {glucoseStatus === 'Critical' && <span className="text-xs font-bold text-destructive-foreground bg-destructive px-2 py-0.5 rounded-full">CRITICAL</span>}
                     </CardTitle>
                 </CardHeader>
@@ -143,7 +119,7 @@ export default function PatientPage() {
              {isLoading ? <Skeleton className="h-48 w-full rounded-lg" /> : bp && (
                 <Card>
                     <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-semibold text-muted-foreground flex items-center gap-2"><HeartPulse className='text-red-500'/> BP</CardTitle>
+                        <CardTitle className="text-sm font-semibold text-muted-foreground flex items-center gap-2"><HeartPulse className='text-red-500'/> BLOOD PRESSURE</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-2">
                         <p className="text-3xl font-bold">{bp.systolic}<span className='text-muted-foreground'>/</span>{bp.diastolic}<span className="text-base text-muted-foreground ml-1">mmHg</span></p>
@@ -159,7 +135,7 @@ export default function PatientPage() {
              {isLoading ? <Skeleton className="h-48 w-full rounded-lg" /> : heart && (
                 <Card>
                      <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-semibold text-muted-foreground flex items-center gap-2"><HeartPulse className='text-blue-500'/> HEART RATE</CardTitle>
+                        <CardTitle className="text-sm font-semibold text-muted-foreground flex items-center gap-2"><Activity className='text-blue-500'/> HEART RATE</CardTitle>
                     </CardHeader>
                      <CardContent className="space-y-2">
                         <p className="text-3xl font-bold">{heart.rate}<span className="text-base text-muted-foreground ml-1">bpm</span></p>
@@ -173,7 +149,7 @@ export default function PatientPage() {
              {isLoading ? <Skeleton className="h-36 w-full rounded-lg" /> : latestVital && (
                 <Card>
                      <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-semibold text-muted-foreground flex items-center gap-2"><Wind className='text-green-500'/> SPO2</CardTitle>
+                        <CardTitle className="text-sm font-semibold text-muted-foreground flex items-center gap-2"><Wind className='text-green-500'/> SpO2</CardTitle>
                     </CardHeader>
                      <CardContent>
                         <p className="text-3xl font-bold">{latestVital["SPO2"]}<span className="text-base text-muted-foreground">%</span></p>
@@ -188,7 +164,7 @@ export default function PatientPage() {
                         <CardTitle className="text-sm font-semibold text-muted-foreground flex items-center gap-2"><Thermometer className='text-orange-500'/> TEMP</CardTitle>
                     </CardHeader>
                      <CardContent>
-                        <p className="text-3xl font-bold">{latestVital["Temperature"]}<span className="text-base text-muted-foreground">°F</span></p>
+                        <p className="text-3xl font-bold">{latestVital["Temperature"].toFixed(1)}<span className="text-base text-muted-foreground">°F</span></p>
                          <p className="text-xs font-semibold text-muted-foreground pt-1">Body Temperature</p>
                     </CardContent>
                 </Card>

@@ -1,12 +1,11 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { VitalsChart } from "@/components/dashboard/vitals-chart";
 import Image from "next/image";
-import { ArrowLeft, Phone, MessageSquare, Pencil, User, HeartPulse, Droplets, Wind, Thermometer, Loader2, AlertTriangle, Info, Bot, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Phone, MessageSquare, Pencil, Loader2, Info, Bot, Droplets, HeartPulse, Wind, Activity, AlertTriangle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -17,12 +16,8 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
-import { useFirestore } from "@/firebase/provider";
-import { useDoc } from "@/firebase/firestore/use-doc";
-import { useCollection } from "@/firebase/firestore/use-collection";
-import type { UserProfile, Vital, Alert, EstimateHealthMetricsOutput } from "@/lib/types";
-import { doc, collection, query, where, orderBy, limit } from "firebase/firestore";
-import { Skeleton } from "@/components/ui/skeleton";
+import type { UserProfile, Vital, Alert } from "@/lib/types";
+import { mockPatients, mockVitals, mockEstimations, mockAlerts } from "@/lib/mock-data";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Alert as AlertBox, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -32,28 +27,19 @@ export default function PatientDetailPage() {
   const params = useParams();
   const patientId = params.patientId as string;
   
-  const firestore = useFirestore();
-  const patientRef = doc(firestore, 'users', patientId);
-  const { data: patient, loading: patientLoading } = useDoc<UserProfile>(patientRef);
+  const patient = mockPatients.find(p => p.uid === patientId);
+  const vitals = mockVitals[patientId] || [];
+  const estimations = mockEstimations[patientId] || [];
+  const alerts = mockAlerts.filter(a => a.patientId === patientId);
 
-  const vitalsQuery = query(collection(firestore, `users/${patientId}/vitals`), orderBy('timestamp', 'desc'));
-  const { data: vitals, loading: vitalsLoading } = useCollection<Vital>(vitalsQuery);
-  
-  const estimationsQuery = query(collection(firestore, `users/${patientId}/estimations`), orderBy('timestamp', 'desc'), limit(5));
-  const { data: estimations, loading: estimationsLoading } = useCollection<EstimateHealthMetricsOutput>(estimationsQuery);
-
-  const alertsQuery = query(collection(firestore, 'alerts'), where('patientId', '==', patientId), orderBy('timestamp', 'desc'), limit(5));
-  const { data: alerts, loading: alertsLoading } = useCollection<Alert>(alertsQuery);
-
-
-  const loading = patientLoading || vitalsLoading || estimationsLoading || alertsLoading;
+  const loading = false;
 
   const latestVital = vitals && vitals.length > 0 ? vitals[0] : null;
 
   const vitalCards = latestVital ? [
-    { title: "Glucose", value: `${latestVital['Glucose']} mg/dL`, icon: <HeartPulse />, status: latestVital['Glucose'] > 180 ? 'High' : 'Normal' },
-    { title: "Blood Pressure", value: `${latestVital['Systolic']}/${latestVital['Diastolic']}`, icon: <Droplets />, status: latestVital['Systolic'] > 130 ? 'High' : 'Normal' },
-    { title: "Heart Rate", value: `${latestVital['Heart Rate']} BPM`, icon: <HeartPulse />, status: "Normal" },
+    { title: "Glucose", value: `${latestVital['Glucose']} mg/dL`, icon: <Droplets />, status: latestVital['Glucose'] > 180 ? 'High' : 'Normal' },
+    { title: "Blood Pressure", value: `${latestVital['Systolic']}/${latestVital['Diastolic']}`, icon: <HeartPulse />, status: latestVital['Systolic'] > 130 ? 'High' : 'Normal' },
+    { title: "Heart Rate", value: `${latestVital['Heart Rate']} BPM`, icon: <Activity />, status: "Normal" },
     { title: "SpO2", value: `${latestVital['SPO2']}%`, icon: <Wind />, status: latestVital['SPO2'] < 95 ? 'Low' : 'Normal' },
   ] : [];
 
@@ -131,7 +117,7 @@ export default function PatientDetailPage() {
             </CardHeader>
             <CardContent>
               <VitalsChart 
-                data={vitals?.map(v => ({...v, time: v.timestamp?.toDate() ? format(v.timestamp.toDate(), 'p') : 'N/A' })).reverse() || []} 
+                data={vitals?.map(v => ({...v, time: v.timestamp?.toDate ? format(v.timestamp.toDate(), 'p') : 'N/A' })).reverse() || []} 
                 dataKey1="Glucose" 
                 label1="Glucose (mg/dL)" 
                 color1="hsl(var(--chart-1))" 
@@ -172,7 +158,7 @@ export default function PatientDetailPage() {
                 <CardContent className="space-y-4">
                     {estimations && estimations.map((est, i) => (
                         <div key={i} className="p-3 rounded-lg border bg-secondary/30">
-                            <p className="font-semibold text-sm">Prediction from {est.timestamp?.toDate() ? format(est.timestamp.toDate(), 'p') : 'N/A'}</p>
+                            <p className="font-semibold text-sm">Prediction from {est.timestamp?.toDate ? format(est.timestamp.toDate(), 'p') : 'N/A'}</p>
                             <div className="grid grid-cols-2 gap-2 mt-2 text-sm">
                                 <div>
                                     <p className="text-muted-foreground">BP Category</p>
@@ -187,6 +173,7 @@ export default function PatientDetailPage() {
                             <p className="text-xs font-medium text-right mt-1">Confidence: {Math.round(est.confidenceScore * 100)}%</p>
                         </div>
                     ))}
+                     {(!estimations || estimations.length === 0) && <p className="text-sm text-muted-foreground">No AI estimations available for this patient.</p>}
                 </CardContent>
             </Card>
 

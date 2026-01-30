@@ -1,11 +1,11 @@
 'use client';
 import * as React from 'react';
 import Link from "next/link";
-import { usePathname, useRouter } from 'next/navigation';
-import { Home, List, Calendar, User, Loader2 } from 'lucide-react';
-import { useUser } from '@/firebase/auth/use-user';
+import { usePathname } from 'next/navigation';
+import { Home, List, Calendar, User } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
+import { mockPatients } from '@/lib/mock-data'; // Import mock data
 
 function BottomNav() {
   const pathname = usePathname();
@@ -41,25 +41,8 @@ export default function PatientLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { user, userProfile, loading } = useUser();
-  const router = useRouter();
+  const userProfile = mockPatients[0]; // Use the first mock patient
 
-  React.useEffect(() => {
-    if (!loading) {
-      if (!user || userProfile?.role !== 'patient') {
-        router.push('/login');
-      }
-    }
-  }, [user, userProfile, loading, router]);
-
-  if (loading || !user || userProfile?.role !== 'patient') {
-    return (
-        <div className="flex h-screen w-full items-center justify-center bg-background">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
-    );
-  }
-  
   const getInitials = (name: string | null | undefined) => {
     if (!name) return 'U';
     return name.split(' ').map(n => n[0]).join('');
@@ -70,8 +53,8 @@ export default function PatientLayout({
         <header className="flex h-16 items-center justify-between gap-4 border-b bg-card px-6 sticky top-0 z-40">
             <div className='flex items-center gap-3'>
                  <Avatar>
-                    <AvatarImage src={userProfile?.avatarUrl || user?.photoURL || ''} alt={userProfile?.displayName || 'User Avatar'} />
-                    <AvatarFallback>{getInitials(userProfile?.displayName || user?.displayName)}</AvatarFallback>
+                    <AvatarImage src={userProfile?.avatarUrl || ''} alt={userProfile?.displayName || 'User Avatar'} />
+                    <AvatarFallback>{getInitials(userProfile?.displayName)}</AvatarFallback>
                 </Avatar>
                 <div>
                     <h1 className="text-sm font-semibold text-muted-foreground">My Health</h1>

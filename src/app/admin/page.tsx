@@ -1,27 +1,15 @@
 'use client';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, TabletSmartphone, Activity, HardDrive } from "lucide-react";
+import { Users, TabletSmartphone, HardDrive } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import type { Metadata } from 'next';
-import { useFirestore } from "@/firebase/provider";
-import { useCollection } from "@/firebase/firestore/use-collection";
-import { collection, query, where } from "firebase/firestore";
-import type { UserProfile, Device } from "@/lib/types";
+import { mockAllUsers, mockDevices } from "@/lib/mock-data";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function AdminPage() {
-    const firestore = useFirestore();
-
-    const { data: patients, loading: loadingPatients } = useCollection<UserProfile>(
-        query(collection(firestore, 'users'), where('role', '==', 'patient'))
-    );
-    const { data: doctors, loading: loadingDoctors } = useCollection<UserProfile>(
-        query(collection(firestore, 'users'), where('role', '==', 'doctor'))
-    );
-    const { data: devices, loading: loadingDevices } = useCollection<Device>(
-        query(collection(firestore, 'devices'))
-    );
+    const patients = mockAllUsers.filter(u => u.role === 'patient');
+    const doctors = mockAllUsers.filter(u => u.role === 'doctor');
+    const devices = mockDevices;
 
     const activeDevices = devices?.filter(d => d.status === 'Active').length || 0;
 
@@ -30,19 +18,19 @@ export default function AdminPage() {
         title: "Total Patients",
         value: patients?.length || 0,
         icon: <Users className="h-6 w-6 text-muted-foreground" />,
-        loading: loadingPatients,
+        loading: false,
         },
         {
         title: "Active Doctors",
         value: doctors?.length || 0,
         icon: <Users className="h-6 w-6 text-muted-foreground" />,
-        loading: loadingDoctors,
+        loading: false,
         },
         {
         title: "Devices Online",
         value: activeDevices,
         icon: <TabletSmartphone className="h-6 w-6 text-muted-foreground" />,
-        loading: loadingDevices,
+        loading: false,
         },
         {
         title: "System Health",

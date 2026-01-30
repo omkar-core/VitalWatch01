@@ -1,6 +1,6 @@
 'use client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Users, AlertTriangle, Bell, Activity, Phone, Check, MessageSquare } from "lucide-react";
+import { Users, AlertTriangle, Bell, Activity, Phone, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import {
@@ -12,29 +12,17 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { useFirestore } from "@/firebase/provider";
-import { useCollection } from "@/firebase/firestore/use-collection";
-import { collection, query, where, limit, orderBy } from "firebase/firestore";
-import type { UserProfile, Alert } from "@/lib/types";
+import { mockPatients, mockAlerts } from "@/lib/mock-data";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDistanceToNow } from "date-fns";
 
 
 export default function DoctorDashboard() {
-  const firestore = useFirestore();
-
-  const { data: patients, loading: loadingPatients } = useCollection<UserProfile>(
-    query(collection(firestore, 'users'), where('role', '==', 'patient'), limit(10))
-  );
-
-  const { data: alerts, loading: loadingAlerts } = useCollection<Alert>(
-    query(collection(firestore, 'alerts'), where('isRead', '==', false), orderBy('timestamp', 'desc'), limit(5))
-  );
-
-  const { data: criticalAlerts, loading: loadingCriticalAlerts } = useCollection<Alert>(
-      query(collection(firestore, 'alerts'), where('severity', 'in', ['Critical', 'High']), where('isRead', '==', false), limit(2))
-  );
+  const patients = mockPatients;
+  const alerts = mockAlerts;
+  const loading = false;
   
+  const criticalAlerts = alerts?.filter(a => (a.severity === 'Critical' || a.severity === 'High') && !a.isRead).slice(0, 2);
   const criticalPatients = patients?.filter(p => p.status === 'Critical') || [];
 
   const summaryCards = [
@@ -42,42 +30,27 @@ export default function DoctorDashboard() {
       title: "Total Patients",
       value: patients?.length || 0,
       icon: <Users className="h-6 w-6 text-muted-foreground" />,
-      loading: loadingPatients,
+      loading: loading,
     },
     {
       title: "Active Alerts",
-      value: alerts?.length || 0,
+      value: alerts?.filter(a => !a.isRead).length || 0,
       icon: <Bell className="h-6 w-6 text-muted-foreground" />,
-      loading: loadingAlerts,
+      loading: loading,
     },
     {
       title: "Critical Risk",
       value: criticalPatients.length,
       icon: <AlertTriangle className="h-6 w-6 text-destructive" />,
-      loading: loadingPatients,
+      loading: loading,
     },
     {
       title: "Readings Today",
-      value: "14,610", // This would be a calculated value in a real app
+      value: "14,610", // This is mock data
       icon: <Activity className="h-6 w-6 text-muted-foreground" />,
       loading: false,
     },
   ];
-
-  if (loadingPatients || loadingAlerts || loadingCriticalAlerts) {
-    return (
-         <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                {Array(4).fill(0).map((_, i) => <Skeleton key={i} className="h-28" />)}
-            </div>
-             <Skeleton className="h-48 w-full" />
-             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-                <Skeleton className="lg:col-span-4 h-80 w-full" />
-                <Skeleton className="lg:col-span-3 h-80 w-full" />
-             </div>
-        </main>
-    )
-  }
 
   return (
     <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
@@ -143,7 +116,7 @@ export default function DoctorDashboard() {
                                     <TableCell>
                                         <Badge variant={p.status === 'Critical' ? 'destructive' : p.status === 'Needs Review' ? 'secondary' : 'default'} className={p.status === 'Stable' ? 'bg-green-500 hover:bg-green-500/80' : ''}>{p.status}</Badge>
                                     </TableCell>
-                                    <TableCell>{p.lastSeen}</TableCell>
+                                    <TableCell>{formatDistanceToNow(new Date(p.lastSeen || Date.now()), { addSuffix: true })}</TableCell>
                                     <TableCell>
                                         <Button asChild variant="link" size="sm"><Link href={`/doctor/patients/${p.uid}`}>View</Link></Button>
                                     </TableCell>
@@ -163,7 +136,7 @@ export default function DoctorDashboard() {
                 </CardHeader>
                 <CardContent>
                     <div className="space-y-4">
-                        {alerts && alerts.slice(0, 3).map(alert => (
+                        {alerts && alerts.filter(a => !a.isRead).slice(0, 3).map(alert => (
                             <div key={alert.id} className="flex items-start gap-3">
                                 <div className="flex-shrink-0 pt-1">
                                     <Bell className={`h-4 w-4 ${alert.severity === 'Critical' || alert.severity === 'High' ? 'text-destructive' : 'text-yellow-500'}`} />
@@ -174,6 +147,7 @@ export default function DoctorDashboard() {
                                 </div>
                             </div>
                         ))}
+                         {alerts.filter(a => !a.isRead).length === 0 && <p className="text-sm text-muted-foreground">No unread notifications.</p>}
                     </div>
                 </CardContent>
             </Card>

@@ -1,23 +1,13 @@
 'use client';
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useUser } from "@/firebase/auth/use-user";
-import { useCollection } from "@/firebase/firestore/use-collection";
-import { useFirestore } from "@/firebase/provider";
-import type { Appointment } from "@/lib/types";
-import { collection, query, where } from "firebase/firestore";
-import { Skeleton } from "@/components/ui/skeleton";
-
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { mockAppointments, mockPatients } from "@/lib/mock-data";
 
 export default function PatientAppointmentsPage() {
-  const { user, loading: userLoading } = useUser();
-  const firestore = useFirestore();
-
-  const appointmentsQuery = user ? query(collection(firestore, 'appointments'), where('patientId', '==', user.uid)) : null;
-  const { data: appointments, loading: appointmentsLoading } = useCollection<Appointment>(appointmentsQuery);
-
-  const loading = userLoading || appointmentsLoading;
+  const patient = mockPatients[0];
+  const appointments = mockAppointments[patient.uid] || [];
+  const loading = false;
 
   return (
     <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
@@ -31,9 +21,7 @@ export default function PatientAppointmentsPage() {
                     <CardTitle>Upcoming Appointments</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    {loading ? (
-                       <Skeleton className="h-24 w-full" />
-                    ): appointments && appointments.length > 0 ? (
+                    {appointments && appointments.length > 0 ? (
                         <div className="space-y-4">
                             {appointments.map((appt, i) => (
                                 <div key={i} className="p-4 rounded-lg border bg-card">

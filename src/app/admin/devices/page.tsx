@@ -17,17 +17,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal, PlusCircle } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import type { Metadata } from 'next';
-import { useFirestore } from "@/firebase/provider";
-import { useCollection } from "@/firebase/firestore/use-collection";
-import { collection, query } from "firebase/firestore";
-import type { Device } from "@/lib/types";
-import { Skeleton } from "@/components/ui/skeleton";
+import { mockDevices } from "@/lib/mock-data";
 
 export default function AdminDevicesPage() {
-    const firestore = useFirestore();
-    const devicesQuery = query(collection(firestore, 'devices'));
-    const { data: devices, loading } = useCollection<Device>(devicesQuery);
+  const devices = mockDevices;
+  const loading = false;
 
   return (
     <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
@@ -47,58 +41,50 @@ export default function AdminDevicesPage() {
             <CardTitle>Registered Devices</CardTitle>
           </CardHeader>
           <CardContent>
-            {loading ? (
-                 <div className="space-y-2">
-                    <Skeleton className="h-12 w-full" />
-                    <Skeleton className="h-12 w-full" />
-                    <Skeleton className="h-12 w-full" />
-                </div>
-            ) : (
-                <Table>
-                <TableHeader>
-                    <TableRow>
-                    <TableHead>Device ID</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Assigned To</TableHead>
-                    <TableHead>Last Sync</TableHead>
-                    <TableHead>
-                        <span className="sr-only">Actions</span>
-                    </TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    {devices && devices.map((device) => (
-                    <TableRow key={device.id}>
-                        <TableCell className="font-medium">{device.id}</TableCell>
-                        <TableCell>{device.type}</TableCell>
-                        <TableCell>
-                        <Badge variant={device.status === 'Active' ? 'default' : device.status === 'Inactive' ? 'secondary' : 'destructive'}
-                            className={device.status === 'Active' ? 'bg-green-600 hover:bg-green-600/80' : device.status === 'Maintenance' ? 'bg-yellow-500 hover:bg-yellow-500/80' : ''}
-                        >{device.status}</Badge>
-                        </TableCell>
-                        <TableCell>{device.assignedTo}</TableCell>
-                        <TableCell>{device.lastSync}</TableCell>
-                        <TableCell>
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                            <Button aria-haspopup="true" size="icon" variant="ghost">
-                                <MoreHorizontal className="h-4 w-4" />
-                                <span className="sr-only">Toggle menu</span>
-                            </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                            <DropdownMenuItem>Edit</DropdownMenuItem>
-                            <DropdownMenuItem>Reassign</DropdownMenuItem>
-                            <DropdownMenuItem className="text-destructive hover:text-destructive-foreground">Remove</DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                        </TableCell>
-                    </TableRow>
-                    ))}
-                </TableBody>
-                </Table>
-            )}
+            <Table>
+            <TableHeader>
+                <TableRow>
+                <TableHead>Device ID</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Assigned To</TableHead>
+                <TableHead>Last Sync</TableHead>
+                <TableHead>
+                    <span className="sr-only">Actions</span>
+                </TableHead>
+                </TableRow>
+            </TableHeader>
+            <TableBody>
+                {devices && devices.map((device) => (
+                <TableRow key={device.id}>
+                    <TableCell className="font-medium">{device.id}</TableCell>
+                    <TableCell>{device.type}</TableCell>
+                    <TableCell>
+                    <Badge variant={device.status === 'Active' ? 'default' : device.status === 'Inactive' ? 'secondary' : 'destructive'}
+                        className={device.status === 'Active' ? 'bg-green-600 hover:bg-green-600/80' : device.status === 'Maintenance' ? 'bg-yellow-500 hover:bg-yellow-500/80' : ''}
+                    >{device.status}</Badge>
+                    </TableCell>
+                    <TableCell>{device.assignedTo}</TableCell>
+                    <TableCell>{new Date(device.lastSync).toLocaleString()}</TableCell>
+                    <TableCell>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                        <Button aria-haspopup="true" size="icon" variant="ghost">
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="sr-only">Toggle menu</span>
+                        </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                        <DropdownMenuItem>Edit</DropdownMenuItem>
+                        <DropdownMenuItem>Reassign</DropdownMenuItem>
+                        <DropdownMenuItem className="text-destructive hover:text-destructive-foreground">Remove</DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                    </TableCell>
+                </TableRow>
+                ))}
+            </TableBody>
+            </Table>
             </CardContent>
         </Card>
     </main>

@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
   DropdownMenu,
@@ -14,17 +13,15 @@ import {
 import { Button } from "@/components/ui/button";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { LogOut, Settings, User as UserIcon } from "lucide-react";
-import { useUser } from "@/firebase/auth/use-user";
-import { signOutUser } from "@/firebase/auth/auth-service";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import type { UserProfile } from "@/lib/types";
 
-export function DashboardHeader({ title }: { title: string }) {
+export function DashboardHeader({ title, userProfile }: { title: string, userProfile: UserProfile | null }) {
   const router = useRouter();
-  const { user, userProfile, loading } = useUser();
   const settingsPath = userProfile ? `/${userProfile.role}/settings` : '/login';
 
   const handleSignOut = async () => {
-    await signOutUser();
+    // In mock mode, just redirect to login
     router.push('/login');
   };
 
@@ -43,8 +40,8 @@ export function DashboardHeader({ title }: { title: string }) {
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="relative h-9 w-9 rounded-full">
             <Avatar>
-                <AvatarImage src={userProfile?.avatarUrl || user?.photoURL || ''} alt={userProfile?.displayName || 'User Avatar'} />
-                <AvatarFallback>{loading ? '' : getInitials(userProfile?.displayName || user?.displayName)}</AvatarFallback>
+                <AvatarImage src={userProfile?.avatarUrl || ''} alt={userProfile?.displayName || 'User Avatar'} />
+                <AvatarFallback>{getInitials(userProfile?.displayName)}</AvatarFallback>
             </Avatar>
             <span className="sr-only">Toggle user menu</span>
           </Button>

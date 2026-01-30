@@ -15,25 +15,20 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, PlusCircle, Upload, Search, Loader2 } from "lucide-react";
+import { MoreHorizontal, PlusCircle, Upload, Search } from "lucide-react";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import Image from "next/image";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import type { UserProfile } from "@/lib/types";
-import { useCollection } from "@/firebase/firestore/use-collection";
-import { collection, query, where } from "firebase/firestore";
-import { useFirestore } from "@/firebase/provider";
-import { Skeleton } from "@/components/ui/skeleton";
-import type { Metadata } from 'next';
+import { mockAllUsers } from "@/lib/mock-data";
 
 export default function AdminUsersPage() {
   const [searchTerm, setSearchTerm] = useState('');
-  const firestore = useFirestore();
   
-  const usersQuery = query(collection(firestore, 'users'));
-  const { data: allUsers, loading } = useCollection<UserProfile>(usersQuery);
+  const allUsers = mockAllUsers;
+  const loading = false;
 
   const filteredUsers = allUsers?.filter(user =>
     user.displayName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -68,9 +63,9 @@ export default function AdminUsersPage() {
             <Tabs defaultValue="doctors">
                 <CardHeader className="flex-col md:flex-row items-start md:items-center justify-between gap-4">
                     <TabsList className="grid w-full grid-cols-3 max-w-md">
-                        <TabsTrigger value="doctors">Doctors ({loading ? '...' : doctors.length})</TabsTrigger>
-                        <TabsTrigger value="patients">Patients ({loading ? '...' : patients.length})</TabsTrigger>
-                        <TabsTrigger value="staff">Staff ({loading ? '...' : staff.length})</TabsTrigger>
+                        <TabsTrigger value="doctors">Doctors ({doctors.length})</TabsTrigger>
+                        <TabsTrigger value="patients">Patients ({patients.length})</TabsTrigger>
+                        <TabsTrigger value="staff">Staff ({staff.length})</TabsTrigger>
                     </TabsList>
                      <div className="relative w-full max-w-sm">
                         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -78,25 +73,17 @@ export default function AdminUsersPage() {
                     </div>
                 </CardHeader>
                 <CardContent>
-                    {loading ? (
-                        <div className="space-y-2">
-                            <Skeleton className="h-12 w-full" />
-                            <Skeleton className="h-12 w-full" />
-                            <Skeleton className="h-12 w-full" />
-                        </div>
-                    ) : (
-                        <>
-                            <TabsContent value="doctors">
-                                <UserTable users={doctors} />
-                            </TabsContent>
-                            <TabsContent value="patients">
-                                <UserTable users={patients} />
-                            </TabsContent>
-                            <TabsContent value="staff">
-                                 <UserTable users={staff} />
-                            </TabsContent>
-                        </>
-                    )}
+                    <>
+                        <TabsContent value="doctors">
+                            <UserTable users={doctors} />
+                        </TabsContent>
+                        <TabsContent value="patients">
+                            <UserTable users={patients} />
+                        </TabsContent>
+                        <TabsContent value="staff">
+                             <UserTable users={staff} />
+                        </TabsContent>
+                    </>
                 </CardContent>
             </Tabs>
         </Card>

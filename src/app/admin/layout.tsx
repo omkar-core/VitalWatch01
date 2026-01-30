@@ -1,7 +1,6 @@
 'use client';
 import * as React from 'react';
 import Link from "next/link";
-import { useRouter } from 'next/navigation';
 import {
   SidebarProvider,
   Sidebar,
@@ -15,32 +14,16 @@ import {
 } from "@/components/ui/sidebar";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { VitalWatchLogo } from "@/components/icons";
-import { Settings, Users, TabletSmartphone, LayoutGrid, BarChart, HardDrive, Loader2 } from "lucide-react";
-import { useUser } from '@/firebase/auth/use-user';
+import { Settings, Users, TabletSmartphone, LayoutGrid, BarChart, HardDrive } from "lucide-react";
+import { mockAdmin } from '@/lib/mock-data';
+
 
 export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { user, userProfile, loading } = useUser();
-  const router = useRouter();
-
-  React.useEffect(() => {
-    if (!loading) {
-      if (!user || userProfile?.role !== 'admin') {
-        router.push('/login');
-      }
-    }
-  }, [user, userProfile, loading, router]);
-
-  if (loading || !user || userProfile?.role !== 'admin') {
-    return (
-        <div className="flex h-screen w-full items-center justify-center">
-            <Loader2 className="h-8 w-8 animate-spin" />
-        </div>
-    );
-  }
+  const userProfile = mockAdmin;
 
   return (
     <SidebarProvider>
@@ -109,7 +92,7 @@ export default function AdminLayout({
         </SidebarFooter>
       </Sidebar>
       <SidebarInset className="bg-background">
-        <DashboardHeader title="Admin Portal" />
+        <DashboardHeader title="Admin Portal" userProfile={userProfile} />
         {children}
       </SidebarInset>
     </SidebarProvider>

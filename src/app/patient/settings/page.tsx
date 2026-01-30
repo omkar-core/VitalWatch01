@@ -7,36 +7,27 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { BatteryFull, Smartphone, Trash2, Wifi, Loader2 } from "lucide-react"
-import type { Metadata } from 'next';
-import { sendCommandToDevice } from "@/lib/device-commands";
-import { useFirestore } from "@/firebase/provider";
 import { useToast } from "@/hooks/use-toast";
+import { mockPatients } from "@/lib/mock-data";
 
 export default function PatientSettingsPage() {
-    const firestore = useFirestore();
     const { toast } = useToast();
     const [isSyncing, setIsSyncing] = React.useState(false);
+    const patient = mockPatients[0];
 
     const handleDeviceSync = async () => {
         setIsSyncing(true);
-        try {
-            // In a real app, the device ID would come from the user's profile.
-            // For this demo, we'll hardcode it based on the mock data.
-            const deviceId = 'CGM_LIBRE_45678';
-            await sendCommandToDevice(firestore, deviceId, 'start_scan');
-            toast({
-            title: 'Sync Initiated',
-            description: `A request has been sent to sync with device ${deviceId}.`,
+        toast({
+        title: 'Sync Initiated',
+        description: `(Mock) A request has been sent to sync with device ${patient.deviceId}.`,
+        });
+        setTimeout(() => {
+             setIsSyncing(false);
+             toast({
+                title: 'Sync Complete!',
+                description: `(Mock) Device sync finished.`,
             });
-        } catch (error: any) {
-            toast({
-            variant: 'destructive',
-            title: 'Sync Failed',
-            description: error.message || 'Could not initiate device sync.',
-            });
-        } finally {
-            setIsSyncing(false);
-        }
+        }, 2000);
     };
 
   return (
@@ -56,7 +47,7 @@ export default function PatientSettingsPage() {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Name</Label>
-                <Input id="name" defaultValue="Ramaiah S." />
+                <Input id="name" defaultValue={patient.displayName} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="emergency-contact">Emergency Contact Phone</Label>
@@ -82,7 +73,7 @@ export default function PatientSettingsPage() {
                     <div className="flex items-center gap-4">
                         <Smartphone className="h-6 w-6 text-primary"/>
                         <div>
-                            <p className="font-semibold">CGM_LIBRE_45678</p>
+                            <p className="font-semibold">{patient.deviceId}</p>
                             <p className="text-sm text-muted-foreground">Status: Connected</p>
                         </div>
                     </div>

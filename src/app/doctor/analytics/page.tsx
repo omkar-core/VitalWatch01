@@ -1,22 +1,16 @@
-
 'use client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Users, FileDown, LineChartIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import type { Metadata } from 'next';
-import { useCollection } from "@/firebase/firestore/use-collection";
-import { collection, query, where } from "firebase/firestore";
-import { useFirestore } from "@/firebase/provider";
-import type { UserProfile } from "@/lib/types";
+import { mockPatients } from "@/lib/mock-data";
 import { Skeleton } from "@/components/ui/skeleton";
 
 
 export default function DoctorAnalyticsPage() {
-  const firestore = useFirestore();
-  const patientsQuery = query(collection(firestore, 'users'), where('role', '==', 'patient'));
-  const { data: patients, loading } = useCollection<UserProfile>(patientsQuery);
+  const patients = mockPatients;
+  const loading = false;
 
   const riskDistribution = {
     normal: patients?.filter(p => p.status === 'Stable').length || 0,

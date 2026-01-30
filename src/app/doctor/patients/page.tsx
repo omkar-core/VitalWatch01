@@ -17,45 +17,18 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
-import { useFirestore } from "@/firebase/provider";
-import { useCollection } from "@/firebase/firestore/use-collection";
-import { collection, query, where } from "firebase/firestore";
-import { Skeleton } from "@/components/ui/skeleton";
+import { mockPatients } from "@/lib/mock-data";
+import { formatDistanceToNow } from "date-fns";
 
 export default function DoctorPatientsPage() {
   const [searchTerm, setSearchTerm] = useState('');
-  const firestore = useFirestore();
   
-  const patientsQuery = query(collection(firestore, 'users'), where('role', '==', 'patient'));
-  const { data: allPatients, loading } = useCollection<UserProfile>(patientsQuery);
+  const allPatients = mockPatients;
+  const loading = false;
 
   const filteredPatients = allPatients?.filter(patient =>
     patient.displayName.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
-
-  if (loading) {
-    return (
-        <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
-            <Card>
-                <CardHeader>
-                    <CardTitle>Patient Management</CardTitle>
-                    <CardDescription>Search, filter, and manage all your patients.</CardDescription>
-                </CardHeader>
-                 <CardContent>
-                    <div className="flex items-center gap-4 mb-4">
-                        <Skeleton className="h-10 w-full max-w-sm" />
-                    </div>
-                    <div className="space-y-2">
-                        <Skeleton className="h-12 w-full" />
-                        <Skeleton className="h-12 w-full" />
-                        <Skeleton className="h-12 w-full" />
-                        <Skeleton className="h-12 w-full" />
-                    </div>
-                 </CardContent>
-            </Card>
-        </main>
-    )
-  }
 
   return (
     <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
@@ -99,7 +72,7 @@ export default function DoctorPatientsPage() {
                                     {patient.status}
                                 </Badge>
                             </TableCell>
-                            <TableCell>{patient.lastSeen}</TableCell>
+                            <TableCell>{formatDistanceToNow(new Date(patient.lastSeen || Date.now()), { addSuffix: true })}</TableCell>
                             <TableCell>
                                 <Button variant="outline" size="sm" asChild>
                                     <Link href={`/doctor/patients/${patient.uid}`}>View</Link>

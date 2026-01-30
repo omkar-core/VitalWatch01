@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { VitalsChart } from "@/components/dashboard/vitals-chart";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import {
@@ -14,30 +14,19 @@ import {
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
-import { useUser } from '@/firebase/auth/use-user';
-import { useFirestore } from '@/firebase/provider';
-import { useCollection } from '@/firebase/firestore/use-collection';
-import { collection, query, orderBy } from 'firebase/firestore';
 import type { Vital } from '@/lib/types';
+import { mockPatients, mockVitals } from "@/lib/mock-data";
 import { format } from 'date-fns';
-import { Skeleton } from '@/components/ui/skeleton';
 
 export default function PatientHealthDataPage() {
-    const { user, loading: userLoading } = useUser();
-    const firestore = useFirestore();
-
-    const vitalsQuery = useMemo(() => {
-        if (!user || !firestore) return null;
-        return query(collection(firestore, `users/${user.uid}/vitals`), orderBy('timestamp', 'desc'));
-    }, [user, firestore]);
-
-    const { data: vitals, loading: vitalsLoading } = useCollection<Vital>(vitalsQuery);
-    const loading = userLoading || vitalsLoading;
+    const patient = mockPatients[0];
+    const vitals = mockVitals[patient.uid] || [];
+    const loading = false;
 
     const chartVitals = useMemo(() => 
         vitals?.map(v => ({
             ...v,
-            time: v.timestamp?.toDate() ? format(v.timestamp.toDate(), 'p') : 'N/A'
+            time: v.timestamp?.toDate ? format(v.timestamp.toDate(), 'p') : 'N/A'
         })).reverse() || [],
     [vitals]);
 
@@ -59,22 +48,6 @@ export default function PatientHealthDataPage() {
     const timeInTarget = totalVitals > 0 ? Math.round((glucoseSummary.inTarget / totalVitals) * 100) : 0;
     const timeAboveTarget = totalVitals > 0 ? Math.round((glucoseSummary.aboveTarget / totalVitals) * 100) : 0;
     const timeBelowTarget = totalVitals > 0 ? Math.round((glucoseSummary.belowTarget / totalVitals) * 100) : 0;
-
-  if (loading) {
-    return (
-        <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
-            <div className="flex items-center justify-between">
-                <Skeleton className="h-9 w-48" />
-                <Skeleton className="h-10 w-32" />
-            </div>
-            <div className="space-y-4">
-                <Skeleton className="h-96 w-full" />
-                <Skeleton className="h-64 w-full" />
-                <Skeleton className="h-96 w-full" />
-            </div>
-        </main>
-    )
-  }
 
   return (
     <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
