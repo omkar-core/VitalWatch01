@@ -54,9 +54,6 @@ export default function LandingPage() {
           <Link href="/how-it-works" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>How It Works</Link>
           <Link href="/features" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>Features</Link>
           <Link href="/contact" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>Contact</Link>
-          <Link href="/login" prefetch={false}>
-            <Button>Login</Button>
-          </Link>
         </nav>
       </header>
 

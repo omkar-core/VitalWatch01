@@ -3,8 +3,7 @@
 import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { VitalWatchLogo } from "@/components/icons";
-import { RegisterForm } from "@/components/auth/register-form";
-import { Suspense } from "react";
+import { Button } from "@/components/ui/button";
 
 export default function RegisterPage() {
   return (
@@ -18,19 +17,16 @@ export default function RegisterPage() {
         </div>
         <Card>
           <CardHeader>
-            <CardTitle className="text-2xl font-headline">Create an Account</CardTitle>
-            <CardDescription>Choose your role and fill in your details to get started.</CardDescription>
+            <CardTitle className="text-2xl font-headline">Registration</CardTitle>
+            <CardDescription>Registration is currently disabled for demonstration.</CardDescription>
           </CardHeader>
-          <CardContent>
-            <Suspense>
-              <RegisterForm />
-            </Suspense>
-             <p className="text-xs text-center text-muted-foreground pt-4">
-                Already have an account?{' '}
-                <Link href="/login" className="underline">
-                    Login
-                </Link>
+          <CardContent className="flex flex-col items-center gap-4">
+            <p className="text-sm text-center text-muted-foreground">
+                You can browse the application dashboards directly without an account in this demo version.
             </p>
+            <Button asChild>
+                <Link href="/">Return to Home</Link>
+            </Button>
           </CardContent>
         </Card>
       </div>
