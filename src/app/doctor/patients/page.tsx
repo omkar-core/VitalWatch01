@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import type { Patient } from "@/lib/types";
+import type { UserProfile } from "@/lib/types";
 import {
   Table,
   TableHeader,
@@ -19,18 +19,18 @@ import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
 import { useFirestore } from "@/firebase/provider";
 import { useCollection } from "@/firebase/firestore/use-collection";
-import { collection, query } from "firebase/firestore";
+import { collection, query, where } from "firebase/firestore";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function DoctorPatientsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const firestore = useFirestore();
   
-  const patientsQuery = query(collection(firestore, 'patients'));
-  const { data: allPatients, loading } = useCollection<Patient>(patientsQuery);
+  const patientsQuery = query(collection(firestore, 'users'), where('role', '==', 'patient'));
+  const { data: allPatients, loading } = useCollection<UserProfile>(patientsQuery);
 
   const filteredPatients = allPatients?.filter(patient =>
-    patient.name.toLowerCase().includes(searchTerm.toLowerCase())
+    patient.displayName.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
 
   if (loading) {
@@ -85,14 +85,14 @@ export default function DoctorPatientsPage() {
                 </TableHeader>
                 <TableBody>
                     {filteredPatients.map((patient) => (
-                        <TableRow key={patient.id}>
+                        <TableRow key={patient.uid}>
                             <TableCell className="font-medium">
                                 <div className="flex items-center gap-3">
-                                    <Image src={patient.avatarUrl} alt={patient.name} width={32} height={32} className="rounded-full object-cover" data-ai-hint={patient.avatarHint} />
-                                    {patient.name}
+                                    <Image src={patient.avatarUrl || `https://i.pravatar.cc/150?u=${patient.uid}`} alt={patient.displayName} width={32} height={32} className="rounded-full object-cover" />
+                                    {patient.displayName}
                                 </div>
                             </TableCell>
-                            <TableCell>{patient.conditions.join(', ')}</TableCell>
+                            <TableCell>{patient.conditions?.join(', ')}</TableCell>
                             <TableCell>
                                 <Badge variant={patient.status === 'Critical' ? 'destructive' : patient.status === 'Needs Review' ? 'secondary' : 'default'}
                                 className={patient.status === 'Stable' ? 'bg-green-500 hover:bg-green-500/80' : ''}>
@@ -102,7 +102,7 @@ export default function DoctorPatientsPage() {
                             <TableCell>{patient.lastSeen}</TableCell>
                             <TableCell>
                                 <Button variant="outline" size="sm" asChild>
-                                    <Link href={`/doctor/patients/${patient.id}`}>View</Link>
+                                    <Link href={`/doctor/patients/${patient.uid}`}>View</Link>
                                 </Button>
                             </TableCell>
                         </TableRow>

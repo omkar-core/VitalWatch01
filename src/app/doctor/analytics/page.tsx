@@ -1,17 +1,35 @@
+
+'use client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { patients } from "@/lib/data";
-import { BarChart, LineChart, Users, FileDown } from "lucide-react";
+import { Users, FileDown, LineChartIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import type { Metadata } from 'next';
+import { useCollection } from "@/firebase/firestore/use-collection";
+import { collection, query, where } from "firebase/firestore";
+import { useFirestore } from "@/firebase/provider";
+import type { UserProfile } from "@/lib/types";
+import { Skeleton } from "@/components/ui/skeleton";
 
-export const metadata: Metadata = {
-  title: 'Analytics & Reports - Doctor Portal | VitalWatch',
-  description: 'Analyze population health trends and generate reports for your patients.',
-};
 
 export default function DoctorAnalyticsPage() {
+  const firestore = useFirestore();
+  const patientsQuery = query(collection(firestore, 'users'), where('role', '==', 'patient'));
+  const { data: patients, loading } = useCollection<UserProfile>(patientsQuery);
+
+  const riskDistribution = {
+    normal: patients?.filter(p => p.status === 'Stable').length || 0,
+    borderline: patients?.filter(p => p.status === 'Needs Review').length || 0,
+    highRisk: patients?.filter(p => p.status === 'Critical').length || 0,
+  };
+  const totalPatients = patients?.length || 1; 
+
+  const normalPercent = Math.round((riskDistribution.normal / totalPatients) * 100);
+  const borderlinePercent = Math.round((riskDistribution.borderline / totalPatients) * 100);
+  const highRiskPercent = Math.round((riskDistribution.highRisk / totalPatients) * 100);
+
+
   return (
     <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
       <div className="flex items-center">
@@ -24,29 +42,31 @@ export default function DoctorAnalyticsPage() {
             <CardTitle className="flex items-center gap-2"><Users /> Patient Distribution</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div>
-              <h4 className="font-semibold text-sm mb-2">Risk Level Distribution</h4>
-              <div className="space-y-1">
-                <div className="flex justify-between items-center"><span className="text-sm">Normal</span><span className="text-sm font-bold">317 (65%)</span></div>
-                <div className="w-full bg-muted rounded-full h-2.5">
-                  <div className="bg-green-500 h-2.5 rounded-full" style={{width: '65%'}}></div>
+             {loading ? <Skeleton className="h-48 w-full"/> : (
+                <div>
+                  <h4 className="font-semibold text-sm mb-2">Risk Level Distribution</h4>
+                  <div className="space-y-1">
+                    <div className="flex justify-between items-center"><span className="text-sm">Stable</span><span className="text-sm font-bold">{riskDistribution.normal} ({normalPercent}%)</span></div>
+                    <div className="w-full bg-muted rounded-full h-2.5">
+                      <div className="bg-green-500 h-2.5 rounded-full" style={{width: `${normalPercent}%`}}></div>
+                    </div>
+                  </div>
+                  <div className="space-y-1 mt-2">
+                    <div className="flex justify-between items-center"><span className="text-sm">Needs Review</span><span className="text-sm font-bold">{riskDistribution.borderline} ({borderlinePercent}%)</span></div>
+                    <div className="w-full bg-muted rounded-full h-2.5">
+                      <div className="bg-yellow-500 h-2.5 rounded-full" style={{width: `${borderlinePercent}%`}}></div>
+                    </div>
+                  </div>
+                  <div className="space-y-1 mt-2">
+                    <div className="flex justify-between items-center"><span className="text-sm">Critical</span><span className="text-sm font-bold">{riskDistribution.highRisk} ({highRiskPercent}%)</span></div>
+                    <div className="w-full bg-muted rounded-full h-2.5">
+                      <div className="bg-red-500 h-2.5 rounded-full" style={{width: `${highRiskPercent}%`}}></div>
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <div className="space-y-1 mt-2">
-                <div className="flex justify-between items-center"><span className="text-sm">Borderline</span><span className="text-sm font-bold">122 (25%)</span></div>
-                <div className="w-full bg-muted rounded-full h-2.5">
-                  <div className="bg-yellow-500 h-2.5 rounded-full" style={{width: '25%'}}></div>
-                </div>
-              </div>
-               <div className="space-y-1 mt-2">
-                <div className="flex justify-between items-center"><span className="text-sm">High Risk</span><span className="text-sm font-bold">48 (10%)</span></div>
-                <div className="w-full bg-muted rounded-full h-2.5">
-                  <div className="bg-red-500 h-2.5 rounded-full" style={{width: '10%'}}></div>
-                </div>
-              </div>
-            </div>
+             )}
              <div>
-              <h4 className="font-semibold text-sm mb-2">Control Status</h4>
+              <h4 className="font-semibold text-sm mb-2 mt-4">Control Status (Mock Data)</h4>
                <ul className="list-disc list-inside text-sm text-muted-foreground">
                  <li>Well Controlled: 60%</li>
                  <li>Moderately Controlled: 28%</li>
@@ -57,11 +77,11 @@ export default function DoctorAnalyticsPage() {
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2"><LineChart /> Trend Analysis (Last 30 Days)</CardTitle>
+            <CardTitle className="flex items-center gap-2"><LineChartIcon /> Trend Analysis (Mock Data)</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <h4 className="font-semibold text-sm mb-2">Alert Frequency</h4>
+              <h4 className="font-semibold text-sm mb-2">Alert Frequency (Last 30 Days)</h4>
               <p className="text-2xl font-bold">37.8% <span className="text-sm font-normal text-green-500">reduction</span></p>
               <p className="text-xs text-muted-foreground">Overall alert frequency has decreased in the last 4 weeks.</p>
             </div>

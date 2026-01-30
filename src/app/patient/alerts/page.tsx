@@ -1,45 +1,47 @@
+'use client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertTriangle, Info } from "lucide-react";
 import type { Metadata } from 'next';
-
-export const metadata: Metadata = {
-  title: 'Alerts & Advice - Patient Portal | VitalWatch',
-  description: 'View important health alerts and advice from your care team.',
-};
+import { useUser } from "@/firebase/auth/use-user";
+import { useFirestore } from "@/firebase/provider";
+import { useCollection } from "@/firebase/firestore/use-collection";
+import { collection, query, where, orderBy } from "firebase/firestore";
+import type { Alert } from "@/lib/types";
+import { Skeleton } from "@/components/ui/skeleton";
+import { formatDistanceToNow } from "date-fns";
 
 export default function PatientAlertsPage() {
-  const alerts = [
-      {
-          type: "advice",
-          title: "Maintain Fluid Intake",
-          description: "Your recent vitals suggest you should ensure you're drinking plenty of water throughout the day.",
-          timestamp: "1 day ago"
-      },
-      {
-          type: "alert",
-          title: "Slightly Elevated Heart Rate",
-          description: "Your heart rate was slightly elevated this morning. Please monitor for any symptoms like dizziness or shortness of breath.",
-          timestamp: "2 days ago"
-      }
-  ]
+  const { user, loading: userLoading } = useUser();
+  const firestore = useFirestore();
+
+  const alertsQuery = user ? query(collection(firestore, 'alerts'), where('patientId', '==', user.uid), orderBy('timestamp', 'desc')) : null;
+  const { data: alerts, loading: alertsLoading } = useCollection<Alert>(alertsQuery);
+  
+  const loading = userLoading || alertsLoading;
+
   return (
     <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
       <div className="flex items-center">
         <h1 className="text-lg font-semibold md:text-2xl">Alerts & Advice</h1>
       </div>
       <div className="flex flex-1 flex-col gap-4 rounded-lg border border-dashed shadow-sm p-4">
-        {alerts.length > 0 ? (
-            alerts.map((item, index) => (
-                <Card key={index}>
+        {loading ? (
+             <div className="space-y-4">
+                <Skeleton className="h-24 w-full" />
+                <Skeleton className="h-24 w-full" />
+             </div>
+        ) : alerts && alerts.length > 0 ? (
+            alerts.map((item) => (
+                <Card key={item.id}>
                     <CardHeader className="flex flex-row items-start gap-4">
-                        {item.type === 'alert' ? <AlertTriangle className="h-6 w-6 text-yellow-500" /> : <Info className="h-6 w-6 text-primary" />}
+                        {item.severity === 'Critical' || item.severity === 'High' ? <AlertTriangle className="h-6 w-6 text-yellow-500" /> : <Info className="h-6 w-6 text-primary" />}
                         <div>
-                            <CardTitle>{item.title}</CardTitle>
-                            <CardDescription>{item.timestamp}</CardDescription>
+                            <CardTitle>{item.severity} Alert</CardTitle>
+                            <CardDescription>{item.timestamp?.toDate() ? formatDistanceToNow(item.timestamp.toDate()) : ''} ago</CardDescription>
                         </div>
                     </CardHeader>
                     <CardContent>
-                        <p>{item.description}</p>
+                        <p>{item.message}</p>
                     </CardContent>
                 </Card>
             ))

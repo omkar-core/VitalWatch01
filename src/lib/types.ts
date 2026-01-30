@@ -9,21 +9,6 @@ export type Vital = {
   "Temperature"?: number;
 };
 
-export type Patient = {
-  id: string; // This is the user uid
-  userId: string;
-  name: string;
-  age: number;
-  gender: 'Male' | 'Female' | 'Other';
-  avatarUrl: string;
-  avatarHint: string;
-  status: 'Stable' | 'Critical' | 'Needs Review';
-  lastSeen: string;
-  symptoms: string;
-  medicalHistory: string;
-  conditions: string[];
-};
-
 export type Alert = {
   id: string;
   patientId: string;
@@ -48,6 +33,8 @@ export type UserProfile = {
   gender?: 'Male' | 'Female' | 'Other';
   medicalHistory?: string;
   conditions?: string[];
+  status?: 'Stable' | 'Critical' | 'Needs Review';
+  lastSeen?: string;
 };
 
 
@@ -57,4 +44,13 @@ export type Device = {
   status: 'Active' | 'Inactive' | 'Maintenance';
   assignedTo: string;
   lastSync: string;
+};
+
+export type Appointment = {
+  id: string;
+  patientId: string;
+  doctorId: string;
+  doctorName: string;
+  date: string; // ISO String
+  type: string;
 };

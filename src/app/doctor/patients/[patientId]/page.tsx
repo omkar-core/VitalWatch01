@@ -20,7 +20,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useFirestore } from "@/firebase/provider";
 import { useDoc } from "@/firebase/firestore/use-doc";
 import { useCollection } from "@/firebase/firestore/use-collection";
-import type { Patient, Vital, Alert, EstimateHealthMetricsOutput } from "@/lib/types";
+import type { UserProfile, Vital, Alert, EstimateHealthMetricsOutput } from "@/lib/types";
 import { doc, collection, query, where, orderBy, limit } from "firebase/firestore";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
@@ -33,13 +33,13 @@ export default function PatientDetailPage() {
   const patientId = params.patientId as string;
   
   const firestore = useFirestore();
-  const patientRef = doc(firestore, 'patients', patientId);
-  const { data: patient, loading: patientLoading } = useDoc<Patient>(patientRef);
+  const patientRef = doc(firestore, 'users', patientId);
+  const { data: patient, loading: patientLoading } = useDoc<UserProfile>(patientRef);
 
-  const vitalsQuery = query(collection(firestore, `patients/${patientId}/vitals`), orderBy('timestamp', 'desc'));
+  const vitalsQuery = query(collection(firestore, `users/${patientId}/vitals`), orderBy('timestamp', 'desc'));
   const { data: vitals, loading: vitalsLoading } = useCollection<Vital>(vitalsQuery);
   
-  const estimationsQuery = query(collection(firestore, `patients/${patientId}/estimations`), orderBy('timestamp', 'desc'), limit(5));
+  const estimationsQuery = query(collection(firestore, `users/${patientId}/estimations`), orderBy('timestamp', 'desc'), limit(5));
   const { data: estimations, loading: estimationsLoading } = useCollection<EstimateHealthMetricsOutput>(estimationsQuery);
 
   const alertsQuery = query(collection(firestore, 'alerts'), where('patientId', '==', patientId), orderBy('timestamp', 'desc'), limit(5));
@@ -89,10 +89,10 @@ export default function PatientDetailPage() {
             <CardHeader>
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
-                  <Image src={patient.avatarUrl} alt={patient.name} width={64} height={64} className="rounded-full object-cover" data-ai-hint={patient.avatarHint}/>
+                  <Image src={patient.avatarUrl || `https://i.pravatar.cc/150?u=${patient.uid}`} alt={patient.displayName} width={64} height={64} className="rounded-full object-cover" />
                   <div>
-                    <CardTitle className="text-2xl font-headline">{patient.name}</CardTitle>
-                    <CardDescription>{patient.age} y/o {patient.gender} | ID: {patient.id}</CardDescription>
+                    <CardTitle className="text-2xl font-headline">{patient.displayName}</CardTitle>
+                    <CardDescription>{patient.age} y/o {patient.gender} | ID: {patient.uid}</CardDescription>
                   </div>
                 </div>
                 <div className="flex gap-2">
@@ -131,7 +131,7 @@ export default function PatientDetailPage() {
             </CardHeader>
             <CardContent>
               <VitalsChart 
-                data={vitals || []} 
+                data={vitals?.map(v => ({...v, time: v.timestamp?.toDate() ? format(v.timestamp.toDate(), 'p') : 'N/A' })).reverse() || []} 
                 dataKey1="Glucose" 
                 label1="Glucose (mg/dL)" 
                 color1="hsl(var(--chart-1))" 
@@ -172,7 +172,7 @@ export default function PatientDetailPage() {
                 <CardContent className="space-y-4">
                     {estimations && estimations.map((est, i) => (
                         <div key={i} className="p-3 rounded-lg border bg-secondary/30">
-                            <p className="font-semibold text-sm">Prediction from {format(est.timestamp.toDate(), 'p')}</p>
+                            <p className="font-semibold text-sm">Prediction from {est.timestamp?.toDate() ? format(est.timestamp.toDate(), 'p') : 'N/A'}</p>
                             <div className="grid grid-cols-2 gap-2 mt-2 text-sm">
                                 <div>
                                     <p className="text-muted-foreground">BP Category</p>
@@ -200,7 +200,7 @@ export default function PatientDetailPage() {
                             <AlertTriangle className={cn("mt-1", alert.severity === 'Critical' || alert.severity === 'High' ? 'text-destructive' : 'text-yellow-500')}/>
                             <div>
                                 <p className="font-medium text-sm">{alert.message}</p>
-                                <p className="text-xs text-muted-foreground">{format(alert.timestamp.toDate(), 'PPpp')}</p>
+                                <p className="text-xs text-muted-foreground">{alert.timestamp?.toDate() ? format(alert.timestamp.toDate(), 'PPpp') : 'N/A'}</p>
                             </div>
                         </div>
                     )) : <p className="text-sm text-muted-foreground">No recent alerts for this patient.</p>}

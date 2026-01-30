@@ -40,16 +40,16 @@ export default function PatientPage() {
   const [isSyncing, setIsSyncing] = React.useState(false);
 
   const vitalsQuery = React.useMemo(() =>
-    user ? query(collection(firestore, `patients/${user.uid}/vitals`), orderBy("timestamp", "desc"), limit(1)) : null,
+    user ? query(collection(firestore, `users/${user.uid}/vitals`), orderBy("timestamp", "desc"), limit(1)) : null,
     [user, firestore]
   );
-  const { data: vitalsData, loading: loadingVitals } = useCollection<Vital>(vitalsQuery as any);
+  const { data: vitalsData, loading: loadingVitals } = useCollection<Vital>(vitalsQuery);
 
   const estimationsQuery = React.useMemo(() =>
-    user ? query(collection(firestore, `patients/${user.uid}/estimations`), orderBy("timestamp", "desc"), limit(1)) : null,
+    user ? query(collection(firestore, `users/${user.uid}/estimations`), orderBy("timestamp", "desc"), limit(1)) : null,
     [user, firestore]
   );
-  const { data: estimationsData, loading: loadingEstimations } = useCollection<EstimateHealthMetricsOutput>(estimationsQuery as any);
+  const { data: estimationsData, loading: loadingEstimations } = useCollection<EstimateHealthMetricsOutput>(estimationsQuery);
 
   const latestVital = vitalsData && vitalsData.length > 0 ? vitalsData[0] : null;
   const latestEstimation = estimationsData && estimationsData.length > 0 ? estimationsData[0] : null;
@@ -64,7 +64,7 @@ export default function PatientPage() {
         description: `Requesting a new reading from your device. This will take a moment.`,
     });
 
-    const result = await triggerVitalsScanAndAnalysis(user.uid, userProfile.displayName);
+    const result = await triggerVitalsScanAndAnalysis(user.uid);
     
     setIsSyncing(false);
     
@@ -82,7 +82,6 @@ export default function PatientPage() {
     }
   };
 
-  // Derived values from vitals
   const bp = latestVital ? {
       systolic: latestVital["Systolic"],
       diastolic: latestVital["Diastolic"],

@@ -1,5 +1,5 @@
 import { VitalWatchLogo } from "@/components/icons";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowDown, Smartphone, Cloud, Database, BrainCircuit, Bell, LayoutDashboard, Wifi, Gauge, TestTube, Thermometer, Filter } from "lucide-react";

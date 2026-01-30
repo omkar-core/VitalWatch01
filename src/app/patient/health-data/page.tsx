@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { VitalsChart } from "@/components/dashboard/vitals-chart";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import {
@@ -13,52 +13,48 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Download, Loader2 } from "lucide-react";
+import { Download } from "lucide-react";
 import { useUser } from '@/firebase/auth/use-user';
 import { useFirestore } from '@/firebase/provider';
-import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
+import { useCollection } from '@/firebase/firestore/use-collection';
+import { collection, query, orderBy } from 'firebase/firestore';
 import type { Vital } from '@/lib/types';
 import { format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function PatientHealthDataPage() {
-    const { user } = useUser();
+    const { user, loading: userLoading } = useUser();
     const firestore = useFirestore();
-
-    const [vitals, setVitals] = useState<Vital[]>([]);
-    const [loading, setLoading] = useState(true);
 
     const vitalsQuery = useMemo(() => {
         if (!user || !firestore) return null;
-        return query(collection(firestore, `patients/${user.uid}/vitals`), orderBy('timestamp', 'desc'));
+        return query(collection(firestore, `users/${user.uid}/vitals`), orderBy('timestamp', 'desc'));
     }, [user, firestore]);
 
-    useEffect(() => {
-        if (!vitalsQuery) {
-            setLoading(false);
-            return;
-        }
-        
-        const unsubscribe = onSnapshot(vitalsQuery, (snapshot) => {
-            const fetchedVitals = snapshot.docs.map(doc => ({...doc.data(), id: doc.id} as Vital));
-            setVitals(fetchedVitals);
-            setLoading(false);
-        });
+    const { data: vitals, loading: vitalsLoading } = useCollection<Vital>(vitalsQuery);
+    const loading = userLoading || vitalsLoading;
 
-        return () => unsubscribe();
-    }, [vitalsQuery]);
+    const chartVitals = useMemo(() => 
+        vitals?.map(v => ({
+            ...v,
+            time: v.timestamp?.toDate() ? format(v.timestamp.toDate(), 'p') : 'N/A'
+        })).reverse() || [],
+    [vitals]);
 
-    const glucoseSummary = vitals.reduce((acc, vital) => {
-        acc.sum += vital.Glucose;
-        if (vital.Glucose > acc.highest) acc.highest = vital.Glucose;
-        if (vital.Glucose < acc.lowest) acc.lowest = vital.Glucose;
-        if (vital.Glucose >= 70 && vital.Glucose <= 180) acc.inTarget++;
-        else if (vital.Glucose > 180) acc.aboveTarget++;
-        else acc.belowTarget++;
-        return acc;
-    }, { sum: 0, highest: 0, lowest: Infinity, inTarget: 0, aboveTarget: 0, belowTarget: 0 });
+    const glucoseSummary = useMemo(() => {
+      if (!vitals) return { sum: 0, highest: 0, lowest: Infinity, inTarget: 0, aboveTarget: 0, belowTarget: 0 };
+      return vitals.reduce((acc, vital) => {
+          acc.sum += vital.Glucose;
+          if (vital.Glucose > acc.highest) acc.highest = vital.Glucose;
+          if (vital.Glucose < acc.lowest) acc.lowest = vital.Glucose;
+          if (vital.Glucose >= 70 && vital.Glucose <= 180) acc.inTarget++;
+          else if (vital.Glucose > 180) acc.aboveTarget++;
+          else acc.belowTarget++;
+          return acc;
+      }, { sum: 0, highest: 0, lowest: Infinity, inTarget: 0, aboveTarget: 0, belowTarget: 0 });
+    }, [vitals]);
 
-    const totalVitals = vitals.length;
+    const totalVitals = vitals?.length || 0;
     const averageGlucose = totalVitals > 0 ? Math.round(glucoseSummary.sum / totalVitals) : 0;
     const timeInTarget = totalVitals > 0 ? Math.round((glucoseSummary.inTarget / totalVitals) * 100) : 0;
     const timeAboveTarget = totalVitals > 0 ? Math.round((glucoseSummary.aboveTarget / totalVitals) * 100) : 0;
@@ -99,7 +95,7 @@ export default function PatientHealthDataPage() {
                     <CardDescription>Target Range: 70-180 mg/dL</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <VitalsChart data={vitals} dataKey1="Glucose" label1="Glucose (mg/dL)" color1="hsl(var(--chart-1))" />
+                    <VitalsChart data={chartVitals} dataKey1="Glucose" label1="Glucose (mg/dL)" color1="hsl(var(--chart-1))" />
                 </CardContent>
             </Card>
              <Card className="mt-6">
@@ -141,7 +137,7 @@ export default function PatientHealthDataPage() {
                     <CardTitle>Blood Pressure Trend (Last 7 Days)</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <VitalsChart data={vitals} dataKey1="Systolic" label1="Systolic" color1="hsl(var(--chart-2))" dataKey2="Diastolic" label2="Diastolic" color2="hsl(var(--chart-3))"/>
+                    <VitalsChart data={chartVitals} dataKey1="Systolic" label1="Systolic" color1="hsl(var(--chart-2))" dataKey2="Diastolic" label2="Diastolic" color2="hsl(var(--chart-3))"/>
                 </CardContent>
             </Card>
         </TabsContent>
@@ -163,7 +159,7 @@ export default function PatientHealthDataPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {vitals.map((vital) => (
+                {vitals?.map((vital) => (
                   <TableRow key={vital.id}>
                     <TableCell>{vital.timestamp?.toDate ? format(vital.timestamp.toDate(), 'PPpp') : 'N/A'}</TableCell>
                     <TableCell>{vital["Glucose"]}</TableCell>

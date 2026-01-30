@@ -12,19 +12,19 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import type { Metadata } from 'next';
 import { useFirestore } from "@/firebase/provider";
 import { useCollection } from "@/firebase/firestore/use-collection";
 import { collection, query, where, limit, orderBy } from "firebase/firestore";
-import type { Patient, Alert } from "@/lib/types";
+import type { UserProfile, Alert } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
+import { formatDistanceToNow } from "date-fns";
 
 
 export default function DoctorDashboard() {
   const firestore = useFirestore();
 
-  const { data: patients, loading: loadingPatients } = useCollection<Patient>(
-    query(collection(firestore, 'patients'), limit(10))
+  const { data: patients, loading: loadingPatients } = useCollection<UserProfile>(
+    query(collection(firestore, 'users'), where('role', '==', 'patient'), limit(10))
   );
 
   const { data: alerts, loading: loadingAlerts } = useCollection<Alert>(
@@ -42,21 +42,25 @@ export default function DoctorDashboard() {
       title: "Total Patients",
       value: patients?.length || 0,
       icon: <Users className="h-6 w-6 text-muted-foreground" />,
+      loading: loadingPatients,
     },
     {
       title: "Active Alerts",
       value: alerts?.length || 0,
       icon: <Bell className="h-6 w-6 text-muted-foreground" />,
+      loading: loadingAlerts,
     },
     {
       title: "Critical Risk",
       value: criticalPatients.length,
       icon: <AlertTriangle className="h-6 w-6 text-destructive" />,
+      loading: loadingPatients,
     },
     {
       title: "Readings Today",
       value: "14,610", // This would be a calculated value in a real app
       icon: <Activity className="h-6 w-6 text-muted-foreground" />,
+      loading: false,
     },
   ];
 
@@ -85,7 +89,7 @@ export default function DoctorDashboard() {
                         {card.icon}
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{card.value}</div>
+                        {card.loading ? <Skeleton className="h-8 w-1/2" /> : <div className="text-2xl font-bold">{card.value}</div>}
                     </CardContent>
                 </Card>
             ))}
@@ -134,14 +138,14 @@ export default function DoctorDashboard() {
                         </TableHeader>
                         <TableBody>
                             {patients && patients.slice(0,4).map(p => (
-                                <TableRow key={p.id}>
-                                    <TableCell className="font-medium">{p.name}</TableCell>
+                                <TableRow key={p.uid}>
+                                    <TableCell className="font-medium">{p.displayName}</TableCell>
                                     <TableCell>
                                         <Badge variant={p.status === 'Critical' ? 'destructive' : p.status === 'Needs Review' ? 'secondary' : 'default'} className={p.status === 'Stable' ? 'bg-green-500 hover:bg-green-500/80' : ''}>{p.status}</Badge>
                                     </TableCell>
                                     <TableCell>{p.lastSeen}</TableCell>
                                     <TableCell>
-                                        <Button asChild variant="link" size="sm"><Link href={`/doctor/patients/${p.id}`}>View</Link></Button>
+                                        <Button asChild variant="link" size="sm"><Link href={`/doctor/patients/${p.uid}`}>View</Link></Button>
                                     </TableCell>
                                 </TableRow>
                             ))}
@@ -166,7 +170,7 @@ export default function DoctorDashboard() {
                                 </div>
                                 <div>
                                     <p className="text-sm font-medium leading-tight">{alert.patientName}: {alert.message}</p>
-                                    <p className="text-xs text-muted-foreground">{alert.timestamp.toDate().toLocaleTimeString()}</p>
+                                    <p className="text-xs text-muted-foreground">{formatDistanceToNow(alert.timestamp.toDate())} ago</p>
                                 </div>
                             </div>
                         ))}

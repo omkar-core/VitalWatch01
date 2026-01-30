@@ -19,7 +19,6 @@ import {
   ChartLegend,
   ChartLegendContent
 } from "@/components/ui/chart";
-import type { Vital } from "@/lib/types";
 
 interface VitalsChartProps {
   data: any[];
@@ -61,6 +60,7 @@ export function VitalsChart({ data, dataKey1, label1, color1, dataKey2, label2, 
           tickLine={false}
           axisLine={false}
           tickMargin={8}
+          domain={['dataMin - 10', 'dataMax + 10']}
           />
         {dataKey2 && <YAxis
           yAxisId="right"
@@ -69,6 +69,7 @@ export function VitalsChart({ data, dataKey1, label1, color1, dataKey2, label2, 
           tickLine={false}
           axisLine={false}
           tickMargin={8}
+          domain={['dataMin - 10', 'dataMax + 10']}
         />}
         <Tooltip content={<ChartTooltipContent />} />
         <Legend />
@@ -79,6 +80,7 @@ export function VitalsChart({ data, dataKey1, label1, color1, dataKey2, label2, 
           stroke={color1}
           strokeWidth={2}
           dot={false}
+          name={label1}
         />
         {dataKey2 && <Line
           yAxisId={dataKey2 && "right"}
@@ -87,6 +89,7 @@ export function VitalsChart({ data, dataKey1, label1, color1, dataKey2, label2, 
           stroke={color2}
           strokeWidth={2}
           dot={false}
+          name={label2}
         />}
       </LineChart>
     </ChartContainer>

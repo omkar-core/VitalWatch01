@@ -2,31 +2,24 @@
   "entities": {
     "user": {
       "title": "User",
-      "description": "A user of the application.",
+      "description": "A user of the application. Can be a doctor, patient, or admin.",
       "type": "object",
       "properties": {
         "uid": { "type": "string" },
         "email": { "type": "string", "format": "email" },
         "displayName": { "type": "string" },
         "role": { "type": "string", "enum": ["doctor", "patient", "admin"] },
+        "avatarUrl": { "type": "string", "format": "uri" },
+        "age": { "type": "number" },
+        "gender": { "type": "string", "enum": ["Male", "Female", "Other"] },
+        "conditions": { "type": "array", "items": { "type": "string" } },
+        "medicalHistory": { "type": "string" },
+        "status": { "type": "string", "enum": ["Stable", "Critical", "Needs Review"] },
+        "lastSeen": { "type": "string", "format": "date-time" },
         "deviceId": { "type": "string", "description": "The ID of the IoT device assigned to the user." },
         "calibrationData": { "type": "object", "description": "Stores user-specific device calibration constants." }
       },
-      "required": ["uid", "email", "role"]
-    },
-    "patient": {
-        "title": "Patient",
-        "description": "A patient health record, linked to a user account.",
-        "type": "object",
-        "properties": {
-            "userId": { "type": "string" },
-            "name": { "type": "string" },
-            "age": { "type": "number" },
-            "gender": { "type": "string" },
-            "conditions": { "type": "array", "items": { "type": "string" } },
-            "medicalHistory": { "type": "string" }
-        },
-        "required": ["userId", "name", "age", "gender"]
+      "required": ["uid", "email", "role", "displayName"]
     },
     "vitals": {
       "title": "Vitals",
@@ -63,12 +56,39 @@
         "type": "object",
         "properties": {
             "patientId": { "type": "string" },
+            "patientName": { "type": "string" },
             "message": { "type": "string" },
             "severity": { "type": "string", "enum": ["Critical", "High", "Medium", "Low", "Predictive"] },
             "timestamp": { "type": "string", "format": "date-time" },
             "isRead": { "type": "boolean" }
         },
         "required": ["patientId", "message", "severity", "timestamp"]
+    },
+    "device": {
+      "title": "Device",
+      "description": "A monitoring device.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "type": { "type": "string" },
+        "status": { "type": "string", "enum": ["Active", "Inactive", "Maintenance"] },
+        "assignedTo": { "type": "string", "description": "UID of the user it's assigned to." },
+        "lastSync": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "type", "status"]
+    },
+    "appointment": {
+        "title": "Appointment",
+        "description": "An appointment for a patient.",
+        "type": "object",
+        "properties": {
+            "patientId": { "type": "string" },
+            "doctorId": { "type": "string" },
+            "doctorName": { "type": "string" },
+            "date": { "type": "string", "format": "date-time" },
+            "type": { "type": "string" }
+        },
+        "required": ["patientId", "doctorId", "date", "type"]
     },
     "deviceCommand": {
         "title": "Device Command",
@@ -88,23 +108,27 @@
   "firestore": {
     "/users/{userId}": {
       "schema": { "$ref": "#/entities/user" },
-      "description": "Stores public user profile information."
+      "description": "Stores all user profile information, including patients and doctors."
     },
-    "/patients/{patientId}": {
-      "schema": { "$ref": "#/entities/patient" },
-      "description": "Stores patient demographic and medical history. The patientId is the same as the userId."
-    },
-    "/patients/{patientId}/vitals/{vitalId}": {
+    "/users/{userId}/vitals/{vitalId}": {
       "schema": { "$ref": "#/entities/vitals" },
       "description": "A time-series collection of raw vitals data for a specific patient."
     },
-    "/patients/{patientId}/estimations/{estimationId}": {
+    "/users/{userId}/estimations/{estimationId}": {
       "schema": { "$ref": "#/entities/healthEstimation" },
-      "description": "A time-series collection of AI-generated health estimations."
+      "description": "A time-series collection of AI-generated health estimations for a patient."
     },
     "/alerts/{alertId}": {
         "schema": { "$ref": "#/entities/alert" },
         "description": "Stores patient alerts."
+    },
+    "/devices/{deviceId}": {
+      "schema": { "$ref": "#/entities/device" },
+      "description": "Stores information about registered IoT devices."
+    },
+    "/appointments/{appointmentId}": {
+        "schema": { "$ref": "#/entities/appointment" },
+        "description": "Stores appointment details for patients."
     },
     "/deviceCommands/{deviceId}": {
         "schema": { "$ref": "#/entities/deviceCommand" },
