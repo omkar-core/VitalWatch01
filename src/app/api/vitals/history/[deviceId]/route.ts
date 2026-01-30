@@ -1,13 +1,13 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getRows } from '@/lib/griddb-client';
 import { HealthVital } from '@/lib/types';
 
 export async function GET(
-  request: Request,
-  { params }: { params: { deviceId: string } }
+  request: NextRequest,
+  { params }: { params: Promise<{ deviceId: string }> }
 ) {
   try {
-    const deviceId = params.deviceId;
+    const { deviceId } = await params;
     const vitalsResults = await getRows('health_vitals', `device_id='${deviceId}'`);
     
     if (!vitalsResults.results || vitalsResults.results.length === 0) {
@@ -28,7 +28,7 @@ export async function GET(
     return NextResponse.json(allVitals);
 
   } catch (error: any) {
-    console.error(`[/api/vitals/history/${params.deviceId}] Error:`, error);
+    console.error(`[/api/vitals/history/[deviceId]] Error:`, error);
     return NextResponse.json({ error: error.message || 'An internal server error occurred.' }, { status: 500 });
   }
 }

@@ -1,13 +1,13 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getRows } from '@/lib/griddb-client';
 import { HealthVital } from '@/lib/types';
 
 export async function GET(
-  request: Request,
-  { params }: { params: { deviceId: string } }
+  request: NextRequest,
+  { params }: { params: Promise<{ deviceId: string }> }
 ) {
   try {
-    const deviceId = params.deviceId;
+    const { deviceId } = await params;
     // TQL for getting the latest record is a bit more complex, often involving order by and limit.
     // Assuming a simplified query for demonstration.
     // A real implementation might be: `select * from health_vitals where device_id='${deviceId}' order by timestamp desc limit 1`
@@ -33,7 +33,7 @@ export async function GET(
     return NextResponse.json(vital);
 
   } catch (error: any) {
-    console.error(`[/api/vitals/latest/${params.deviceId}] Error:`, error);
+    console.error(`[/api/vitals/latest/[deviceId]] Error:`, error);
     return NextResponse.json({ error: error.message || 'An internal server error occurred.' }, { status: 500 });
   }
 }
