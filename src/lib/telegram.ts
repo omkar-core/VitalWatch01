@@ -1,3 +1,4 @@
+
 'use server';
 
 import type { HealthVital, PatientProfile } from "./types";
@@ -5,7 +6,7 @@ import type { HealthVital, PatientProfile } from "./types";
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 
 // Generic function to send a message to Telegram
-async function sendTelegramMessage({ chatId, text, parseMode = 'Markdown' }: { chatId: string, text: string, parseMode?: 'Markdown' | 'HTML' }): Promise<{ ok: boolean; error?: string }> {
+export async function sendTelegramMessage({ chatId, text, parseMode = 'Markdown' }: { chatId: string, text: string, parseMode?: 'Markdown' | 'HTML' }): Promise<{ ok: boolean; error?: string }> {
   if (!TELEGRAM_BOT_TOKEN) {
     const errorMessage = "Telegram bot token is not configured on the server.";
     console.error(errorMessage);
