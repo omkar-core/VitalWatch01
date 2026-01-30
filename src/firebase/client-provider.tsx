@@ -29,9 +29,9 @@ export function FirebaseClientProvider({
     setFirebase(instances);
   }, []);
 
-  // If Firebase is not yet initialized OR if initialization failed (firebase.app is null),
-  // then we render the children without the provider. The hooks will gracefully handle null.
-  if (!firebase || !firebase.app) {
+  // If Firebase is not yet initialized OR if initialization failed,
+  // we render the children without the provider. The hooks will gracefully handle null.
+  if (!firebase || !firebase.app || !firebase.auth || !firebase.firestore) {
     return <>{children}</>;
   }
 
