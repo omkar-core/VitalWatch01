@@ -30,7 +30,7 @@ The platform is divided into four main sections, each tailored to a specific use
 #### 👨‍💼 Admin Portal
 - **System Overview:** Key metrics for the entire platform, including user counts, device status, and system health.
 - **User & Device Management:** Tools to enroll new users (doctors, patients) and manage the lifecycle of monitoring devices.
-- **System Monitoring:** Real-time performance dashboards for critical infrastructure like GridDB and Azure IoT Hub.
+- **System Monitoring:** Real-time performance dashboards for critical infrastructure like GridDB.
 - **Comprehensive Reporting:** Generate clinical, operational, and financial reports for administrative oversight.
 
 ---
@@ -41,10 +41,10 @@ VitalWatch is built with a modern, scalable, and secure technology stack:
 
 - **Frontend:** [Next.js](https://nextjs.org/) with React (App Router) & [TypeScript](https://www.typescriptlang.org/)
 - **UI:** [Tailwind CSS](https://tailwindcss.com/) & [ShadCN UI](https://ui.shadcn.com/)
-- **Generative AI:** [Google Gemini](https://deepmind.google/technologies/gemini/) via [Genkit](https://firebase.google.com/docs/genkit) for summaries and diagnostic suggestions.
+- **Generative AI:** [Google Gemini](https://deepmind.google.com/technologies/gemini/) via [Genkit](https://firebase.google.com/docs/genkit) for summaries and diagnostic suggestions.
 - **Database:** [GridDB Cloud](https://www.toshiba-sol.co.jp/en/pro/griddb/) for high-performance time-series data storage.
-- **Cloud & IoT:** [Microsoft Azure IoT Hub](https://azure.microsoft.com/en-us/services/iot-hub/) for secure device data ingestion.
-- **Deployment:** [Firebase App Hosting](https://firebase.google.com/docs/hosting)
+- **Backend:** [Vercel](https://vercel.com/) with API Routes
+- **Deployment:** [Vercel](https://vercel.com/)
 
 ---
 
@@ -59,9 +59,11 @@ To run the VitalWatch platform locally, follow these steps:
     ```
 
 2.  **Set Up Environment Variables:**
-    Create a `.env` file in the project root and add your Gemini API key:
+    Create a `.env` file in the project root and add your Gemini API key and Telegram credentials:
     ```env
     GEMINI_API_KEY=YOUR_API_KEY_HERE
+    TELEGRAM_BOT_TOKEN=YOUR_TELEGRAM_BOT_TOKEN
+    TELEGRAM_CHAT_ID=YOUR_TELEGRAM_CHAT_ID
     ```
 
 3.  **Run the Development Server:**
@@ -71,7 +73,7 @@ To run the VitalWatch platform locally, follow these steps:
     ```
 
 4.  **Access the Application:**
-    Open your browser and navigate to `http://localhost:9002` to see the application in action.
+    Open your browser and navigate to `http://localhost:3000` to see the application in action.
 
 ---
 

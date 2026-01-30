@@ -73,7 +73,7 @@ export default function AboutPage() {
                         </p>
                     </CardContent>
                 </Card>
-                <p className="text-muted-foreground">We combine GridDB's power with Azure IoT Hub for secure device communication and a robust ML pipeline for predictive analytics, creating a healthcare platform that's truly ahead of the curve.</p>
+                <p className="text-muted-foreground">We combine GridDB's power with a Vercel-hosted backend for secure, scalable API communication and a robust ML pipeline for predictive analytics, creating a healthcare platform that's truly ahead of the curve.</p>
             </div>
           </div>
         </section>

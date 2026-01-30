@@ -28,7 +28,7 @@ export default function HowItWorksPage() {
     {
       step: 3,
       title: "On-Demand Measurement Trigger",
-      description: "When the user presses 'Scan Vitals' in the web app, a command is securely sent via Firestore to the designated ESP32. The device then begins a focused 45-second measurement window, applying filtering and averaging.",
+      description: "When the user presses 'Scan Vitals' in the web app, a command is securely sent via a Vercel API route to the designated ESP32. The device then begins a focused 45-second measurement window, applying filtering and averaging.",
       icon: <Wifi />
     },
     {
@@ -39,20 +39,20 @@ export default function HowItWorksPage() {
     },
     {
       step: 5,
-      title: "Cloud-Based AI Analysis (Gemini)",
-      description: "The processed vitals and on-device estimations are sent to the cloud. A server-side AI model analyzes this data in conjunction with the patient's historical vitals to identify complex trends, estimate glucose trend risk ('Normal', 'Elevated', 'Risky'), and refine the BP category.",
+      title: "Cloud-Based AI Analysis (Vercel + Gemini)",
+      description: "The processed vitals and on-device estimations are sent to a Vercel API Route. A server-side AI model analyzes this data in conjunction with the patient's historical vitals to identify complex trends, estimate glucose trend risk ('Normal', 'Elevated', 'Risky'), and refine the BP category.",
       icon: <BrainCircuit />
     },
     {
       step: 6,
-      title: "Secure Data Storage (Firestore)",
-      description: "All data—raw signals, processed values, and AI-generated estimations—is stored in Firestore with a server timestamp, linked to the specific user and device ID. The database is optimized for time-series queries.",
+      title: "Secure Data Storage (GridDB Cloud)",
+      description: "All data—raw signals, processed values, and AI-generated estimations—is stored in a high-performance GridDB Cloud instance with a server timestamp, linked to the specific user and device ID. The database is optimized for time-series queries.",
       icon: <Database />
     },
      {
       step: 7,
       title: "Intelligent Alerts & Dashboard",
-      description: "If any value crosses a critical threshold, an alert is instantly generated and stored in Firestore. The patient and doctor dashboards update in real-time to display the latest vitals, AI insights, and any new alerts.",
+      description: "If any value crosses a critical threshold, an alert is instantly generated, stored in GridDB, and a notification is sent via Telegram. The patient and doctor dashboards update in real-time to display the latest vitals, AI insights, and any new alerts.",
       icon: <LayoutDashboard />
     },
   ];
