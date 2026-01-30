@@ -9,7 +9,6 @@ import {
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { getFirebase } from '..';
 import type { UserRole, PatientProfile } from '@/lib/types';
-import { putRows } from '@/lib/griddb-client';
 
 const { auth, firestore } = getFirebase();
 
@@ -68,52 +67,17 @@ export async function signUp(
       emergency_contact_name: '',
       emergency_contact_phone: '',
     };
-
-    // The GridDB client expects an array of rows, where each row is an array of values
-    // in the exact order of the table schema. This is fragile. A better implementation
-    // would map object properties to the correct column order.
-    // For this implementation, we will assume the order matches the PatientProfile type.
-    const profileRow = [
-        newProfile.patient_id,
-        newProfile.device_id,
-        newProfile.name,
-        newProfile.age,
-        newProfile.gender,
-        newProfile.email,
-        newProfile.phone,
-        newProfile.baseline_hr,
-        newProfile.baseline_spo2,
-        newProfile.baseline_bp_systolic,
-        newProfile.baseline_bp_diastolic,
-        newProfile.has_diabetes,
-        newProfile.has_hypertension,
-        newProfile.has_heart_condition,
-        newProfile.alert_threshold_hr_high,
-        newProfile.alert_threshold_hr_low,
-        newProfile.alert_threshold_spo2_low,
-        newProfile.alert_threshold_bp_systolic_high,
-        newProfile.alert_threshold_glucose_high,
-        newProfile.emergency_contact_name,
-        newProfile.emergency_contact_phone,
-        newProfile.created_at,
-        newProfile.updated_at,
-        newProfile.is_active
-    ];
     
-    // Note: The /api/patients route uses putRows, which we can call directly here if this file is server-side.
-    // Since this is a client file, it's better to call the API endpoint.
-    // For simplicity in this environment, we'll call the server-side function directly,
-    // but in a real app, this should be an API call.
-     try {
-        await fetch('/api/patients', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(newProfile)
-        });
-    } catch(e) {
-        console.error("Failed to create patient profile in GridDB", e);
-        // Handle failure - maybe delete the auth user or flag for admin review
-    }
+    // Fire-and-forget the profile creation to make the UI faster.
+    // The dashboard will handle the brief period where the profile might not exist yet.
+    fetch('/api/patients', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newProfile)
+    }).catch(e => {
+        console.error("Failed to create patient profile in GridDB in the background:", e);
+        // In a real app, you might add this to a retry queue or notify an admin.
+    });
   }
 
 

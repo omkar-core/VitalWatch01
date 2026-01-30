@@ -6,7 +6,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { HeartPulse, Droplets, Thermometer, Wind, Wifi, Bot, ShieldCheck, Loader2, Info, Activity } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
 import { ingestVitalsAction } from '@/app/actions';
-import type { HealthVital, PatientProfile } from '@/lib/types';
+import type { HealthVital, PatientProfile } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useUser } from '@/firebase/auth/use-user';
@@ -30,7 +30,14 @@ const getStatusColor = (status: string) => {
     }
 };
 
-const fetcher = (url: string) => fetch(url).then(res => res.json());
+const fetcher = (url: string) => fetch(url).then(res => {
+  if (!res.ok) {
+    const error = new Error('An error occurred while fetching the data.');
+    (error as any).status = res.status;
+    throw error;
+  }
+  return res.json()
+});
 
 
 export default function PatientPage() {
@@ -38,8 +45,13 @@ export default function PatientPage() {
   const [isSyncing, setIsSyncing] = React.useState(false);
   const { user } = useUser();
 
-  const { data: patientData, error: patientError, isLoading: patientLoading } = useSWR<PatientProfile>(user ? `/api/patients/${user.uid}` : null, fetcher);
-  const { data: vitalsData, error: vitalsError, isLoading: vitalsLoading, mutate: mutateVitals } = useSWR<HealthVital>(patientData?.device_id ? `/api/vitals/latest/${patientData.device_id}` : null, fetcher);
+  const swrOptions = {
+    errorRetryInterval: 2000,
+    errorRetryCount: 5,
+  };
+
+  const { data: patientData, isLoading: patientLoading } = useSWR<PatientProfile>(user ? `/api/patients/${user.uid}` : null, fetcher, swrOptions);
+  const { data: vitalsData, isLoading: vitalsLoading, mutate: mutateVitals } = useSWR<HealthVital>(patientData?.device_id ? `/api/vitals/latest/${patientData.device_id}` : null, fetcher, swrOptions);
 
   const patient: PatientProfile | null = patientData || null;
   const latestVital: HealthVital | null = vitalsData || null;
@@ -99,7 +111,7 @@ export default function PatientPage() {
   const glucose = latestVital ? latestVital.predicted_glucose : null;
   const glucoseStatus = glucose ? (glucose > 180 ? 'Critical' : (glucose > 140 ? 'High' : 'Normal')) : 'Normal';
 
-  const isLoading = patientLoading || vitalsLoading;
+  const isLoading = patientLoading || !patientData || vitalsLoading;
 
   return (
     <div className="p-4 space-y-4">

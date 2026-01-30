@@ -13,18 +13,34 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Download, Loader2 } from "lucide-react";
-import type { HealthVital } from '@/lib/types';
+import { Download } from "lucide-react";
+import type { HealthVital, PatientProfile } from '@/lib/types';
 import { format } from 'date-fns';
 import { useUser } from '@/firebase/auth/use-user';
 import useSWR from 'swr';
 import { Skeleton } from '@/components/ui/skeleton';
 
-const fetcher = (url: string) => fetch(url).then(res => res.json());
+const fetcher = (url: string) => fetch(url).then(res => {
+  if (!res.ok) {
+    const error = new Error('An error occurred while fetching the data.');
+    (error as any).status = res.status;
+    throw error;
+  }
+  return res.json()
+});
 
 export default function PatientHealthDataPage() {
-    const { user, userProfile } = useUser();
-    const { data: vitals, isLoading: loading } = useSWR<HealthVital[]>(userProfile?.deviceId ? `/api/vitals/history/${userProfile.deviceId}` : null, fetcher);
+    const { user } = useUser();
+
+    const swrOptions = {
+      errorRetryInterval: 2000,
+      errorRetryCount: 5,
+    };
+
+    const { data: patientProfile, isLoading: patientLoading } = useSWR<PatientProfile>(user ? `/api/patients/${user.uid}` : null, fetcher, swrOptions);
+    const { data: vitals, isLoading: vitalsLoading } = useSWR<HealthVital[]>(patientProfile?.device_id ? `/api/vitals/history/${patientProfile.device_id}` : null, fetcher, swrOptions);
+
+    const loading = patientLoading || vitalsLoading;
 
     const chartVitals = useMemo(() => 
         vitals?.map(v => ({

@@ -23,16 +23,28 @@ import { Alert as AlertBox, AlertDescription, AlertTitle } from "@/components/ui
 import useSWR from 'swr';
 import { Skeleton } from "@/components/ui/skeleton";
 
-const fetcher = (url: string) => fetch(url).then(res => res.json());
+const fetcher = (url: string) => fetch(url).then(res => {
+  if (!res.ok) {
+    const error = new Error('An error occurred while fetching the data.');
+    (error as any).status = res.status;
+    throw error;
+  }
+  return res.json()
+});
 
 export default function PatientDetailPage() {
   const router = useRouter();
   const params = useParams();
   const patientId = params.patientId as string;
   
-  const { data: patient, error: patientError, isLoading: patientLoading } = useSWR<PatientProfile>(patientId ? `/api/patients/${patientId}` : null, fetcher);
-  const { data: vitals, error: vitalsError, isLoading: vitalsLoading } = useSWR<HealthVital[]>(patient?.device_id ? `/api/vitals/history/${patient.device_id}` : null, fetcher);
-  const { data: alerts, error: alertsError, isLoading: alertsLoading } = useSWR<AlertHistory[]>(patientId ? `/api/alerts?patientId=${patientId}` : null, fetcher);
+  const swrOptions = {
+    errorRetryInterval: 2000,
+    errorRetryCount: 3,
+  };
+  
+  const { data: patient, error: patientError, isLoading: patientLoading } = useSWR<PatientProfile>(patientId ? `/api/patients/${patientId}` : null, fetcher, swrOptions);
+  const { data: vitals, error: vitalsError, isLoading: vitalsLoading } = useSWR<HealthVital[]>(patient?.device_id ? `/api/vitals/history/${patient.device_id}` : null, fetcher, swrOptions);
+  const { data: alerts, error: alertsError, isLoading: alertsLoading } = useSWR<AlertHistory[]>(patientId ? `/api/alerts?patientId=${patientId}` : null, fetcher, swrOptions);
 
   const loading = patientLoading || vitalsLoading || alertsLoading;
   
