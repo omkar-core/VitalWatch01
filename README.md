@@ -38,7 +38,7 @@ VitalWatch is built with a modern, scalable, and secure technology stack:
 - **Frontend:** [Next.js](https://nextjs.org/) with React (App Router) & [TypeScript](https://www.typescriptlang.org/)
 - **UI:** [Tailwind CSS](https://tailwindcss.com/) & [ShadCN UI](https://ui.shadcn.com/)
 - **Generative AI:** [Google Gemini](https://deepmind.google.com/technologies/gemini/) via [Genkit](https://firebase.google.com/docs/genkit) for health estimations.
-- **Database:** [Firebase Firestore](https://firebase.google.com/docs/firestore) (emulating the specified GridDB schema)
+- **Database:** [GridDB](https://griddb.net/en/) via REST API
 - **Authentication:** [Firebase Authentication](https://firebase.google.com/docs/auth)
 - **Deployment:** [Vercel](https://vercel.com/)
 
@@ -60,22 +60,25 @@ To run the VitalWatch platform locally, follow these steps:
     # For Google AI (Gemini) features
     GEMINI_API_KEY=YOUR_API_KEY_HERE
 
-    # For Telegram alert notifications
-    TELEGRAM_BOT_TOKEN=YOUR_TELEGRAM_BOT_TOKEN
-    TELEGRAM_CHAT_ID=YOUR_TELEGRAM_CHAT_ID
+    # For Telegram alert notifications and bot functionality
+    TELEGRAM_BOT_TOKEN="YOUR_TELEGRAM_BOT_TOKEN"
+    TELEGRAM_CHAT_ID="THE_TARGET_USER_CHAT_ID"
     
-    # For GridDB connection (conceptual)
-    GRIDDB_API_URL=YOUR_GRIDDB_API_URL
-    GRIDDB_USERNAME=YOUR_GRIDDB_USERNAME
-    GRIDDB_PASSWORD=YOUR_GRIDDB_PASSWORD
+    # For GridDB connection
+    GRIDDB_API_URL="YOUR_GRIDDB_API_URL"
+    GRIDDB_USERNAME="YOUR_GRIDDB_USERNAME"
+    GRIDDB_PASSWORD="YOUR_GRIDDB_PASSWORD"
     
     # For Firebase (replace with your actual Firebase project config)
-    NEXT_PUBLIC_FIREBASE_API_KEY=YOUR_FIREBASE_API_KEY
-    NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=YOUR_FIREBASE_AUTH_DOMAIN
-    NEXT_PUBLIC_FIREBASE_PROJECT_ID=YOUR_FIREBASE_PROJECT_ID
-    NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=YOUR_FIREBASE_STORAGE_BUCKET
-    NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=YOUR_FIREBASE_MESSAGING_SENDER_ID
-    NEXT_PUBLIC_FIREBASE_APP_ID=YOUR_FIREBASE_APP_ID
+    NEXT_PUBLIC_FIREBASE_API_KEY="YOUR_FIREBASE_API_KEY"
+    NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN="YOUR_FIREBASE_AUTH_DOMAIN"
+    NEXT_PUBLIC_FIREBASE_PROJECT_ID="YOUR_FIREBASE_PROJECT_ID"
+    NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET="YOUR_FIREBASE_STORAGE_BUCKET"
+    NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID="YOUR_FIREBASE_MESSAGING_SENDER_ID"
+    NEXT_PUBLIC_FIREBASE_APP_ID="YOUR_FIREBASE_APP_ID"
+    
+    # The public URL of your deployed application (for webhooks)
+    NEXT_PUBLIC_APP_URL="http://localhost:3000"
     ```
 
 3.  **Run the Development Server:**
@@ -84,7 +87,13 @@ To run the VitalWatch platform locally, follow these steps:
     npm run dev
     ```
 
-4.  **Access the Application:**
+4.  **Set up the Telegram Webhook (Important for Bot Functionality):**
+    For the Telegram bot to work, you need to tell Telegram where to send updates. Run the following command in your terminal, replacing `YOUR_BOT_TOKEN` and `YOUR_VERCEL_URL` with your actual bot token and your deployed Vercel URL (or a service like ngrok for local development).
+    ```bash
+    curl "https://api.telegram.org/bot<YOUR_BOT_TOKEN>/setWebhook?url=<YOUR_VERCEL_URL>/api/telegram/webhook"
+    ```
+
+5.  **Access the Application:**
     Open your browser and navigate to `http://localhost:3000` to see the application in action.
 
 ---
@@ -96,4 +105,3 @@ To run the VitalWatch platform locally, follow these steps:
 - `npm run start`: Starts the production server.
 - `npm run lint`: Lints the codebase for errors and style issues.
 - `npm run genkit:dev`: Starts the Genkit development server for AI flow testing.
-```

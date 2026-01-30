@@ -1,14 +1,14 @@
 "use server";
 
 import type { HealthVital, PatientProfile, AlertHistory, ESP32Data } from '@/lib/types';
-import { sendTelegramAlert } from "@/lib/telegram";
-import { estimateHealthMetrics, EstimateHealthMetricsInput } from "@/ai/flows/suggest-initial-diagnoses";
+import { sendTelegramMessage, sendPreparationMessage, sendProgressUpdate } from "@/lib/telegram";
 
 type ActionResult<T> = {
     data?: T;
     error?: string;
 }
 
+// This is the action called by the patient dashboard "Scan Vitals" button
 export async function ingestVitalsAction(vitals: ESP32Data[]): Promise<ActionResult<string>> {
   try {
     const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/vitals/ingest`, {
@@ -16,7 +16,7 @@ export async function ingestVitalsAction(vitals: ESP32Data[]): Promise<ActionRes
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(vitals),
+      body: JSON.stringify({ vitals }),
     });
 
     if (!response.ok) {
@@ -30,5 +30,58 @@ export async function ingestVitalsAction(vitals: ESP32Data[]): Promise<ActionRes
   } catch (e: any) {
     console.error("Error in ingestVitalsAction:", e);
     return { error: e.message || 'An unknown error occurred during the vitals ingestion process.' };
+  }
+}
+
+// This is the action called by the Telegram bot
+export async function triggerVitalsScanFromTelegram(chatId: string, patientId: string): Promise<ActionResult<string>> {
+  try {
+     // 1. Send preparation instructions
+    await sendPreparationMessage(chatId);
+    await new Promise(resolve => setTimeout(resolve, 2000)); // 2s delay
+
+    // 2. Simulate multi-phase scan with progress updates
+    await sendProgressUpdate(chatId, "Contact Check", 25, "Checking for wrist contact...");
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    await sendProgressUpdate(chatId, "Stabilization", 50, "Calibrating sensor...");
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    await sendProgressUpdate(chatId, "Data Acquisition", 75, "Reading PPG signal...");
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    await sendProgressUpdate(chatId, "Signal Processing", 100, "Measurement complete. Analyzing data...");
+    
+    // 3. Generate mock data and call the ingest API
+    const mockESP32Data: ESP32Data[] = [{
+      deviceId: patientId,
+      ts: new Date().toISOString(),
+      heart_rate: 70 + Math.random() * 15,
+      spo2: 96 + Math.random() * 3,
+      ppg_raw: 1000 + Math.random() * 200,
+    }];
+    
+    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/vitals/ingest`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      // Pass both vitals and chatId to the ingest API
+      body: JSON.stringify({ vitals: mockESP32Data, chatId }),
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.json();
+      throw new Error(errorBody.error || 'Failed to ingest vitals data.');
+    }
+
+    const result = await response.json();
+    // The final report is sent by the ingest API, so we just return success here.
+    return { data: result.message };
+
+  } catch (e: any) {
+     console.error("Error in triggerVitalsScanFromTelegram:", e);
+    await sendTelegramMessage({ chatId, text: `❌ *Error:* ${e.message || 'An unknown error occurred.'}` });
+    return { error: e.message || 'An unknown error occurred.' };
   }
 }

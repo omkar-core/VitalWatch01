@@ -38,11 +38,11 @@ export default function PatientPage() {
   const [isSyncing, setIsSyncing] = React.useState(false);
   const { user } = useUser();
 
-  const { data: patientData, error: patientError, isLoading: patientLoading } = useSWR(user ? `/api/patients/${user.uid}` : null, fetcher);
-  const { data: vitalsData, error: vitalsError, isLoading: vitalsLoading, mutate: mutateVitals } = useSWR(patientData?.device_id ? `/api/vitals/latest/${patientData.device_id}` : null, fetcher);
+  const { data: patientData, error: patientError, isLoading: patientLoading } = useSWR<PatientProfile>(user ? `/api/patients/${user.uid}` : null, fetcher);
+  const { data: vitalsData, error: vitalsError, isLoading: vitalsLoading, mutate: mutateVitals } = useSWR<HealthVital>(patientData?.device_id ? `/api/vitals/latest/${patientData.device_id}` : null, fetcher);
 
-  const patient: PatientProfile | null = patientData;
-  const latestVital: HealthVital | null = vitalsData;
+  const patient: PatientProfile | null = patientData || null;
+  const latestVital: HealthVital | null = vitalsData || null;
 
 
   const handleDeviceSync = async () => {
