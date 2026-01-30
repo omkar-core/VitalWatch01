@@ -79,15 +79,18 @@ export default function LandingPage() {
             <div className="flex flex-col items-center space-y-4 text-center">
               <div className="space-y-4">
                 <h1 className="text-4xl font-bold font-headline tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl">
-                  Continuous NCD Monitoring That Saves Lives
+                  Intelligent Health Monitoring, For Life
                 </h1>
                 <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl">
-                  Real-time glucose & BP tracking for 1 lakh+ rural patients, powered by GridDB Cloud and advanced AI.
+                  Our AI-powered platform translates real-time vital signs from wearable devices into actionable insights, enabling early detection and timely intervention for chronic conditions.
                 </p>
               </div>
-              <div className="space-x-4 pt-4">
+              <div className="flex flex-wrap justify-center gap-4 pt-4">
                 <Link href="/register" prefetch={false}>
                   <Button size="lg">Get Started</Button>
+                </Link>
+                 <Link href="/how-it-works" prefetch={false}>
+                  <Button size="lg" variant="secondary">Learn More</Button>
                 </Link>
               </div>
             </div>
