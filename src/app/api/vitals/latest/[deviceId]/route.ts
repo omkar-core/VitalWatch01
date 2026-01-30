@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getRows } from '@/lib/griddb-client';
 import { HealthVital } from '@/lib/types';
 
 export async function GET(
-  request: NextRequest,
+  request: Request,
   { params }: { params: { deviceId: string } }
 ) {
   try {

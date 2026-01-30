@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { sendWelcomeMessage, sendDeviceStatus, sendCalibrationGuide, sendTelegramMessage } from '@/lib/telegram';
 import { triggerVitalsScanFromTelegram } from '@/app/actions';
 import { getRows } from '@/lib/griddb-client';
@@ -10,7 +10,7 @@ const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 // where you've stored the user's chat_id.
 const DEMO_PATIENT_ID = 'demouser'; 
 
-export async function POST(request: NextRequest) {
+export async function POST(request: Request) {
   try {
     const body = await request.json();
 

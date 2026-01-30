@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getRows, putRows } from '@/lib/griddb-client';
 import { PatientProfile } from '@/lib/types';
 
@@ -25,7 +25,7 @@ export async function GET() {
   }
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(request: Request) {
     try {
         const profile: PatientProfile = await request.json();
 
