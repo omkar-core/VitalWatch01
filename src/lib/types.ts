@@ -6,6 +6,7 @@ export type Vital = {
   "Diastolic": number;
   "Heart Rate": number;
   "SPO2": number;
+  "Temperature"?: number;
 };
 
 export type Patient = {

@@ -34,11 +34,15 @@
       "type": "object",
       "properties": {
         "timestamp": { "type": "string", "format": "date-time" },
-        "heartRate": { "type": "number", "description": "Heart rate in beats per minute (BPM)." },
-        "spo2": { "type": "number", "description": "Blood oxygen saturation percentage (SpO2)." },
+        "Glucose": { "type": "number", "description": "Blood glucose level in mg/dL." },
+        "Systolic": { "type": "number", "description": "Systolic blood pressure." },
+        "Diastolic": { "type": "number", "description": "Diastolic blood pressure." },
+        "Heart Rate": { "type": "number", "description": "Heart rate in beats per minute (BPM)." },
+        "SPO2": { "type": "number", "description": "Blood oxygen saturation percentage (SpO2)." },
+        "Temperature": { "type": "number", "description": "Body temperature." },
         "sqi": { "type": "number", "description": "Signal Quality Index from the sensor." }
       },
-      "required": ["timestamp", "heartRate", "spo2"]
+      "required": ["timestamp", "Glucose", "Systolic", "Diastolic", "Heart Rate", "SPO2"]
     },
     "healthEstimation": {
       "title": "Health Estimation",

@@ -1,19 +1,35 @@
 'use client';
 
 import * as React from 'react';
-import { VitalsChart } from "@/components/dashboard/vitals-chart";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { HeartPulse, Droplets, Calendar, MessageCircle, AlertTriangle, CheckCircle, Wifi, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
-import { Badge } from "@/components/ui/badge";
-import { useFirestore } from '@/firebase/provider';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from '@/components/ui/skeleton';
+import { HeartPulse, Droplets, Thermometer, Wind, Wifi, Bot, ShieldCheck, Loader2 } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
 import { sendCommandToDevice } from '@/lib/device-commands';
 import { useUser } from '@/firebase/auth/use-user';
-import { collection, limit, onSnapshot, query, serverTimestamp, addDoc, orderBy } from 'firebase/firestore';
-import type { Patient, Vital, Alert } from '@/lib/types';
-import { Skeleton } from '@/components/ui/skeleton';
+import { collection, limit, onSnapshot, query, orderBy } from 'firebase/firestore';
+import { useFirestore } from '@/firebase/provider';
+import type { Vital } from '@/lib/types';
+import { useCollection } from '@/firebase/firestore/use-collection';
+import { EstimateHealthMetricsOutput } from '@/ai/flows/suggest-initial-diagnoses';
+import { cn } from '@/lib/utils';
+
+// Helper function to get status colors
+const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+        case 'critical':
+        case 'stage 2 hypertension':
+            return 'text-destructive';
+        case 'high':
+        case 'stage 1 hypertension':
+        case 'elevated':
+            return 'text-yellow-600';
+        case 'normal':
+            return 'text-green-600';
+        default:
+            return 'text-muted-foreground';
+    }
+};
 
 export default function PatientPage() {
   const { user, userProfile, loading: userLoading } = useUser();
@@ -21,39 +37,17 @@ export default function PatientPage() {
   const { toast } = useToast();
   const [isSyncing, setIsSyncing] = React.useState(false);
 
-  const [vitals, setVitals] = React.useState<Vital[]>([]);
-  const [alerts, setAlerts] = React.useState<Alert[]>([]);
-  const [loadingVitals, setLoadingVitals] = React.useState(true);
-  const [loadingAlerts, setLoadingAlerts] = React.useState(true);
-  
-  const latestVital = vitals.length > 0 ? vitals[0] : null;
-  const activeAlert = alerts.length > 0 ? alerts[0] : null;
+  const vitalsQuery = user ? query(collection(firestore, `patients/${user.uid}/vitals`), orderBy("time", "desc"), limit(1)) : null;
+  const { data: vitalsData, loading: loadingVitals } = useCollection<Vital>(vitalsQuery as any);
 
-  React.useEffect(() => {
-    if (!user || !firestore) return;
+  const estimationsQuery = user ? query(collection(firestore, `patients/${user.uid}/estimations`), orderBy("timestamp", "desc"), limit(1)) : null;
+  const { data: estimationsData, loading: loadingEstimations } = useCollection<EstimateHealthMetricsOutput>(estimationsQuery as any);
 
-    const vitalsQuery = query(collection(firestore, `patients/${user.uid}/vitals`), orderBy("time", "desc"), limit(20));
-    const alertsQuery = query(collection(firestore, 'alerts'), where('patientId', '==', user.uid), where('isRead', '==', false), orderBy('timestamp', 'desc'), limit(1));
-    
-    const unsubVitals = onSnapshot(vitalsQuery, (snapshot) => {
-        const newVitals = snapshot.docs.map(doc => doc.data() as Vital);
-        setVitals(newVitals);
-        setLoadingVitals(false);
-    });
-
-    const unsubAlerts = onSnapshot(alertsQuery, (snapshot) => {
-        const newAlerts = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Alert));
-        setAlerts(newAlerts);
-        setLoadingAlerts(false);
-    });
-    
-    return () => {
-        unsubVitals();
-        unsubAlerts();
-    }
-  }, [user, firestore]);
+  const latestVital = vitalsData && vitalsData.length > 0 ? vitalsData[0] : null;
+  const latestEstimation = estimationsData && estimationsData.length > 0 ? estimationsData[0] : null;
 
   const handleDeviceSync = async () => {
+      if (isSyncing) return;
       if (!userProfile?.deviceId) {
           toast({ variant: 'destructive', title: 'No Device Found', description: 'Please assign a device in your settings.' });
           return;
@@ -72,147 +66,147 @@ export default function PatientPage() {
             description: error.message || 'Could not initiate device scan.',
           });
       } finally {
-        setTimeout(() => setIsSyncing(false), 2000);
+        setTimeout(() => setIsSyncing(false), 3000);
       }
   };
 
-  const vitalCards = [
-    {
-      title: "Glucose",
-      value: latestVital ? `${latestVital["Glucose"]} mg/dL` : 'N/A',
-      status: "Critical",
-      icon: <HeartPulse className="h-6 w-6 text-muted-foreground" />,
-    },
-    {
-      title: "Blood Pressure",
-      value: latestVital ? `${latestVital["Systolic"]}/${latestVital["Diastolic"]}` : 'N/A',
-      status: "High",
-      icon: <Droplets className="h-6 w-6 text-muted-foreground" />,
-    },
-    {
-      title: "Heart Rate",
-      value: latestVital ? `${latestVital["Heart Rate"]} BPM` : 'N/A',
-      status: "Normal",
-      icon: <HeartPulse className="h-6 w-6 text-muted-foreground" />,
-    },
-  ];
+  // Derived values from vitals
+  const bp = latestVital ? {
+      systolic: latestVital["Systolic"],
+      diastolic: latestVital["Diastolic"],
+      map: Math.round(latestVital["Diastolic"] + (latestVital["Systolic"] - latestVital["Diastolic"]) / 3),
+      pulsePressure: latestVital["Systolic"] - latestVital["Diastolic"],
+      stage: latestVital["Systolic"] >= 140 || latestVital["Diastolic"] >= 90 ? 'Stage 2 Hypertension' : (latestVital["Systolic"] >= 130 ? 'Stage 1 Hypertension' : (latestVital["Systolic"] > 120 ? 'Elevated' : 'Normal'))
+  } : null;
+  
+  const heart = latestVital && bp ? {
+      rate: latestVital["Heart Rate"],
+      shockIndex: bp.systolic > 0 ? (latestVital["Heart Rate"] / bp.systolic).toFixed(2) : 'N/A'
+  } : null;
 
-  if (userLoading || loadingVitals || loadingAlerts) {
-    return (
-        <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-                <Skeleton className="h-8 w-48" />
-                <Skeleton className="h-10 w-36" />
-            </div>
-            <Skeleton className="h-40 w-full" />
-            <div className="grid gap-4 md:grid-cols-3">
-                <Skeleton className="h-28 w-full" />
-                <Skeleton className="h-28 w-full" />
-                <Skeleton className="h-28 w-full" />
-            </div>
-             <div className="grid gap-4 lg:grid-cols-3">
-                <Skeleton className="lg:col-span-2 h-72 w-full" />
-                <div className="space-y-4">
-                    <Skeleton className="h-40 w-full" />
-                    <Skeleton className="h-40 w-full" />
-                </div>
-            </div>
-        </main>
-    );
-  }
+  const glucose = latestVital ? latestVital["Glucose"] : null;
+  const glucoseStatus = glucose ? (glucose > 180 ? 'Critical' : (glucose > 140 ? 'High' : 'Normal')) : 'Normal';
+
+  const isLoading = userLoading || loadingVitals || loadingEstimations;
 
   return (
-    <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <h1 className="font-headline text-2xl font-bold">Welcome, {userProfile?.displayName?.split(' ')[0]}!</h1>
-          <Button onClick={handleDeviceSync} disabled={isSyncing}>
-            {isSyncing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wifi className="mr-2 h-4 w-4" />}
-            {isSyncing ? 'Scanning...' : 'Scan Vitals Now'}
-          </Button>
-        </div>
-        
-       {activeAlert && (
-         <Card className="bg-destructive/10 border-destructive">
-            <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-destructive"><AlertTriangle/> Active Alert</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-                <p className="font-bold">{activeAlert.message}</p>
-                <div className="flex gap-2 flex-wrap">
-                    <Button variant="destructive">I Need Help Now</Button>
-                    <Button variant="outline">Mark as Read</Button>
+    <div className="p-4 space-y-4">
+        <Card onClick={handleDeviceSync} className="bg-primary text-primary-foreground border-0 cursor-pointer hover:bg-primary/90 transition-all active:scale-[0.98]">
+            <CardContent className="p-4 flex items-center gap-4">
+                <div className="p-3 bg-primary-foreground/20 rounded-lg">
+                    {isSyncing ? <Loader2 className="h-6 w-6 animate-spin" /> : <Wifi className="h-6 w-6" />}
+                </div>
+                <div>
+                    <h2 className="font-bold text-lg font-headline">Scan Vitals</h2>
+                    <p className="text-sm opacity-80">{isSyncing ? 'Scanning...' : 'IoT Sensor Ready'}</p>
                 </div>
             </CardContent>
         </Card>
-       )}
 
-        <div className="grid gap-4 md:grid-cols-3">
-            {vitalCards.map((vital, index) => (
-                <Card key={index}>
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-medium flex items-center justify-between">
-                            <span>{vital.title}</span>
-                            {vital.icon}
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-4xl font-bold">{vital.value}</div>
-                        <Badge variant={vital.status === 'Critical' || vital.status === 'High' ? 'destructive' : 'default'} className={vital.status === 'Normal' ? 'bg-green-500' : ''}>{vital.status}</Badge>
-                    </CardContent>
-                </Card>
-            ))}
-        </div>
-
-        <div className="grid gap-4 lg:grid-cols-3">
-          <div className="lg:col-span-2">
-            <Card>
-                <CardHeader>
-                    <CardTitle>My Health Trends</CardTitle>
-                    <CardDescription>Your glucose levels over the last 7 days.</CardDescription>
+        {isLoading ? <Skeleton className="h-32 w-full rounded-lg" /> : glucose !== null && (
+            <Card className={cn("border-2", glucoseStatus === 'Critical' ? "border-destructive bg-destructive/5" : "border-transparent")}>
+                <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-semibold text-muted-foreground flex items-center justify-between">
+                        <span className='flex items-center gap-2'><span className={cn('h-2 w-2 rounded-full', glucoseStatus === 'Critical' ? 'bg-destructive' : 'bg-yellow-500' )}></span>GLUCOSE LEVEL</span>
+                        {glucoseStatus === 'Critical' && <span className="text-xs font-bold text-destructive-foreground bg-destructive px-2 py-0.5 rounded-full">CRITICAL</span>}
+                    </CardTitle>
                 </CardHeader>
-                <CardContent>
-                    <VitalsChart data={vitals} dataKey1="Glucose" label1="Glucose" color1="hsl(var(--chart-1))" />
-                    <Button variant="link" className="p-0 h-auto mt-2 text-sm as-child">
-                      <Link href="/patient/health-data">View Detailed Trends →</Link>
-                    </Button>
+                <CardContent className='flex items-center justify-between'>
+                    <div>
+                        <p className="text-4xl font-bold">{glucose}<span className="text-lg text-muted-foreground ml-1">mg/dL</span></p>
+                        <p className="text-sm font-semibold">{glucose > 180 ? 'Diabetes/High' : 'Normal'}</p>
+                    </div>
+                    {glucoseStatus === 'Critical' && (
+                        <div className="relative h-16 w-16">
+                            <svg className="h-full w-full" width="36" height="36" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="18" cy="18" r="16" fill="none" className="stroke-current text-destructive/20" strokeWidth="2"></circle>
+                                <circle cx="18" cy="18" r="16" fill="none" className="stroke-current text-destructive" strokeWidth="2" strokeDasharray="100" strokeDashoffset="25" strokeLinecap="round"></circle>
+                            </svg>
+                        </div>
+                    )}
                 </CardContent>
             </Card>
-          </div>
-          <div className="space-y-4">
-              <Card>
+        )}
+
+        <div className="grid grid-cols-2 gap-4">
+             {isLoading ? <Skeleton className="h-48 w-full rounded-lg" /> : bp && (
+                <Card>
+                    <CardHeader className="pb-2">
+                        <CardTitle className="text-sm font-semibold text-muted-foreground flex items-center gap-2"><HeartPulse className='text-red-500'/> BP</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                        <p className="text-3xl font-bold">{bp.systolic}<span className='text-muted-foreground'>/</span>{bp.diastolic}<span className="text-base text-muted-foreground ml-1">mmHg</span></p>
+                        <div className="grid grid-cols-2 text-xs gap-1 pt-1">
+                            <div><p className='text-muted-foreground'>MAP</p><p className='font-bold'>{bp.map}</p></div>
+                            <div><p className='text-muted-foreground'>PULSE P.</p><p className='font-bold'>{bp.pulsePressure}</p></div>
+                        </div>
+                        <p className={cn("text-xs font-bold pt-1", getStatusColor(bp.stage))}>{bp.stage}</p>
+                    </CardContent>
+                </Card>
+             )}
+
+             {isLoading ? <Skeleton className="h-48 w-full rounded-lg" /> : heart && (
+                <Card>
+                     <CardHeader className="pb-2">
+                        <CardTitle className="text-sm font-semibold text-muted-foreground flex items-center gap-2"><HeartPulse className='text-blue-500'/> HEART RATE</CardTitle>
+                    </CardHeader>
+                     <CardContent className="space-y-2">
+                        <p className="text-3xl font-bold">{heart.rate}<span className="text-base text-muted-foreground ml-1">bpm</span></p>
+                         <div className="grid grid-cols-2 text-xs gap-1 pt-1">
+                            <div><p className='text-muted-foreground'>SHOCK INDEX</p><p className='font-bold'>{heart.shockIndex}</p></div>
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
+
+             {isLoading ? <Skeleton className="h-36 w-full rounded-lg" /> : latestVital && (
+                <Card>
+                     <CardHeader className="pb-2">
+                        <CardTitle className="text-sm font-semibold text-muted-foreground flex items-center gap-2"><Wind className='text-green-500'/> SPO2</CardTitle>
+                    </CardHeader>
+                     <CardContent>
+                        <p className="text-3xl font-bold">{latestVital["SPO2"]}<span className="text-base text-muted-foreground">%</span></p>
+                        <p className="text-xs font-semibold text-muted-foreground pt-1">Oxygen</p>
+                    </CardContent>
+                </Card>
+             )}
+
+             {isLoading ? <Skeleton className="h-36 w-full rounded-lg" /> : latestVital?.Temperature && (
+                 <Card>
+                     <CardHeader className="pb-2">
+                        <CardTitle className="text-sm font-semibold text-muted-foreground flex items-center gap-2"><Thermometer className='text-orange-500'/> TEMP</CardTitle>
+                    </CardHeader>
+                     <CardContent>
+                        <p className="text-3xl font-bold">{latestVital["Temperature"]}<span className="text-base text-muted-foreground">°F</span></p>
+                         <p className="text-xs font-semibold text-muted-foreground pt-1">Fahrenheit</p>
+                    </CardContent>
+                </Card>
+             )}
+        </div>
+
+        {isLoading ? <Skeleton className="h-32 w-full rounded-lg" /> : latestEstimation && (
+             <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2"><MessageCircle /> Medication Reminder</CardTitle>
+                    <CardTitle className="text-sm font-semibold text-muted-foreground flex items-center justify-between">
+                         <span className='flex items-center gap-2'><ShieldCheck /> Health Prediction</span>
+                        <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">AI POWERED</span>
+                    </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
+                 <CardContent className='grid grid-cols-2 gap-4'>
                     <div>
-                      <p className="font-semibold text-sm">Upcoming:</p>
-                      <p className="text-muted-foreground">Metformin 500mg - Due in 30 minutes (3:00 PM)</p>
-                      <div className="flex gap-2 mt-2">
-                        <Button size="sm">Mark as Taken</Button>
-                        <Button size="sm" variant="outline">Snooze</Button>
-                      </div>
+                        <p className="text-xs text-muted-foreground">CONFIDENCE</p>
+                        <p className="text-lg font-bold">{Math.round(latestEstimation.confidenceScore * 100)}%</p>
                     </div>
                      <div>
-                      <p className="font-semibold text-sm flex items-center gap-2"><CheckCircle className="text-green-500"/>Taken:</p>
-                      <p className="text-muted-foreground">Amlodipine 5mg - (8:00 AM)</p>
+                        <p className="text-xs text-muted-foreground">PREDICTED GLUCOSE TREND</p>
+                         <p className={cn("text-lg font-bold", latestEstimation.glucoseTrend === 'Risky' ? 'text-destructive' : '')}>{latestEstimation.glucoseTrend}</p>
                     </div>
-                  </div>
+                    <div className='col-span-2 text-xs text-muted-foreground pt-2'>
+                        {latestEstimation.reasoning}
+                    </div>
                 </CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2"><Calendar/> Next Appointment</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="font-semibold">Dr. Meera</p>
-                  <p className="text-sm text-muted-foreground">25 Jan 2025, 10:00 AM</p>
-                  <p className="text-sm text-muted-foreground">Tumkur PHC</p>
-                  <Button variant="secondary" size="sm" className="mt-2 w-full as-child"><Link href="/patient/appointments">Manage Appointments</Link></Button>
-                </CardContent>
-              </Card>
-          </div>
-        </div>
-    </main>
+            </Card>
+        )}
+    </div>
   );
 }
