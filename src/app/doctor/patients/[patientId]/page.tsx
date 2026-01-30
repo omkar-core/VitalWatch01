@@ -1,5 +1,6 @@
 "use client";
 
+import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -22,6 +23,8 @@ import { cn } from "@/lib/utils";
 import { Alert as AlertBox, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import useSWR from 'swr';
 import { Skeleton } from "@/components/ui/skeleton";
+import { generatePatientSummary } from '@/ai/flows/generate-patient-summary';
+
 
 const fetcher = (url: string) => fetch(url).then(res => {
   if (!res.ok) {
@@ -45,6 +48,9 @@ export default function PatientDetailPage({ params }: { params: { patientId: str
   const { data: vitals, error: vitalsError, isLoading: vitalsLoading } = useSWR<HealthVital[]>(patient?.device_id ? `/api/vitals/history/${patient.device_id}` : null, fetcher, swrOptions);
   const { data: alerts, error: alertsError, isLoading: alertsLoading } = useSWR<AlertHistory[]>(patientId ? `/api/alerts?patientId=${patientId}` : null, fetcher, swrOptions);
 
+  const [summary, setSummary] = React.useState<string | null>(null);
+  const [isGeneratingSummary, setIsGeneratingSummary] = React.useState(false);
+
   const loading = patientLoading || vitalsLoading || alertsLoading;
   
   const latestVital = vitals && vitals.length > 0 ? vitals[vitals.length - 1] : null;
@@ -55,6 +61,38 @@ export default function PatientDetailPage({ params }: { params: { patientId: str
     { title: "Heart Rate", value: `${latestVital.heart_rate.toFixed(0)} BPM`, icon: <Activity />, status: "Normal" },
     { title: "SpO2", value: `${latestVital.spo2.toFixed(1)}%`, icon: <Wind />, status: latestVital.spo2 < 95 ? 'Low' : 'Normal' },
   ] : [];
+
+  const handleGenerateSummary = async () => {
+      if (!patient) return;
+      setIsGeneratingSummary(true);
+      setSummary(null);
+
+      const conditionsText = [
+          patient.has_diabetes && "Diabetes",
+          patient.has_hypertension && "Hypertension",
+          patient.has_heart_condition && "Heart Condition"
+      ].filter(Boolean).join(', ');
+
+      const medicalHistory = `Patient is a ${patient.age} year old ${patient.gender?.toLowerCase()} with a history of ${conditionsText || 'no major conditions'}.`;
+      
+      const currentHealthStatus = latestVital
+        ? `Latest vitals recorded at ${format(new Date(latestVital.timestamp), 'PPpp')}: 
+        Heart Rate: ${latestVital.heart_rate.toFixed(0)} BPM, 
+        SpO2: ${latestVital.spo2.toFixed(1)}%, 
+        Estimated BP: ${latestVital.predicted_bp_systolic?.toFixed(0)}/${latestVital.predicted_bp_diastolic?.toFixed(0)} mmHg, 
+        Estimated Glucose: ${latestVital.predicted_glucose?.toFixed(0)} mg/dL.`
+        : "No recent vitals available.";
+      
+      try {
+        const result = await generatePatientSummary({ medicalHistory, currentHealthStatus });
+        setSummary(result.summary);
+      } catch (error) {
+        console.error("Failed to generate summary:", error);
+        setSummary("Could not generate a summary at this time.");
+      } finally {
+        setIsGeneratingSummary(false);
+      }
+    };
 
   if (loading) {
     return <div className="flex h-screen w-full items-center justify-center"><Loader2 className="animate-spin h-12 w-12" /></div>
@@ -171,6 +209,32 @@ export default function PatientDetailPage({ params }: { params: { patientId: str
                     The AI predictions shown are for informational purposes and are not a substitute for clinical judgement.
                 </AlertDescription>
             </AlertBox>
+            
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                    <Bot /> AI-Generated Patient Summary
+                    </CardTitle>
+                    <CardDescription>
+                    Generate a concise summary of the patient's current status based on their profile and latest vitals.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Button onClick={handleGenerateSummary} disabled={isGeneratingSummary}>
+                    {isGeneratingSummary && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Generate Summary
+                    </Button>
+                    {summary && (
+                    <AlertBox className="mt-4">
+                        <Bot className="h-4 w-4" />
+                        <AlertTitle>Patient Summary</AlertTitle>
+                        <AlertDescription>
+                        {summary}
+                        </AlertDescription>
+                    </AlertBox>
+                    )}
+                </CardContent>
+            </Card>
 
            <Card>
                 <CardHeader>
