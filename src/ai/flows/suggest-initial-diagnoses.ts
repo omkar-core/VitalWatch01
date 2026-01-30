@@ -20,7 +20,7 @@ const VitalsSchema = z.object({
   SPO2: z.number().describe('Blood oxygen saturation percentage (SpO2).'),
 });
 
-export const EstimateHealthMetricsInputSchema = z.object({
+const EstimateHealthMetricsInputSchema = z.object({
   age: z.number().describe('The age of the user.'),
   gender: z.string().describe('The gender of the user.'),
   medicalHistory: z
@@ -42,7 +42,7 @@ export type EstimateHealthMetricsInput = z.infer<
   typeof EstimateHealthMetricsInputSchema
 >;
 
-export const EstimateHealthMetricsOutputSchema = z.object({
+const EstimateHealthMetricsOutputSchema = z.object({
   estimatedBpCategory: z
     .enum(['Normal', 'Elevated', 'High', 'Low'])
     .describe('The estimated blood pressure category.'),
