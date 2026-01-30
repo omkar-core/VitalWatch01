@@ -1,15 +1,15 @@
 export type Vital = {
-  time: string;
+  id?: string;
+  time: any; // Firestore ServerTimestamp
   "Glucose": number;
   "Systolic": number;
   "Diastolic": number;
   "Heart Rate": number;
   "SPO2": number;
-  "Temperature": number;
 };
 
 export type Patient = {
-  id: string;
+  id: string; // This is the user uid
   userId: string;
   name: string;
   age: number;
@@ -17,11 +17,10 @@ export type Patient = {
   avatarUrl: string;
   avatarHint: string;
   status: 'Stable' | 'Critical' | 'Needs Review';
-  lastSeen: string; // This would likely be a timestamp in a real app
+  lastSeen: string;
   symptoms: string;
   medicalHistory: string;
   conditions: string[];
-  vitals: Vital[];
 };
 
 export type Alert = {
@@ -30,10 +29,8 @@ export type Alert = {
   patientName: string;
   severity: 'Critical' | 'High' | 'Medium' | 'Low' | 'Predictive';
   message: string;
-  timestamp: string; // This would be a Firestore Timestamp in a real app
+  timestamp: any; // Firestore ServerTimestamp
   isRead: boolean;
-  trend: string;
-  prediction: string;
 };
 
 export type UserRole = 'doctor' | 'patient' | 'admin';
@@ -45,6 +42,11 @@ export type UserProfile = {
   role: UserRole;
   avatarUrl?: string;
   deviceId?: string;
+  // Patient specific fields
+  age?: number;
+  gender?: 'Male' | 'Female' | 'Other';
+  medicalHistory?: string;
+  conditions?: string[];
 };
 
 

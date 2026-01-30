@@ -9,31 +9,62 @@
         "email": { "type": "string", "format": "email" },
         "displayName": { "type": "string" },
         "role": { "type": "string", "enum": ["doctor", "patient", "admin"] },
-        "deviceId": { "type": "string", "description": "The ID of the IoT device assigned to the user." }
+        "deviceId": { "type": "string", "description": "The ID of the IoT device assigned to the user." },
+        "calibrationData": { "type": "object", "description": "Stores user-specific device calibration constants." }
       },
       "required": ["uid", "email", "role"]
     },
     "patient": {
         "title": "Patient",
-        "description": "A patient record.",
+        "description": "A patient health record, linked to a user account.",
         "type": "object",
         "properties": {
+            "userId": { "type": "string" },
             "name": { "type": "string" },
             "age": { "type": "number" },
             "gender": { "type": "string" },
-            "conditions": { "type": "array", "items": { "type": "string" } }
-        }
+            "conditions": { "type": "array", "items": { "type": "string" } },
+            "medicalHistory": { "type": "string" }
+        },
+        "required": ["userId", "name", "age", "gender"]
+    },
+    "vitals": {
+      "title": "Vitals",
+      "description": "A single time-series reading of raw sensor data.",
+      "type": "object",
+      "properties": {
+        "timestamp": { "type": "string", "format": "date-time" },
+        "heartRate": { "type": "number", "description": "Heart rate in beats per minute (BPM)." },
+        "spo2": { "type": "number", "description": "Blood oxygen saturation percentage (SpO2)." },
+        "sqi": { "type": "number", "description": "Signal Quality Index from the sensor." }
+      },
+      "required": ["timestamp", "heartRate", "spo2"]
+    },
+    "healthEstimation": {
+      "title": "Health Estimation",
+      "description": "AI-powered estimation of health indicators based on sensor data.",
+      "type": "object",
+      "properties": {
+        "timestamp": { "type": "string", "format": "date-time" },
+        "estimatedBpCategory": { "type": "string", "enum": ["Normal", "Elevated", "High", "Low"]},
+        "glucoseTrend": { "type": "string", "enum": ["Normal", "Elevated", "Risky"] },
+        "confidenceScore": { "type": "number", "description": "The AI model's confidence in the estimation (0-1)." },
+        "reasoning": { "type": "string", "description": "A brief explanation from the model." }
+      },
+      "required": ["timestamp", "estimatedBpCategory", "glucoseTrend", "confidenceScore"]
     },
     "alert": {
         "title": "Alert",
-        "description": "An alert for a patient.",
+        "description": "An alert for a patient, triggered by sensor readings or AI estimations.",
         "type": "object",
         "properties": {
             "patientId": { "type": "string" },
             "message": { "type": "string" },
-            "severity": { "type": "string" },
-            "timestamp": { "type": "string", "format": "date-time" }
-        }
+            "severity": { "type": "string", "enum": ["Critical", "High", "Medium", "Low", "Predictive"] },
+            "timestamp": { "type": "string", "format": "date-time" },
+            "isRead": { "type": "boolean" }
+        },
+        "required": ["patientId", "message", "severity", "timestamp"]
     },
     "deviceCommand": {
         "title": "Device Command",
@@ -56,8 +87,16 @@
       "description": "Stores public user profile information."
     },
     "/patients/{patientId}": {
-        "schema": { "$ref": "#/entities/patient" },
-        "description": "Stores patient health records."
+      "schema": { "$ref": "#/entities/patient" },
+      "description": "Stores patient demographic and medical history. The patientId is the same as the userId."
+    },
+    "/patients/{patientId}/vitals/{vitalId}": {
+      "schema": { "$ref": "#/entities/vitals" },
+      "description": "A time-series collection of raw vitals data for a specific patient."
+    },
+    "/patients/{patientId}/estimations/{estimationId}": {
+      "schema": { "$ref": "#/entities/healthEstimation" },
+      "description": "A time-series collection of AI-generated health estimations."
     },
     "/alerts/{alertId}": {
         "schema": { "$ref": "#/entities/alert" },

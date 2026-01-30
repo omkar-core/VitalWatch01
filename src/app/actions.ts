@@ -1,7 +1,7 @@
 "use server";
 
 import { generatePatientSummary, GeneratePatientSummaryInput } from "@/ai/flows/generate-patient-summary";
-import { suggestInitialDiagnoses, SuggestInitialDiagnosesInput } from "@/ai/flows/suggest-initial-diagnoses";
+import { estimateHealthMetrics, EstimateHealthMetricsInput } from "@/ai/flows/suggest-initial-diagnoses";
 
 type ActionResult<T> = {
     data?: T;
@@ -18,9 +18,9 @@ export async function generatePatientSummaryAction(input: GeneratePatientSummary
     }
 }
 
-export async function suggestInitialDiagnosesAction(input: SuggestInitialDiagnosesInput): Promise<ActionResult<Awaited<ReturnType<typeof suggestInitialDiagnoses>>>> {
+export async function estimateHealthMetricsAction(input: EstimateHealthMetricsInput): Promise<ActionResult<Awaited<ReturnType<typeof estimateHealthMetrics>>>> {
     try {
-        const output = await suggestInitialDiagnoses(input);
+        const output = await estimateHealthMetrics(input);
         return { data: output };
     } catch (e: any) {
         console.error(e);

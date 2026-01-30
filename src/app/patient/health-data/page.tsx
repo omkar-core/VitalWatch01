@@ -1,6 +1,8 @@
+'use client';
+
+import { useState, useEffect } from 'react';
 import { VitalsChart } from "@/components/dashboard/vitals-chart";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { patients } from "@/lib/data";
 import {
   Table,
   TableHeader,
@@ -11,25 +13,66 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Download } from "lucide-react";
-import type { Metadata } from 'next';
-
-export const metadata: Metadata = {
-  title: 'My Health Data - VitalWatch',
-  description: 'View and track your health data trends over time.',
-};
+import { Download, Loader2 } from "lucide-react";
+import { useUser } from '@/firebase/auth/use-user';
+import { useFirestore } from '@/firebase/provider';
+import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
+import type { Vital } from '@/lib/types';
+import { format } from 'date-fns';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function PatientHealthDataPage() {
-  const patient = patients[1]; // Mock data for Jane Smith
+    const { user } = useUser();
+    const firestore = useFirestore();
 
-  const glucoseSummary = {
-    average: 185,
-    highest: 380,
-    lowest: 95,
-    timeInTarget: 45,
-    timeAboveTarget: 48,
-    timeBelowTarget: 7,
-  };
+    const [vitals, setVitals] = useState<Vital[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        if (!user || !firestore) return;
+        
+        const vitalsQuery = query(collection(firestore, `patients/${user.uid}/vitals`), orderBy('time', 'desc'));
+        
+        const unsubscribe = onSnapshot(vitalsQuery, (snapshot) => {
+            const fetchedVitals = snapshot.docs.map(doc => ({...doc.data(), id: doc.id} as Vital));
+            setVitals(fetchedVitals);
+            setLoading(false);
+        });
+
+        return () => unsubscribe();
+    }, [user, firestore]);
+
+    const glucoseSummary = vitals.reduce((acc, vital) => {
+        acc.sum += vital.Glucose;
+        if (vital.Glucose > acc.highest) acc.highest = vital.Glucose;
+        if (vital.Glucose < acc.lowest) acc.lowest = vital.Glucose;
+        if (vital.Glucose >= 70 && vital.Glucose <= 180) acc.inTarget++;
+        else if (vital.Glucose > 180) acc.aboveTarget++;
+        else acc.belowTarget++;
+        return acc;
+    }, { sum: 0, highest: 0, lowest: Infinity, inTarget: 0, aboveTarget: 0, belowTarget: 0 });
+
+    const totalVitals = vitals.length;
+    const averageGlucose = totalVitals > 0 ? Math.round(glucoseSummary.sum / totalVitals) : 0;
+    const timeInTarget = totalVitals > 0 ? Math.round((glucoseSummary.inTarget / totalVitals) * 100) : 0;
+    const timeAboveTarget = totalVitals > 0 ? Math.round((glucoseSummary.aboveTarget / totalVitals) * 100) : 0;
+    const timeBelowTarget = totalVitals > 0 ? Math.round((glucoseSummary.belowTarget / totalVitals) * 100) : 0;
+
+  if (loading) {
+    return (
+        <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
+            <div className="flex items-center justify-between">
+                <Skeleton className="h-9 w-48" />
+                <Skeleton className="h-10 w-32" />
+            </div>
+            <div className="space-y-4">
+                <Skeleton className="h-96 w-full" />
+                <Skeleton className="h-64 w-full" />
+                <Skeleton className="h-96 w-full" />
+            </div>
+        </main>
+    )
+  }
 
   return (
     <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
@@ -50,7 +93,7 @@ export default function PatientHealthDataPage() {
                     <CardDescription>Target Range: 70-180 mg/dL</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <VitalsChart data={patient.vitals} dataKey1="Glucose" label1="Glucose (mg/dL)" color1="hsl(var(--chart-1))" />
+                    <VitalsChart data={vitals} dataKey1="Glucose" label1="Glucose (mg/dL)" color1="hsl(var(--chart-1))" />
                 </CardContent>
             </Card>
              <Card className="mt-6">
@@ -60,7 +103,7 @@ export default function PatientHealthDataPage() {
                 <CardContent className="grid md:grid-cols-3 gap-4">
                     <div className="text-center p-4 border rounded-lg">
                         <p className="text-sm text-muted-foreground">Average</p>
-                        <p className="text-2xl font-bold">{glucoseSummary.average} <span className="text-sm font-normal">mg/dL</span></p>
+                        <p className="text-2xl font-bold">{averageGlucose} <span className="text-sm font-normal">mg/dL</span></p>
                     </div>
                      <div className="text-center p-4 border rounded-lg">
                         <p className="text-sm text-muted-foreground">Highest</p>
@@ -68,14 +111,14 @@ export default function PatientHealthDataPage() {
                     </div>
                      <div className="text-center p-4 border rounded-lg">
                         <p className="text-sm text-muted-foreground">Lowest</p>
-                        <p className="text-2xl font-bold">{glucoseSummary.lowest} <span className="text-sm font-normal">mg/dL</span></p>
+                        <p className="text-2xl font-bold">{isFinite(glucoseSummary.lowest) ? glucoseSummary.lowest : 0} <span className="text-sm font-normal">mg/dL</span></p>
                     </div>
                     <div className="md:col-span-3">
                         <h4 className="font-semibold text-center mb-2">Time in Range</h4>
                         <div className="flex w-full h-4 rounded-full overflow-hidden">
-                            <div className="bg-destructive" style={{ width: `${glucoseSummary.timeAboveTarget}%` }} title={`Above Target: ${glucoseSummary.timeAboveTarget}%`}></div>
-                            <div className="bg-green-500" style={{ width: `${glucoseSummary.timeInTarget}%` }} title={`In Target: ${glucoseSummary.timeInTarget}%`}></div>
-                            <div className="bg-yellow-500" style={{ width: `${glucoseSummary.timeBelowTarget}%` }} title={`Below Target: ${glucoseSummary.timeBelowTarget}%`}></div>
+                            <div className="bg-destructive" style={{ width: `${timeAboveTarget}%` }} title={`Above Target: ${timeAboveTarget}%`}></div>
+                            <div className="bg-green-500" style={{ width: `${timeInTarget}%` }} title={`In Target: ${timeInTarget}%`}></div>
+                            <div className="bg-yellow-500" style={{ width: `${timeBelowTarget}%` }} title={`Below Target: ${timeBelowTarget}%`}></div>
                         </div>
                          <div className="flex justify-between mt-2 text-xs text-muted-foreground">
                             <span>High</span>
@@ -92,7 +135,7 @@ export default function PatientHealthDataPage() {
                     <CardTitle>Blood Pressure Trend (Last 7 Days)</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <VitalsChart data={patient.vitals} dataKey1="Systolic" label1="Systolic" color1="hsl(var(--chart-2))" dataKey2="Diastolic" label2="Diastolic" color2="hsl(var(--chart-3))"/>
+                    <VitalsChart data={vitals} dataKey1="Systolic" label1="Systolic" color1="hsl(var(--chart-2))" dataKey2="Diastolic" label2="Diastolic" color2="hsl(var(--chart-3))"/>
                 </CardContent>
             </Card>
         </TabsContent>
@@ -114,9 +157,9 @@ export default function PatientHealthDataPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {patient.vitals.slice().reverse().map((vital) => (
-                  <TableRow key={vital.time}>
-                    <TableCell>{vital.time}</TableCell>
+                {vitals.map((vital) => (
+                  <TableRow key={vital.id}>
+                    <TableCell>{vital.time?.toDate ? format(vital.time.toDate(), 'PPpp') : 'N/A'}</TableCell>
                     <TableCell>{vital["Glucose"]}</TableCell>
                     <TableCell>{`${vital["Systolic"]}/${vital["Diastolic"]}`}</TableCell>
                     <TableCell>{vital["Heart Rate"]}</TableCell>

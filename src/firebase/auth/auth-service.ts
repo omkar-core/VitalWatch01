@@ -7,7 +7,7 @@ import {
   createUserWithEmailAndPassword,
   signOut,
 } from 'firebase/auth';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { initializeFirebase } from '../index';
 import type { UserProfile } from '@/lib/types';
 
@@ -30,6 +30,11 @@ export async function signUpWithEmail(values: any) {
       role: role,
       avatarUrl: user.photoURL || `https://i.pravatar.cc/150?u=${user.uid}`,
     };
+
+    if (role === 'patient') {
+        userProfile.age = values.age;
+        userProfile.gender = values.gender;
+    }
 
     await setDoc(doc(firestore, 'users', user.uid), userProfile);
     

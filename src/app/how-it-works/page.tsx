@@ -15,44 +15,38 @@ export default function HowItWorksPage() {
   const steps = [
     {
       step: 1,
-      title: "Patient Wears Sensors",
-      description: "Non-invasive, continuous monitoring through a CGM device and BP wristband.",
+      title: "Wearable Sensor Data Collection",
+      description: "A wrist-mounted device with a MAX30100 sensor continuously captures photoplethysmography (PPG) signals, which measure changes in blood volume. From this, we directly derive Heart Rate (HR) and Blood Oxygen (SpO₂).",
       icon: <Smartphone />
     },
     {
       step: 2,
-      title: "ESP32 Gateway Syncs Data",
-      description: "A dedicated gateway collects data via Bluetooth and securely sends it to the cloud over Wi-Fi. Features offline buffering to prevent data loss.",
+      title: "Secure Data Transmission",
+      description: "A dedicated gateway collects data from the sensor and securely transmits it to the cloud using the MQTT protocol, with offline buffering to prevent data loss.",
       icon: <Wifi />
     },
     {
       step: 3,
-      title: "Secure Cloud Ingestion via Azure IoT Hub",
-      description: "Data is ingested using the secure and scalable MQTT protocol, ensuring every data point is authenticated and encrypted.",
-      icon: <Cloud />
+      title: "AI-Powered Estimation",
+      description: "Our cloud-based AI model analyzes the time-series data (HR, SpO₂, pulse waveform) along with user profile information to estimate trends in blood pressure and glucose. This is an estimation, not a direct measurement.",
+      icon: <BrainCircuit />
     },
     {
       step: 4,
-      title: "High-Performance Storage in GridDB",
-      description: "Vital signs are stored in a GridDB time-series database, optimized for massive write throughput and rapid query performance.",
+      title: "High-Performance Storage in Firestore",
+      description: "Raw sensor readings and AI-generated estimations are stored in a scalable time-series structure within Firestore, optimized for rapid querying and analysis.",
       icon: <Database />
     },
      {
       step: 5,
-      title: "Real-time ML Analysis",
-      description: "Our AI models analyze incoming data for anomaly detection, predict glucose spikes, and classify patient risk levels in real-time.",
-      icon: <BrainCircuit />
-    },
-    {
-      step: 6,
-      title: "Intelligent Alerts Triggered",
-      description: "Doctors and patients receive instant SMS, WhatsApp, and push notifications for critical events, enabling timely intervention.",
+      title: "Intelligent Alerts & Notifications",
+      description: "If direct readings (like SpO₂) or AI-estimated trends (like BP or glucose) cross critical thresholds, instant alerts are sent to both doctors and patients, enabling timely intervention.",
       icon: <Bell />
     },
     {
-      step: 7,
-      title: "Dashboard Access for Care Teams and Patients",
-      description: "Care teams and patients access real-time data, trends, and insights through their respective secure web portals.",
+      step: 6,
+      title: "Dashboard Visualization",
+      description: "Care teams and patients access real-time sensor data, AI-powered estimations, and historical trends through their respective secure web portals.",
       icon: <LayoutDashboard />
     },
   ];
@@ -79,9 +73,9 @@ export default function HowItWorksPage() {
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center space-y-4 text-center">
               <div className="space-y-2">
-                <h1 className="text-4xl font-bold font-headline tracking-tighter sm:text-5xl md:text-6xl">How It Works</h1>
+                <h1 className="text-4xl font-bold font-headline tracking-tighter sm:text-5xl md:text-6xl">From Signal to Insight</h1>
                 <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl">
-                  A simple, streamlined process for intelligent health monitoring.
+                  Our system translates raw sensor data into actionable health estimations.
                 </p>
               </div>
             </div>

@@ -1,70 +1,80 @@
 'use server';
 
 /**
- * @fileOverview This file defines a Genkit flow for suggesting potential initial diagnoses based on patient symptoms and medical history.
+ * @fileOverview This file defines a Genkit flow for estimating health metrics based on physiological signals.
  *
- * - suggestInitialDiagnoses - A function that takes patient information and returns a list of potential diagnoses.
- * - SuggestInitialDiagnosesInput - The input type for the suggestInitialDiagnoses function.
- * - SuggestInitialDiagnosesOutput - The output type for the suggestInitialDiagnoses function.
+ * - estimateHealthMetrics - A function that takes sensor data and returns estimated health indicators.
+ * - EstimateHealthMetricsInput - The input type for the estimateHealthMetrics function.
+ * - EstimateHealthMetricsOutput - The output type for the estimateHealthMetrics function.
  */
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
-const SuggestInitialDiagnosesInputSchema = z.object({
-  symptoms: z
-    .string()
-    .describe('A comma-separated list of symptoms the patient is experiencing.'),
-  medicalHistory:
-    z.string().describe('A summary of the patient\'s relevant medical history.'),
+export const EstimateHealthMetricsInputSchema = z.object({
+  heartRate: z.number().describe('The user\'s current heart rate in beats per minute (BPM).'),
+  spo2: z.number().describe('The user\'s current blood oxygen saturation level (SpO2) as a percentage.'),
+  age: z.number().describe('The age of the user.'),
+  gender: z.string().describe('The gender of the user.'),
+  medicalHistory: z.string().optional().describe('A brief summary of the user\'s relevant medical history (e.g., existing conditions like diabetes, hypertension).'),
 });
 
-export type SuggestInitialDiagnosesInput = z.infer<
-  typeof SuggestInitialDiagnosesInputSchema
+export type EstimateHealthMetricsInput = z.infer<
+  typeof EstimateHealthMetricsInputSchema
 >;
 
-const SuggestInitialDiagnosesOutputSchema = z.object({
-  diagnoses: z
-    .array(z.string())
-    .describe('A list of potential initial diagnoses, ordered by likelihood.'),
-  reasoning:
-    z.string().describe('The reasoning behind the suggested diagnoses.'),
+export const EstimateHealthMetricsOutputSchema = z.object({
+  estimatedBpCategory: z.enum(["Normal", "Elevated", "High", "Low"]).describe('The estimated blood pressure category.'),
+  glucoseTrend: z.enum(["Normal", "Elevated", "Risky"]).describe('The estimated short-term blood glucose trend.'),
+  confidenceScore: z.number().min(0).max(1).describe('A confidence score (0-1) for the overall estimation.'),
+  reasoning: z.string().describe('A brief, high-level reasoning for the estimations based on the provided inputs.'),
 });
 
-export type SuggestInitialDiagnosesOutput = z.infer<
-  typeof SuggestInitialDiagnosesOutputSchema
+export type EstimateHealthMetricsOutput = z.infer<
+  typeof EstimateHealthMetricsOutputSchema
 >;
 
-export async function suggestInitialDiagnoses(
-  input: SuggestInitialDiagnosesInput
-): Promise<SuggestInitialDiagnosesOutput> {
-  return suggestInitialDiagnosesFlow(input);
+export async function estimateHealthMetrics(
+  input: EstimateHealthMetricsInput
+): Promise<EstimateHealthMetricsOutput> {
+  return estimateHealthMetricsFlow(input);
 }
 
-const suggestInitialDiagnosesPrompt = ai.definePrompt({
-  name: 'suggestInitialDiagnosesPrompt',
-  input: {schema: SuggestInitialDiagnosesInputSchema},
-  output: {schema: SuggestInitialDiagnosesOutputSchema},
-  prompt: `You are an experienced doctor providing potential initial diagnoses based on patient information.
+const estimateHealthMetricsPrompt = ai.definePrompt({
+  name: 'estimateHealthMetricsPrompt',
+  input: {schema: EstimateHealthMetricsInputSchema},
+  output: {schema: EstimateHealthMetricsOutputSchema},
+  prompt: `You are an expert system that estimates health indicators from physiological signals. Your estimations are based on established medical correlations but are NOT a diagnosis.
 
-  Consider the following symptoms and medical history to suggest a list of potential diagnoses, ordered by likelihood.
-  Explain your reasoning behind the suggestions.
+  **IMPORTANT:** Do NOT claim to measure blood pressure or glucose directly. Use phrases like "estimated category" or "potential trend."
 
-  Symptoms: {{{symptoms}}}
-  Medical History: {{{medicalHistory}}}
+  Based on the following data from a PPG sensor and user profile, provide an estimated blood pressure category and glucose trend.
 
-  Format your response as a JSON object with 'diagnoses' (an array of strings) and 'reasoning' (a string).
+  **Input Data:**
+  - Heart Rate: {{{heartRate}}} BPM
+  - SpO2: {{{spo2}}}%
+  - Age: {{{age}}}
+  - Gender: {{{gender}}}
+  - Medical History: {{{medicalHistory}}}
+
+  **Analysis Task:**
+  1.  **Blood Pressure Estimation:** Based on correlations between heart rate, SpO2, and demographic data (age, gender), classify the blood pressure into one of the following categories: 'Normal', 'Elevated', 'High', 'Low'. For example, a consistently high resting heart rate may correlate with higher blood pressure.
+  2.  **Glucose Trend Estimation:** Based on the inputs, infer a potential short-term glucose trend. For instance, certain patterns in heart rate variability (which you can infer from the provided signals) can be loosely correlated with glycemic changes. Classify the trend as 'Normal', 'Elevated', or 'Risky'.
+  3.  **Confidence Score:** Provide an overall confidence score for your estimations from 0.0 to 1.0, where 1.0 is very confident. This score should reflect the inherent limitations of estimating BP and glucose from PPG data.
+  4.  **Reasoning:** Briefly explain your reasoning. For example: "The elevated heart rate and lower SpO2 reading, combined with the patient's history of hypertension, suggest a 'High' blood pressure category."
+
+  Generate the response in the required JSON format.
   `,
 });
 
-const suggestInitialDiagnosesFlow = ai.defineFlow(
+const estimateHealthMetricsFlow = ai.defineFlow(
   {
-    name: 'suggestInitialDiagnosesFlow',
-    inputSchema: SuggestInitialDiagnosesInputSchema,
-    outputSchema: SuggestInitialDiagnosesOutputSchema,
+    name: 'estimateHealthMetricsFlow',
+    inputSchema: EstimateHealthMetricsInputSchema,
+    outputSchema: EstimateHealthMetricsOutputSchema,
   },
   async input => {
-    const {output} = await suggestInitialDiagnosesPrompt(input);
+    const {output} = await estimateHealthMetricsPrompt(input);
     return output!;
   }
 );
