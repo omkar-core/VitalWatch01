@@ -22,7 +22,6 @@ import { useToast } from "@/hooks/use-toast";
 export function DashboardHeader({ title, userProfile }: { title: string, userProfile: UserProfile | null }) {
   const router = useRouter();
   const { toast } = useToast();
-  const settingsPath = userProfile ? `/${userProfile.role}/settings` : '/login';
 
   const handleSignOut = async () => {
     try {
@@ -64,19 +63,6 @@ export function DashboardHeader({ title, userProfile }: { title: string, userPro
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuLabel>{userProfile?.displayName || 'My Account'}</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem asChild>
-            <Link href={settingsPath}>
-              <UserIcon className="mr-2 h-4 w-4" />
-              <span>Profile</span>
-            </Link>
-          </DropdownMenuItem>
-          <DropdownMenuItem asChild>
-            <Link href={settingsPath}>
-              <Settings className="mr-2 h-4 w-4" />
-              <span>Settings</span>
-            </Link>
-          </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={handleSignOut}>
               <LogOut className="mr-2 h-4 w-4" />

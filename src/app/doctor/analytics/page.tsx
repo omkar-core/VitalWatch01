@@ -1,9 +1,6 @@
 'use client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Users, FileDown, LineChartIcon, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import useSWR from 'swr';
 import type { PatientProfile, AlertHistory } from "@/lib/types";
@@ -71,81 +68,9 @@ export default function DoctorAnalyticsPage() {
                   </div>
                 </div>
              )}
-             <div>
-              <h4 className="font-semibold text-sm mb-2 mt-4">Control Status (Mock Data)</h4>
-               <ul className="list-disc list-inside text-sm text-muted-foreground">
-                 <li>Well Controlled: 60%</li>
-                 <li>Moderately Controlled: 28%</li>
-                 <li>Poorly Controlled: 12%</li>
-               </ul>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2"><LineChartIcon /> Trend Analysis (Mock Data)</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <h4 className="font-semibold text-sm mb-2">Alert Frequency (Last 30 Days)</h4>
-              <p className="text-2xl font-bold">37.8% <span className="text-sm font-normal text-green-500">reduction</span></p>
-              <p className="text-xs text-muted-foreground">Overall alert frequency has decreased in the last 4 weeks.</p>
-            </div>
-             <div>
-              <h4 className="font-semibold text-sm mb-2">Outcomes & Impact</h4>
-               <ul className="list-disc list-inside text-sm text-muted-foreground">
-                 <li>Emergency hospitalizations avoided: 18</li>
-                 <li>Average HbA1c improvement: 0.7%</li>
-                 <li>BP control rate: 45% → 68%</li>
-                 <li>Patient engagement: 87%</li>
-               </ul>
-            </div>
           </CardContent>
         </Card>
       </div>
-
-       <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2"><FileDown /> Generate Reports</CardTitle>
-            <CardDescription>Create and export detailed reports for your patient population.</CardDescription>
-          </CardHeader>
-          <CardContent className="grid md:grid-cols-4 gap-4 items-end">
-            <div className="space-y-2">
-              <Label htmlFor="report-type">Report Type</Label>
-              <Select defaultValue="monthly-summary">
-                  <SelectTrigger id="report-type"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                      <SelectItem value="monthly-summary">Monthly Summary</SelectItem>
-                      <SelectItem value="patient-deep-dive">Patient Deep Dive</SelectItem>
-                      <SelectItem value="alerts-analysis">Alerts Analysis</SelectItem>
-                  </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="date-range">Date Range</Label>
-              <Select defaultValue="30d">
-                  <SelectTrigger id="date-range"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                      <SelectItem value="7d">Last 7 Days</SelectItem>
-                      <SelectItem value="30d">Last 30 Days</SelectItem>
-                      <SelectItem value="90d">Last 90 Days</SelectItem>
-                  </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="format">Format</Label>
-              <Select defaultValue="pdf">
-                  <SelectTrigger id="format"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                      <SelectItem value="pdf">PDF</SelectItem>
-                      <SelectItem value="excel">Excel</SelectItem>
-                  </SelectContent>
-              </Select>
-            </div>
-            <Button className="w-full md:w-auto">Generate Report</Button>
-          </CardContent>
-        </Card>
-
     </main>
   );
 }

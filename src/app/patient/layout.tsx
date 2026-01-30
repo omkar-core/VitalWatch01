@@ -13,8 +13,6 @@ function BottomNav() {
   const navItems = [
     { href: '/patient', icon: <Home size={24}/>, label: 'Home' },
     { href: '/patient/health-data', icon: <List size={24}/>, label: 'Records' },
-    { href: '/patient/appointments', icon: <Calendar size={24}/>, label: 'Plan' },
-    { href: '/patient/settings', icon: <User size={24}/>, label: 'Profile' },
   ];
 
   return (
