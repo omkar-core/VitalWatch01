@@ -18,6 +18,10 @@ import type { UserProfile } from "@/lib/types";
 import { logout } from "@/firebase/auth/auth-service";
 import { useToast } from "@/hooks/use-toast";
 
+const getInitials = (name: string | null | undefined) => {
+    if (!name) return 'U';
+    return name.split(' ').map(n => n[0]).join('');
+}
 
 export function DashboardHeader({ title, userProfile }: { title: string, userProfile: UserProfile | null }) {
   const router = useRouter();
@@ -39,11 +43,6 @@ export function DashboardHeader({ title, userProfile }: { title: string, userPro
       });
     }
   };
-
-  const getInitials = (name: string | null | undefined) => {
-    if (!name) return 'U';
-    return name.split(' ').map(n => n[0]).join('');
-  }
 
   return (
     <header className="flex h-14 items-center gap-4 border-b bg-card px-4 lg:h-[60px] lg:px-6 sticky top-0 z-30">

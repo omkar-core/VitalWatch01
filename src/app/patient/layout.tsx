@@ -35,6 +35,10 @@ function BottomNav() {
   );
 }
 
+const getInitials = (name: string | null | undefined) => {
+    if (!name) return 'U';
+    return name.split(' ').map(n => n[0]).join('');
+}
 
 export default function PatientLayout({
   children,
@@ -49,11 +53,6 @@ export default function PatientLayout({
       router.push('/login');
     }
   }, [user, userProfile, loading, router]);
-
-  const getInitials = (name: string | null | undefined) => {
-    if (!name) return 'U';
-    return name.split(' ').map(n => n[0]).join('');
-  }
 
   if (loading || !user || userProfile?.role !== 'patient') {
     return (
