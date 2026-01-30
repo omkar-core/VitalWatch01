@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getRows } from '@/lib/griddb-client';
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
     // Get the start of the current day in UTC
     const today = new Date();

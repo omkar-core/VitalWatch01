@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import type { ESP32Data, PatientProfile, HealthVital, AlertHistory } from '@/lib/types';
 import { estimateHealthMetrics } from '@/ai/flows/suggest-initial-diagnoses';
 import { sendHealthReport, sendCriticalAlert } from '@/lib/telegram';
@@ -16,7 +16,7 @@ const addVariance = (value: number, percent: number) => {
     return value + (Math.random() * variance * 2 - variance);
 };
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     const { vitals: incomingVitals, chatId }: IngestRequestBody = await request.json();
 
