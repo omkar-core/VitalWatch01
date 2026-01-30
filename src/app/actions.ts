@@ -5,6 +5,7 @@ import { estimateHealthMetrics, EstimateHealthMetricsInput } from "@/ai/flows/su
 import { collection, addDoc, query, orderBy, limit, getDocs, doc, getDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
 import { initializeFirebase } from '@/firebase';
 import type { Vital, UserProfile, Alert } from '@/lib/types';
+import { sendTelegramAlert } from "@/lib/telegram";
 
 
 type ActionResult<T> = {
@@ -99,10 +100,12 @@ export async function triggerVitalsScanAndAnalysis(patientId: string, patientNam
       if (estimation.glucoseTrend === 'Risky') message += 'Risky glucose trend detected by AI. ';
       if (estimation.estimatedBpCategory === 'High') message += 'High blood pressure category estimated by AI.';
       
+      const alertSeverity = 'High';
+      
       const newAlert: Omit<Alert, 'id'|'timestamp'> = {
         patientId: patientId,
         patientName: patientName,
-        severity: 'High',
+        severity: alertSeverity,
         message: message.trim(),
         isRead: false,
       };
@@ -111,6 +114,9 @@ export async function triggerVitalsScanAndAnalysis(patientId: string, patientNam
         ...newAlert,
         timestamp: serverTimestamp(),
       });
+
+      // Also send a Telegram alert
+      await sendTelegramAlert(patientName, alertSeverity, message.trim());
     }
 
     return { data: `Vitals uploaded and analyzed successfully.` };
