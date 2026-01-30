@@ -168,7 +168,7 @@ export async function POST(request: Request) {
             alertRecord.predicted_glucose,
             alertRecord.confidence_score,
             alertRecord.acknowledged,
-            alertRecord.acknowledged_at,
+            alertRecord.acknowledged_at || null,
             alertRecord.created_at,
         ];
         await putRows('alert_history', [alertRow]);
