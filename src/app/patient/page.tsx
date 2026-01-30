@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from '@/components/ui/skeleton';
 import { HeartPulse, Droplets, Thermometer, Wind, Wifi, Bot, ShieldCheck, Loader2 } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
@@ -37,10 +37,16 @@ export default function PatientPage() {
   const { toast } = useToast();
   const [isSyncing, setIsSyncing] = React.useState(false);
 
-  const vitalsQuery = user ? query(collection(firestore, `patients/${user.uid}/vitals`), orderBy("timestamp", "desc"), limit(1)) : null;
+  const vitalsQuery = React.useMemo(() =>
+    user ? query(collection(firestore, `patients/${user.uid}/vitals`), orderBy("timestamp", "desc"), limit(1)) : null,
+    [user, firestore]
+  );
   const { data: vitalsData, loading: loadingVitals } = useCollection<Vital>(vitalsQuery as any);
 
-  const estimationsQuery = user ? query(collection(firestore, `patients/${user.uid}/estimations`), orderBy("timestamp", "desc"), limit(1)) : null;
+  const estimationsQuery = React.useMemo(() =>
+    user ? query(collection(firestore, `patients/${user.uid}/estimations`), orderBy("timestamp", "desc"), limit(1)) : null,
+    [user, firestore]
+  );
   const { data: estimationsData, loading: loadingEstimations } = useCollection<EstimateHealthMetricsOutput>(estimationsQuery as any);
 
   const latestVital = vitalsData && vitalsData.length > 0 ? vitalsData[0] : null;

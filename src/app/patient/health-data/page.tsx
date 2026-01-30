@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { VitalsChart } from "@/components/dashboard/vitals-chart";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import {
@@ -28,10 +28,16 @@ export default function PatientHealthDataPage() {
     const [vitals, setVitals] = useState<Vital[]>([]);
     const [loading, setLoading] = useState(true);
 
+    const vitalsQuery = useMemo(() => {
+        if (!user || !firestore) return null;
+        return query(collection(firestore, `patients/${user.uid}/vitals`), orderBy('timestamp', 'desc'));
+    }, [user, firestore]);
+
     useEffect(() => {
-        if (!user || !firestore) return;
-        
-        const vitalsQuery = query(collection(firestore, `patients/${user.uid}/vitals`), orderBy('time', 'desc'));
+        if (!vitalsQuery) {
+            setLoading(false);
+            return;
+        }
         
         const unsubscribe = onSnapshot(vitalsQuery, (snapshot) => {
             const fetchedVitals = snapshot.docs.map(doc => ({...doc.data(), id: doc.id} as Vital));
@@ -40,7 +46,7 @@ export default function PatientHealthDataPage() {
         });
 
         return () => unsubscribe();
-    }, [user, firestore]);
+    }, [vitalsQuery]);
 
     const glucoseSummary = vitals.reduce((acc, vital) => {
         acc.sum += vital.Glucose;
@@ -159,7 +165,7 @@ export default function PatientHealthDataPage() {
               <TableBody>
                 {vitals.map((vital) => (
                   <TableRow key={vital.id}>
-                    <TableCell>{vital.time?.toDate ? format(vital.time.toDate(), 'PPpp') : 'N/A'}</TableCell>
+                    <TableCell>{vital.timestamp?.toDate ? format(vital.timestamp.toDate(), 'PPpp') : 'N/A'}</TableCell>
                     <TableCell>{vital["Glucose"]}</TableCell>
                     <TableCell>{`${vital["Systolic"]}/${vital["Diastolic"]}`}</TableCell>
                     <TableCell>{vital["Heart Rate"]}</TableCell>

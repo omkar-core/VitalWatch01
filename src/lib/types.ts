@@ -1,6 +1,6 @@
 export type Vital = {
   id?: string;
-  time: any; // Firestore ServerTimestamp
+  timestamp: any; // Firestore ServerTimestamp
   "Glucose": number;
   "Systolic": number;
   "Diastolic": number;
