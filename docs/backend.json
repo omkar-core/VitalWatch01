@@ -1,105 +1,90 @@
 {
   "entities": {
-    "user": {
+    "patient_profile": {
+      "title": "Patient Profile",
+      "description": "Stores patient information, device association, and alert thresholds.",
+      "type": "object",
+      "properties": {
+        "patient_id": { "type": "string", "description": "The unique ID of the patient, matches the auth UID." },
+        "device_id": { "type": "string", "description": "The ID of the ESP32 device assigned to the patient." },
+        "name": { "type": "string" },
+        "age": { "type": "number" },
+        "gender": { "type": "string", "enum": ["Male", "Female", "Other"] },
+        "email": { "type": "string", "format": "email" },
+        "phone": { "type": "string" },
+        "baseline_hr": { "type": "number" },
+        "baseline_spo2": { "type": "number" },
+        "baseline_bp_systolic": { "type": "number" },
+        "baseline_bp_diastolic": { "type": "number" },
+        "has_diabetes": { "type": "boolean" },
+        "has_hypertension": { "type": "boolean" },
+        "has_heart_condition": { "type": "boolean" },
+        "alert_threshold_hr_high": { "type": "number" },
+        "alert_threshold_hr_low": { "type": "number" },
+        "alert_threshold_spo2_low": { "type": "number" },
+        "alert_threshold_bp_systolic_high": { "type": "number" },
+        "alert_threshold_glucose_high": { "type": "number" },
+        "emergency_contact_name": { "type": "string" },
+        "emergency_contact_phone": { "type": "string" },
+        "created_at": { "type": "string", "format": "date-time" },
+        "updated_at": { "type": "string", "format": "date-time" },
+        "is_active": { "type": "boolean" }
+      },
+      "required": ["patient_id", "device_id", "email", "is_active", "created_at", "updated_at"]
+    },
+    "health_vitals": {
+      "title": "Health Vitals",
+      "description": "A single time-series reading of raw and predicted health data.",
+      "type": "object",
+      "properties": {
+        "timestamp": { "type": "string", "format": "date-time" },
+        "device_id": { "type": "string" },
+        "heart_rate": { "type": "number" },
+        "spo2": { "type": "number" },
+        "ppg_raw": { "type": "number" },
+        "predicted_bp_systolic": { "type": "number" },
+        "predicted_bp_diastolic": { "type": "number" },
+        "predicted_glucose": { "type": "number" },
+        "alert_flag": { "type": "boolean" },
+        "created_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["timestamp", "device_id", "heart_rate", "spo2", "ppg_raw", "alert_flag", "created_at"]
+    },
+    "alert_history": {
+      "title": "Alert History",
+      "description": "A log of all alerts triggered by the system.",
+      "type": "object",
+      "properties": {
+        "alert_timestamp": { "type": "string", "format": "date-time" },
+        "alert_id": { "type": "string" },
+        "device_id": { "type": "string" },
+        "patient_id": { "type": "string" },
+        "alert_type": { "type": "string" },
+        "severity": { "type": "string", "enum": ["Critical", "High", "Medium", "Low"] },
+        "alert_message": { "type": "string" },
+        "heart_rate": { "type": "number" },
+        "spo2": { "type": "number" },
+        "ppg_raw": { "type": "number" },
+        "predicted_bp_systolic": { "type": "number" },
+        "predicted_bp_diastolic": { "type": "number" },
+        "predicted_glucose": { "type": "number" },
+        "acknowledged": { "type": "boolean" },
+        "acknowledged_at": { "type": "string", "format": "date-time" },
+        "created_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["alert_timestamp", "alert_id", "device_id", "alert_type", "severity", "alert_message", "acknowledged", "created_at"]
+    },
+     "user": {
       "title": "User",
-      "description": "A user of the application. Can be a doctor, patient, or admin.",
+      "description": "Generic user for authentication and role management.",
       "type": "object",
       "properties": {
         "uid": { "type": "string" },
         "email": { "type": "string", "format": "email" },
         "displayName": { "type": "string" },
-        "role": { "type": "string", "enum": ["doctor", "patient", "admin"] },
-        "avatarUrl": { "type": "string", "format": "uri" },
-        "age": { "type": "number" },
-        "gender": { "type": "string", "enum": ["Male", "Female", "Other"] },
-        "conditions": { "type": "array", "items": { "type": "string" } },
-        "medicalHistory": { "type": "string" },
-        "status": { "type": "string", "enum": ["Stable", "Critical", "Needs Review"] },
-        "lastSeen": { "type": "string", "format": "date-time" },
-        "deviceId": { "type": "string", "description": "The ID of the IoT device assigned to the user." },
-        "calibrationData": { "type": "object", "description": "Stores user-specific device calibration constants." }
+        "role": { "type": "string", "enum": ["doctor", "patient", "admin"] }
       },
       "required": ["uid", "email", "role", "displayName"]
-    },
-    "vitals": {
-      "title": "Vitals",
-      "description": "A single time-series reading of raw sensor data.",
-      "type": "object",
-      "properties": {
-        "timestamp": { "type": "string", "format": "date-time" },
-        "Glucose": { "type": "number", "description": "Blood glucose level in mg/dL." },
-        "Systolic": { "type": "number", "description": "Systolic blood pressure." },
-        "Diastolic": { "type": "number", "description": "Diastolic blood pressure." },
-        "Heart Rate": { "type": "number", "description": "Heart rate in beats per minute (BPM)." },
-        "SPO2": { "type": "number", "description": "Blood oxygen saturation percentage (SpO2)." },
-        "Temperature": { "type": "number", "description": "Body temperature." },
-        "sqi": { "type": "number", "description": "Signal Quality Index from the sensor." }
-      },
-      "required": ["timestamp", "Glucose", "Systolic", "Diastolic", "Heart Rate", "SPO2"]
-    },
-    "healthEstimation": {
-      "title": "Health Estimation",
-      "description": "AI-powered estimation of health indicators based on sensor data.",
-      "type": "object",
-      "properties": {
-        "timestamp": { "type": "string", "format": "date-time" },
-        "estimatedBpCategory": { "type": "string", "enum": ["Normal", "Elevated", "High", "Low"]},
-        "glucoseTrend": { "type": "string", "enum": ["Normal", "Elevated", "Risky"] },
-        "confidenceScore": { "type": "number", "description": "The AI model's confidence in the estimation (0-1)." },
-        "reasoning": { "type": "string", "description": "A brief explanation from the model." }
-      },
-      "required": ["timestamp", "estimatedBpCategory", "glucoseTrend", "confidenceScore"]
-    },
-    "alert": {
-        "title": "Alert",
-        "description": "An alert for a patient, triggered by sensor readings or AI estimations.",
-        "type": "object",
-        "properties": {
-            "patientId": { "type": "string" },
-            "patientName": { "type": "string" },
-            "message": { "type": "string" },
-            "severity": { "type": "string", "enum": ["Critical", "High", "Medium", "Low", "Predictive"] },
-            "timestamp": { "type": "string", "format": "date-time" },
-            "isRead": { "type": "boolean" }
-        },
-        "required": ["patientId", "message", "severity", "timestamp"]
-    },
-    "device": {
-      "title": "Device",
-      "description": "A monitoring device.",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "type": { "type": "string" },
-        "status": { "type": "string", "enum": ["Active", "Inactive", "Maintenance"] },
-        "assignedTo": { "type": "string", "description": "UID of the user it's assigned to." },
-        "lastSync": { "type": "string", "format": "date-time" }
-      },
-      "required": ["id", "type", "status"]
-    },
-    "appointment": {
-        "title": "Appointment",
-        "description": "An appointment for a patient.",
-        "type": "object",
-        "properties": {
-            "patientId": { "type": "string" },
-            "doctorId": { "type": "string" },
-            "doctorName": { "type": "string" },
-            "date": { "type": "string", "format": "date-time" },
-            "type": { "type": "string" }
-        },
-        "required": ["patientId", "doctorId", "date", "type"]
-    },
-    "deviceCommand": {
-        "title": "Device Command",
-        "description": "A command to be sent to a device.",
-        "type": "object",
-        "properties": {
-            "command": { "type": "string" },
-            "timestamp": { "type": "string", "format": "date-time" },
-            "status": { "type": "string", "enum": ["pending", "sent", "acknowledged"]}
-        },
-        "required": ["command", "timestamp", "status"]
     }
   },
   "auth": {
@@ -108,31 +93,19 @@
   "firestore": {
     "/users/{userId}": {
       "schema": { "$ref": "#/entities/user" },
-      "description": "Stores all user profile information in GridDB Cloud, including patients and doctors."
+      "description": "Stores basic user auth info and role."
     },
-    "/users/{userId}/vitals/{vitalId}": {
-      "schema": { "$ref": "#/entities/vitals" },
-      "description": "A time-series collection of raw vitals data for a specific patient, stored in GridDB Cloud."
+    "/patient_profiles/{patientId}": {
+      "schema": { "$ref": "#/entities/patient_profile" },
+      "description": "Stores detailed patient profiles, linked to a user ID."
     },
-    "/users/{userId}/estimations/{estimationId}": {
-      "schema": { "$ref": "#/entities/healthEstimation" },
-      "description": "A time-series collection of AI-generated health estimations for a patient, stored in GridDB Cloud."
+    "/health_vitals/{vitalId}": {
+      "schema": { "$ref": "#/entities/health_vitals" },
+      "description": "A time-series collection of all incoming vital signs from all devices."
     },
-    "/alerts/{alertId}": {
-        "schema": { "$ref": "#/entities/alert" },
-        "description": "Stores patient alerts generated by the system in GridDB Cloud."
-    },
-    "/devices/{deviceId}": {
-      "schema": { "$ref": "#/entities/device" },
-      "description": "Stores information about registered IoT devices in GridDB Cloud."
-    },
-    "/appointments/{appointmentId}": {
-        "schema": { "$ref": "#/entities/appointment" },
-        "description": "Stores appointment details for patients in GridDB Cloud."
-    },
-    "/deviceCommands/{deviceId}": {
-        "schema": { "$ref": "#/entities/deviceCommand" },
-        "description": "Stores commands to be sent to IoT devices, brokered through GridDB Cloud."
+    "/alert_history/{alertId}": {
+      "schema": { "$ref": "#/entities/alert_history" },
+      "description": "A log of all triggered alerts for all patients."
     }
   }
 }

@@ -1,68 +1,54 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Deny all reads and writes by default
+    
+    // Default deny all
     match /{document=**} {
       allow read, write: if false;
     }
 
-    // Allow users to be created by anyone (for signup)
+    // Users:
+    // - Anyone can create a user document (for signup).
+    // - Users can read/update their own document.
+    // - Admins can read/list all users.
     match /users/{userId} {
       allow create: if request.auth != null;
-      // Allow users to read their own profile
-      // Allow doctors to read any patient's profile
-      allow read: if request.auth != null && 
-                  (request.auth.uid == userId || 
-                  (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'doctor' && resource.data.role == 'patient') ||
-                   get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
-      // Allow users to update their own profile
-      allow update: if request.auth.uid == userId;
+      allow read, update: if request.auth.uid == userId;
       allow list: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
-    match /users/{patientId}/vitals/{vitalId} {
-      // Patients can read their own vitals
-      // Doctors can read their assigned patients' vitals
-      allow read: if request.auth != null && (request.auth.uid == patientId || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'doctor');
-      // A device or user can create vitals for that user
-      allow create: if request.auth != null && request.auth.uid == patientId;
+    // Patient Profiles:
+    // - A user's profile can be created.
+    // - Patients can read/update their own profile.
+    // - Doctors and Admins can read any patient's profile.
+    // - Admins can list all profiles.
+    match /patient_profiles/{patientId} {
+      allow create: if request.auth != null;
+      allow read, update: if request.auth.uid == patientId;
+      allow read: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['doctor', 'admin'];
+      allow list: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['doctor', 'admin'];
     }
 
-    match /users/{patientId}/estimations/{estimationId} {
-       // Patients can read their own estimations
-       // Doctors can read their assigned patients' estimations
-       allow read: if request.auth.uid == patientId || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'doctor';
-       // Only backend/trusted process should write estimations
-       allow write: if false; // Secure by default
+    // Health Vitals:
+    // - Only trusted backend processes or authenticated devices should write vitals. For this app, we allow any authenticated user to simulate device writes.
+    // - Patients can read their own vitals (by querying device_id).
+    // - Doctors and Admins can read all vitals.
+    match /health_vitals/{vitalId} {
+      allow create: if request.auth != null;
+      allow read, list: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['doctor', 'admin'];
+      allow read: if request.auth.uid == resource.data.patient_id; // Need to adjust for device_id query
     }
 
-     match /alerts/{alertId} {
-      // Doctors can read all alerts
-      // Patients can read alerts assigned to them
-      allow read: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'doctor' || resource.data.patientId == request.auth.uid;
-      // Backend/trusted process creates alerts
-      allow create: if request.auth.uid != null;
-      // Doctors can mark alerts as read
-      allow update: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'doctor';
-      allow list: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'doctor';
-    }
-
-    match /devices/{deviceId} {
-        // Only admins can manage devices
-        allow read, write, list: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
-    }
-    
-    match /appointments/{appointmentId} {
-        // Doctors can read all appointments
-        // Patients can read their own appointments
-        allow read, list: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'doctor' || request.auth.uid == resource.data.patientId;
-        // Doctors can create/update appointments
-        allow write: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'doctor';
-    }
-
-    match /deviceCommands/{deviceId} {
-      // Doctors and admins can send commands
-      allow read, write: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['doctor', 'admin'];
+    // Alert History:
+    // - Only trusted backend processes should create alerts. We allow any authenticated user for simulation.
+    // - Doctors and Admins can read all alerts.
+    // - Patients can read their own alerts.
+    // - Doctors and Admins can update (acknowledge) alerts.
+    match /alert_history/{alertId} {
+      allow create: if request.auth != null;
+      allow read, list: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['doctor', 'admin'];
+      allow read: if request.auth.uid == resource.data.patient_id;
+      allow update: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['doctor', 'admin'];
     }
   }
 }
