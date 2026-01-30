@@ -19,6 +19,7 @@ export interface PatientProfile {
     gender?: 'Male' | 'Female' | 'Other';
     email?: string;
     phone?: string;
+    avatar_url?: string;
     baseline_hr?: number;
     baseline_spo2?: number;
     baseline_bp_systolic?: number;
@@ -49,6 +50,7 @@ export interface HealthVital {
     predicted_glucose?: number;
     alert_flag: boolean;
     created_at: string;
+    confidence_score?: number;
 }
 
 export interface AlertHistory {
@@ -65,6 +67,7 @@ export interface AlertHistory {
     predicted_bp_systolic?: number;
     predicted_bp_diastolic?: number;
     predicted_glucose?: number;
+    confidence_score?: number;
     acknowledged: boolean;
     acknowledged_at?: string;
     created_at: string;

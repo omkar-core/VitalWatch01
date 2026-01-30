@@ -131,7 +131,7 @@ export default function PatientDetailPage({ params }: { params: { patientId: str
             <CardHeader>
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
-                  <Image src={`https://i.pravatar.cc/150?u=${patient.patient_id}`} alt={patient.name || ''} width={64} height={64} className="rounded-full object-cover" />
+                  <Image src={patient.avatar_url || `https://ui-avatars.com/api/?name=${patient.name}`} alt={patient.name || ''} width={64} height={64} className="rounded-full object-cover" />
                   <div>
                     <CardTitle className="text-2xl font-headline">{patient.name}</CardTitle>
                     <CardDescription>{patient.age} y/o {patient.gender} | ID: {patient.patient_id}</CardDescription>

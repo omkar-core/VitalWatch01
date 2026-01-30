@@ -36,7 +36,7 @@ const nextConfig: NextConfig = {
       },
        {
         protocol: 'https',
-        hostname: 'i.pravatar.cc',
+        hostname: 'ui-avatars.com',
         port: '',
         pathname: '/**',
       }

@@ -106,6 +106,7 @@ export async function initializeDatabase() {
             { "name": "predicted_glucose", "type": "DOUBLE" },
             { "name": "alert_flag", "type": "BOOL" },
             { "name": "created_at", "type": "TIMESTAMP" },
+            { "name": "confidence_score", "type": "DOUBLE" },
         ]);
         
         const patientProfileColumns = [
@@ -116,6 +117,7 @@ export async function initializeDatabase() {
             { "name": "gender", "type": "STRING" },
             { "name": "email", "type": "STRING" },
             { "name": "phone", "type": "STRING" },
+            { "name": "avatar_url", "type": "STRING" },
             { "name": "baseline_hr", "type": "DOUBLE" },
             { "name": "baseline_spo2", "type": "DOUBLE" },
             { "name": "baseline_bp_systolic", "type": "DOUBLE" },
@@ -150,6 +152,7 @@ export async function initializeDatabase() {
             { "name": "predicted_bp_systolic", "type": "DOUBLE" },
             { "name": "predicted_bp_diastolic", "type": "DOUBLE" },
             { "name": "predicted_glucose", "type": "DOUBLE" },
+            { "name": "confidence_score", "type": "DOUBLE" },
             { "name": "acknowledged", "type": "BOOL" },
             { "name": "acknowledged_at", "type": "TIMESTAMP" },
             { "name": "created_at", "type": "TIMESTAMP" },

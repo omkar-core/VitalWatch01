@@ -29,7 +29,7 @@ export async function POST(request: Request) {
     try {
         const profile: PatientProfile = await request.json();
 
-        // GridDB expects an array of arrays for rows
+        // GridDB expects an array of arrays for rows. Order is critical.
         const profileRow = [
             profile.patient_id,
             profile.device_id,
@@ -38,6 +38,7 @@ export async function POST(request: Request) {
             profile.gender,
             profile.email,
             profile.phone,
+            profile.avatar_url,
             profile.baseline_hr,
             profile.baseline_spo2,
             profile.baseline_bp_systolic,

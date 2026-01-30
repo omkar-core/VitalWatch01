@@ -83,7 +83,7 @@ export default function DoctorPatientsPage() {
                               <TableRow key={patient.patient_id}>
                                   <TableCell className="font-medium">
                                       <div className="flex items-center gap-3">
-                                          <Image src={`https://i.pravatar.cc/150?u=${patient.patient_id}`} alt={patient.name || ''} width={32} height={32} className="rounded-full object-cover" />
+                                          <Image src={patient.avatar_url || `https://ui-avatars.com/api/?name=${patient.name}`} alt={patient.name || ''} width={32} height={32} className="rounded-full object-cover" />
                                           {patient.name}
                                       </div>
                                   </TableCell>

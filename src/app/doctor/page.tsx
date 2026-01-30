@@ -22,8 +22,9 @@ const fetcher = (url: string) => fetch(url).then(res => res.json());
 export default function DoctorDashboard() {
   const { data: patients, error: patientsError, isLoading: patientsLoading } = useSWR<PatientProfile[]>('/api/patients', fetcher);
   const { data: alerts, error: alertsError, isLoading: alertsLoading } = useSWR<AlertHistory[]>('/api/alerts', fetcher);
-  
-  const loading = patientsLoading || alertsLoading;
+  const { data: readings, error: readingsError, isLoading: readingsLoading } = useSWR<{count: number}>('/api/vitals/today', fetcher);
+
+  const loading = patientsLoading || alertsLoading || readingsLoading;
   
   const criticalAlerts = alerts?.filter(a => (a.severity === 'Critical' || a.severity === 'High') && !a.acknowledged).slice(0, 2);
   const criticalPatients = patients?.filter(p => {
@@ -52,9 +53,9 @@ export default function DoctorDashboard() {
     },
     {
       title: "Readings Today",
-      value: "14,610", // This can be replaced with a real query later
+      value: readings?.count.toLocaleString() || "0",
       icon: <Activity className="h-6 w-6 text-muted-foreground" />,
-      loading: false, // Assuming this is a static value for now
+      loading: readingsLoading,
     },
   ];
 

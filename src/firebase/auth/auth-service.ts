@@ -25,8 +25,10 @@ export async function signUp(
   );
   const user = userCredential.user;
 
+  const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=random`;
+
   // Update profile in Firebase Auth
-  await updateProfile(user, { displayName });
+  await updateProfile(user, { displayName, photoURL: avatarUrl });
 
   // Create user document in Firestore for role management
   const userRef = doc(firestore, 'users', user.uid);
@@ -35,6 +37,7 @@ export async function signUp(
     email: user.email,
     displayName: displayName,
     role: role,
+    avatarUrl: avatarUrl,
     createdAt: serverTimestamp(),
   });
 
@@ -52,6 +55,7 @@ export async function signUp(
       age: 0,
       gender: 'Other',
       phone: '',
+      avatar_url: avatarUrl,
       baseline_hr: 0,
       baseline_spo2: 0,
       baseline_bp_systolic: 0,

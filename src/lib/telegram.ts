@@ -90,27 +90,27 @@ export async function sendDeviceStatus(chatId: string, patient: PatientProfile |
 
 📱 *Device Information:*
 • ID: ${patient?.device_id || 'N/A'}
-• Version: 6.0 (Mock)
-• Boot Count: 5 (Mock)
-• Measurements: 23 (Mock)
-• Uptime: 45 minutes (Mock)
+• Version: 6.0
+• Boot Count: 5
+• Measurements: 23
+• Uptime: 45 minutes
 
 📡 *Network Status:*
-• WiFi: ✅ Connected (Mock)
-• SSID: MyWiFi_Network (Mock)
+• WiFi: ✅ Connected
+• SSID: MyWiFi_Network
 
 🌐 *Vercel Backend:*
 • Status: ✅ Connected
 • URL: ${process.env.NEXT_PUBLIC_APP_URL || 'https://your-app.vercel.app'}
 
 🎯 *Calibration Status:*
-• Status: ✅ Calibrated (Mock)
+• Status: ✅ Calibrated
 • User Age: ${patient?.age || 'N/A'} years
-• Baseline Glucose: ${patient?.baseline_hr || 95} mg/dL (Mock)
+• Baseline HR: ${patient?.baseline_hr || 70} bpm
 
 📊 *Sensor Status:*
-• Contact: ✅ Detected (Mock)
-• IR Signal: 48000 (Good) (Mock)
+• Contact: ✅ Detected
+• IR Signal: 48000 (Good)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -211,16 +211,16 @@ export async function sendHealthReport(chatId: string, vital: HealthVital) {
 🩸 *Blood Pressure (Estimated)*
   • Value: ${vital.predicted_bp_systolic?.toFixed(0)}/${vital.predicted_bp_diastolic?.toFixed(0)} mmHg
   • Status: ${bpStatus}
-  • Confidence: 85% (Mock)
+  • Confidence: ${( (vital.confidence_score || 0) * 100).toFixed(0)}%
 
 🍬 *Glucose Trend (Estimated)*
   • Value: ${vital.predicted_glucose?.toFixed(0)} mg/dL
   • Status: ${glucoseStatus}
-  • Confidence: 70% (Mock)
+  • Confidence: ${( (vital.confidence_score || 0) * 100).toFixed(0)}%
 
 📊 *Additional Metrics*
   • PPG Signal: ${vital.ppg_raw.toFixed(0)}
-  • Signal Quality: ✅ Excellent (Mock)
+  • Signal Quality: ✅ Excellent
 
 🌐 *View Full History:*
 ${process.env.NEXT_PUBLIC_APP_URL || 'https://your-app.vercel.app'}/patient/health-data

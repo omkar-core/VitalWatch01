@@ -110,11 +110,26 @@ export async function POST(request: Request) {
         predicted_bp_diastolic: addVariance(baseDiastolic, 5),
         predicted_glucose: addVariance(baseGlucose, 10), // +/- 10% variance
         alert_flag: alert_flag,
-        created_at: now
+        created_at: now,
+        confidence_score: predictions.confidenceScore,
       };
+      
+      const healthVitalRow = [
+          healthVitalRecord.timestamp,
+          healthVitalRecord.device_id,
+          healthVitalRecord.heart_rate,
+          healthVitalRecord.spo2,
+          healthVitalRecord.ppg_raw,
+          healthVitalRecord.predicted_bp_systolic,
+          healthVitalRecord.predicted_bp_diastolic,
+          healthVitalRecord.predicted_glucose,
+          healthVitalRecord.alert_flag,
+          healthVitalRecord.created_at,
+          healthVitalRecord.confidence_score,
+      ];
 
       // 6. Save to GridDB
-      await putRows('health_vitals', [Object.values(healthVitalRecord)]);
+      await putRows('health_vitals', [healthVitalRow]);
       
       finalHealthVital = healthVitalRecord; // Keep the last processed vital for reporting
 
@@ -133,10 +148,30 @@ export async function POST(request: Request) {
             predicted_glucose: healthVitalRecord.predicted_glucose,
             predicted_bp_systolic: healthVitalRecord.predicted_bp_systolic,
             predicted_bp_diastolic: healthVitalRecord.predicted_bp_diastolic,
+            confidence_score: predictions.confidenceScore,
             acknowledged: false,
             created_at: now
         };
-        await putRows('alert_history', [Object.values(alertRecord)]);
+        const alertRow = [
+            alertRecord.alert_timestamp,
+            alertRecord.alert_id,
+            alertRecord.device_id,
+            alertRecord.patient_id,
+            alertRecord.alert_type,
+            alertRecord.severity,
+            alertRecord.alert_message,
+            alertRecord.heart_rate,
+            alertRecord.spo2,
+            alertRecord.ppg_raw,
+            alertRecord.predicted_bp_systolic,
+            alertRecord.predicted_bp_diastolic,
+            alertRecord.predicted_glucose,
+            alertRecord.confidence_score,
+            alertRecord.acknowledged,
+            alertRecord.acknowledged_at,
+            alertRecord.created_at,
+        ];
+        await putRows('alert_history', [alertRow]);
       }
     }
 
