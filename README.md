@@ -59,11 +59,19 @@ To run the VitalWatch platform locally, follow these steps:
     ```
 
 2.  **Set Up Environment Variables:**
-    Create a `.env` file in the project root and add your Gemini API key and Telegram credentials:
+    Create a `.env` file in the project root and add your credentials for the various services:
     ```env
+    # For Google AI (Gemini) features
     GEMINI_API_KEY=YOUR_API_KEY_HERE
+
+    # For Telegram alert notifications
     TELEGRAM_BOT_TOKEN=YOUR_TELEGRAM_BOT_TOKEN
     TELEGRAM_CHAT_ID=YOUR_TELEGRAM_CHAT_ID
+    
+    # For GridDB Cloud connection
+    GRIDDB_API_URL=YOUR_GRIDDB_API_URL
+    GRIDDB_USERNAME=YOUR_GRIDDB_USERNAME
+    GRIDDB_PASSWORD=YOUR_GRIDDB_PASSWORD
     ```
 
 3.  **Run the Development Server:**
