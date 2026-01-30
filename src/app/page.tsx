@@ -27,7 +27,7 @@ export default function LandingPage() {
     },
     {
       icon: <CheckCircle className="w-8 h-8 text-primary" />,
-      title: "SMS/WhatsApp Notifications",
+      title: "Telegram Notifications",
       description: "Instant alerts delivered to doctors and patients.",
     },
      {

@@ -199,7 +199,7 @@ export default function PatientDetailPage({ params }: { params: { patientId: str
                 <Info className="h-4 w-4" />
                 <AlertTitle className="font-semibold">Estimation, Not Diagnosis</AlertTitle>
                 <AlertDescription>
-                    The AI predictions shown are for informational purposes and are not a substitute for clinical judgement.
+                    The AI predictions shown are for informational purposes and are not a substitute for clinical judgment.
                 </AlertDescription>
             </AlertBox>
             
