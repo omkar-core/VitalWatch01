@@ -78,7 +78,7 @@ export default function PatientPage() {
 
   return (
     <div className="p-4 space-y-4">
-        <Card onClick={handleDeviceSync} className="bg-primary text-primary-foreground border-0 cursor-pointer hover:bg-primary/90 transition-all active:scale-[0.98]">
+        <Card onClick={handleDeviceSync} className="bg-primary text-primary-foreground border-0 cursor-pointer hover:bg-primary/90 transition-all active:scale-[0.98] hover:shadow-lg">
             <CardContent className="p-4 flex items-center gap-4">
                 <div className="p-3 bg-primary-foreground/20 rounded-lg">
                     {isSyncing ? <Loader2 className="h-6 w-6 animate-spin" /> : <Wifi className="h-6 w-6" />}
@@ -99,7 +99,7 @@ export default function PatientPage() {
         </Alert>
 
         {isLoading ? <Skeleton className="h-32 w-full rounded-lg" /> : glucose !== null && (
-            <Card className={cn("border-2", glucoseStatus === 'Critical' ? "border-destructive bg-destructive/5" : "border-transparent")}>
+            <Card className={cn("border-2 transition-all hover:shadow-md", glucoseStatus === 'Critical' ? "border-destructive bg-destructive/5" : "border-transparent")}>
                 <CardHeader className="pb-2">
                     <CardTitle className="text-sm font-semibold text-muted-foreground flex items-center justify-between">
                          <span className='flex items-center gap-2'><Droplets className='text-red-500'/>GLUCOSE LEVEL</span>
@@ -117,7 +117,7 @@ export default function PatientPage() {
 
         <div className="grid grid-cols-2 gap-4">
              {isLoading ? <Skeleton className="h-48 w-full rounded-lg" /> : bp && (
-                <Card>
+                <Card className="transition-all hover:shadow-md">
                     <CardHeader className="pb-2">
                         <CardTitle className="text-sm font-semibold text-muted-foreground flex items-center gap-2"><HeartPulse className='text-red-500'/> BLOOD PRESSURE</CardTitle>
                     </CardHeader>
@@ -133,7 +133,7 @@ export default function PatientPage() {
              )}
 
              {isLoading ? <Skeleton className="h-48 w-full rounded-lg" /> : heart && (
-                <Card>
+                <Card className="transition-all hover:shadow-md">
                      <CardHeader className="pb-2">
                         <CardTitle className="text-sm font-semibold text-muted-foreground flex items-center gap-2"><Activity className='text-blue-500'/> HEART RATE</CardTitle>
                     </CardHeader>
@@ -147,7 +147,7 @@ export default function PatientPage() {
             )}
 
              {isLoading ? <Skeleton className="h-36 w-full rounded-lg" /> : latestVital && (
-                <Card>
+                <Card className="transition-all hover:shadow-md">
                      <CardHeader className="pb-2">
                         <CardTitle className="text-sm font-semibold text-muted-foreground flex items-center gap-2"><Wind className='text-green-500'/> SpO2</CardTitle>
                     </CardHeader>
@@ -159,7 +159,7 @@ export default function PatientPage() {
              )}
 
              {isLoading ? <Skeleton className="h-36 w-full rounded-lg" /> : latestVital?.Temperature && (
-                 <Card>
+                 <Card className="transition-all hover:shadow-md">
                      <CardHeader className="pb-2">
                         <CardTitle className="text-sm font-semibold text-muted-foreground flex items-center gap-2"><Thermometer className='text-orange-500'/> TEMP</CardTitle>
                     </CardHeader>
@@ -172,7 +172,7 @@ export default function PatientPage() {
         </div>
 
         {isLoading ? <Skeleton className="h-32 w-full rounded-lg" /> : latestEstimation && (
-             <Card>
+             <Card className="transition-all hover:shadow-xl hover:-translate-y-1">
                 <CardHeader>
                     <CardTitle className="text-sm font-semibold text-muted-foreground flex items-center justify-between">
                          <span className='flex items-center gap-2'><ShieldCheck /> Health Prediction</span>

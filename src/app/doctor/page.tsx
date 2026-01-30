@@ -56,7 +56,7 @@ export default function DoctorDashboard() {
     <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             {summaryCards.map((card) => (
-                <Card key={card.title}>
+                <Card key={card.title} className="transition-all hover:shadow-xl hover:-translate-y-1">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">{card.title}</CardTitle>
                         {card.icon}
@@ -68,7 +68,7 @@ export default function DoctorDashboard() {
             ))}
         </div>
 
-        <Card>
+        <Card className="transition-all hover:shadow-xl hover:-translate-y-1">
             <CardHeader>
                 <CardTitle className="text-destructive flex items-center gap-2"><AlertTriangle /> Critical Alerts (Requires Immediate Attention)</CardTitle>
                 <CardDescription>Patients with vitals that have crossed critical thresholds.</CardDescription>
@@ -95,7 +95,7 @@ export default function DoctorDashboard() {
         </Card>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-            <Card className="lg:col-span-4">
+            <Card className="lg:col-span-4 transition-all hover:shadow-xl hover:-translate-y-1">
                 <CardHeader>
                     <CardTitle>Patient Quick View</CardTitle>
                 </CardHeader>
@@ -127,7 +127,7 @@ export default function DoctorDashboard() {
                      <Button variant="secondary" className="mt-4 w-full" asChild><Link href="/doctor/patients">View All Patients</Link></Button>
                 </CardContent>
             </Card>
-             <Card className="lg:col-span-3">
+             <Card className="lg:col-span-3 transition-all hover:shadow-xl hover:-translate-y-1">
                 <CardHeader className="flex flex-row items-center justify-between">
                     <CardTitle>Recent Notifications</CardTitle>
                     <Button asChild variant="secondary" size="sm">

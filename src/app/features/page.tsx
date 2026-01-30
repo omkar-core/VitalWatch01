@@ -101,7 +101,7 @@ export default function FeaturesPage() {
              <h2 className="text-3xl font-bold font-headline tracking-tighter sm:text-4xl md:text-5xl text-center mb-12">For Doctors</h2>
             <div className="mx-auto grid max-w-5xl items-start gap-8 sm:grid-cols-2 md:gap-12 lg:max-w-none lg:grid-cols-3">
               {doctorFeatures.map((feature) => (
-                <Card key={feature.title} className="bg-background/50 hover:bg-background transition-all hover:shadow-lg hover:-translate-y-1 duration-300 h-full">
+                <Card key={feature.title} className="bg-background/50 hover:bg-background transition-all duration-300 hover:shadow-xl hover:-translate-y-2 h-full">
                   <CardHeader className="flex flex-col items-center text-center gap-4">
                     {feature.icon}
                     <CardTitle className="text-2xl">{feature.title}</CardTitle>
@@ -120,7 +120,7 @@ export default function FeaturesPage() {
              <h2 className="text-3xl font-bold font-headline tracking-tighter sm:text-4xl md:text-5xl text-center mb-12">For Patients</h2>
             <div className="mx-auto grid max-w-5xl items-start gap-8 sm:grid-cols-2 md:gap-12 lg:max-w-none lg:grid-cols-3">
               {patientFeatures.map((feature) => (
-                <Card key={feature.title} className="bg-card/50 hover:bg-card transition-all hover:shadow-lg hover:-translate-y-1 duration-300 h-full">
+                <Card key={feature.title} className="bg-card/50 hover:bg-card transition-all duration-300 hover:shadow-xl hover:-translate-y-2 h-full">
                   <CardHeader className="flex flex-col items-center text-center gap-4">
                     {feature.icon}
                     <CardTitle className="text-2xl">{feature.title}</CardTitle>
@@ -139,7 +139,7 @@ export default function FeaturesPage() {
              <h2 className="text-3xl font-bold font-headline tracking-tighter sm:text-4xl md:text-5xl text-center mb-12">For Clinics & Admins</h2>
             <div className="mx-auto grid max-w-5xl items-start gap-8 sm:grid-cols-2 md:gap-12 lg:max-w-none lg:grid-cols-3">
               {clinicFeatures.map((feature) => (
-                <Card key={feature.title} className="bg-background/50 hover:bg-background transition-all hover:shadow-lg hover:-translate-y-1 duration-300 h-full">
+                <Card key={feature.title} className="bg-background/50 hover:bg-background transition-all duration-300 hover:shadow-xl hover:-translate-y-2 h-full">
                   <CardHeader className="flex flex-col items-center text-center gap-4">
                     {feature.icon}
                     <CardTitle className="text-2xl">{feature.title}</CardTitle>

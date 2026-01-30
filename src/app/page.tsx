@@ -97,15 +97,15 @@ export default function LandingPage() {
                 <h2 className="text-3xl font-bold font-headline tracking-tighter sm:text-5xl">The Current Crisis</h2>
               </div>
               <div className="grid gap-6 md:grid-cols-3">
-                  <Card className="text-center p-6">
+                  <Card className="text-center p-6 transition-all hover:shadow-xl hover:-translate-y-1">
                       <CardHeader className="p-0"><CardTitle className="text-4xl font-bold">90M</CardTitle></CardHeader>
                       <CardContent className="p-0 pt-2"><p className="text-muted-foreground">diabetics in India, a number rapidly growing.</p></CardContent>
                   </Card>
-                   <Card className="text-center p-6">
+                   <Card className="text-center p-6 transition-all hover:shadow-xl hover:-translate-y-1">
                       <CardHeader className="p-0"><CardTitle className="text-4xl font-bold">157M</CardTitle></CardHeader>
                       <CardContent className="p-0 pt-2"><p className="text-muted-foreground">projected diabetics by 2050 if trends continue.</p></CardContent>
                   </Card>
-                   <Card className="text-center p-6">
+                   <Card className="text-center p-6 transition-all hover:shadow-xl hover:-translate-y-1">
                       <CardHeader className="p-0"><CardTitle className="text-4xl font-bold">30%</CardTitle></CardHeader>
                       <CardContent className="p-0 pt-2"><p className="text-muted-foreground">of adults in rural India are hypertensive.</p></CardContent>
                   </Card>
@@ -126,7 +126,7 @@ export default function LandingPage() {
             </div>
             <div className="mx-auto grid max-w-5xl items-start gap-8 sm:grid-cols-2 md:gap-12 lg:max-w-none lg:grid-cols-3 mt-12">
               {features.map((feature) => (
-                <Card key={feature.title} className="bg-background/50 hover:bg-background transition-all hover:shadow-lg hover:-translate-y-1 duration-300 h-full">
+                <Card key={feature.title} className="bg-background/50 hover:bg-background transition-all duration-300 hover:shadow-xl hover:-translate-y-2 h-full">
                   <CardHeader className="flex flex-col items-center text-center gap-4">
                     {feature.icon}
                     <CardTitle className="font-headline text-xl">{feature.title}</CardTitle>

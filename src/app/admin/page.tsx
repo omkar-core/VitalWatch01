@@ -48,7 +48,7 @@ export default function AdminPage() {
       </div>
        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             {summaryCards.map((card) => (
-                <Card key={card.title}>
+                <Card key={card.title} className="transition-all hover:shadow-xl hover:-translate-y-1">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">{card.title}</CardTitle>
                         {card.icon}
@@ -60,7 +60,7 @@ export default function AdminPage() {
             ))}
         </div>
       <div className="grid gap-6 md:grid-cols-2">
-        <Card>
+        <Card className="transition-all hover:shadow-xl hover:-translate-y-1">
             <CardHeader>
                 <CardTitle>Program Metrics (Last 30 Days)</CardTitle>
             </CardHeader>
@@ -87,7 +87,7 @@ export default function AdminPage() {
                 </div>
             </CardContent>
         </Card>
-        <Card>
+        <Card className="transition-all hover:shadow-xl hover:-translate-y-1">
              <CardHeader>
                 <CardTitle>Device Management</CardTitle>
             </CardHeader>
