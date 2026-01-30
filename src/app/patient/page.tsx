@@ -56,7 +56,6 @@ export default function PatientPage() {
   const patient: PatientProfile | null = patientData || null;
   const latestVital: HealthVital | null = vitalsData || null;
 
-
   const handleDeviceSync = async () => {
     if (isSyncing || !patient?.device_id) return;
     
@@ -111,7 +110,7 @@ export default function PatientPage() {
   const glucose = latestVital ? latestVital.predicted_glucose : null;
   const glucoseStatus = glucose ? (glucose > 180 ? 'Critical' : (glucose > 140 ? 'High' : 'Normal')) : 'Normal';
 
-  const isLoading = patientLoading || !patientData || vitalsLoading;
+  const isLoading = patientLoading || vitalsLoading;
 
   return (
     <div className="p-4 space-y-4">
@@ -135,79 +134,101 @@ export default function PatientPage() {
             </AlertDescription>
         </Alert>
 
-        {isLoading ? <Skeleton className="h-32 w-full rounded-lg" /> : glucose !== null && glucose !== undefined && (
-            <Card className={cn("border-2 transition-all hover:shadow-md", glucoseStatus === 'Critical' ? "border-destructive bg-destructive/5" : "border-transparent")}>
-                <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-semibold text-muted-foreground flex items-center justify-between">
-                         <span className='flex items-center gap-2'><Droplets className='text-red-500'/>GLUCOSE LEVEL</span>
-                        {glucoseStatus === 'Critical' && <span className="text-xs font-bold text-destructive-foreground bg-destructive px-2 py-0.5 rounded-full">CRITICAL</span>}
-                    </CardTitle>
-                </CardHeader>
-                <CardContent className='flex items-center justify-between'>
-                    <div>
-                        <p className="text-4xl font-bold">{glucose.toFixed(0)}<span className="text-lg text-muted-foreground ml-1">mg/dL</span></p>
-                        <p className="text-sm font-semibold">{glucose > 180 ? 'Diabetes/High' : 'Normal'}</p>
-                    </div>
+        {isLoading ? (
+            <>
+                <Skeleton className="h-32 w-full rounded-lg" />
+                <div className="grid grid-cols-2 gap-4">
+                    <Skeleton className="h-48 w-full rounded-lg" />
+                    <Skeleton className="h-48 w-full rounded-lg" />
+                    <Skeleton className="h-36 w-full rounded-lg" />
+                    <Skeleton className="h-36 w-full rounded-lg" />
+                </div>
+            </>
+        ) : latestVital ? (
+            <>
+                {glucose !== null && glucose !== undefined && (
+                    <Card className={cn("border-2 transition-all hover:shadow-md", glucoseStatus === 'Critical' ? "border-destructive bg-destructive/5" : "border-transparent")}>
+                        <CardHeader className="pb-2">
+                            <CardTitle className="text-sm font-semibold text-muted-foreground flex items-center justify-between">
+                                <span className='flex items-center gap-2'><Droplets className='text-red-500'/>GLUCOSE LEVEL</span>
+                                {glucoseStatus === 'Critical' && <span className="text-xs font-bold text-destructive-foreground bg-destructive px-2 py-0.5 rounded-full">CRITICAL</span>}
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className='flex items-center justify-between'>
+                            <div>
+                                <p className="text-4xl font-bold">{glucose.toFixed(0)}<span className="text-lg text-muted-foreground ml-1">mg/dL</span></p>
+                                <p className="text-sm font-semibold">{glucose > 180 ? 'Diabetes/High' : 'Normal'}</p>
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
+
+                <div className="grid grid-cols-2 gap-4">
+                    {bp && (
+                        <Card className="transition-all hover:shadow-md">
+                            <CardHeader className="pb-2">
+                                <CardTitle className="text-sm font-semibold text-muted-foreground flex items-center gap-2"><HeartPulse className='text-red-500'/> BLOOD PRESSURE</CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-2">
+                                <p className="text-3xl font-bold">{bp.systolic.toFixed(0)}<span className='text-muted-foreground'>/</span>{bp.diastolic.toFixed(0)}<span className="text-base text-muted-foreground ml-1">mmHg</span></p>
+                                <div className="grid grid-cols-2 text-xs gap-1 pt-1">
+                                    <div><p className='text-muted-foreground'>MAP</p><p className='font-bold'>{bp.map}</p></div>
+                                    <div><p className='text-muted-foreground'>PULSE P.</p><p className='font-bold'>{bp.pulsePressure}</p></div>
+                                </div>
+                                <p className={cn("text-xs font-bold pt-1", getStatusColor(bp.stage))}>{bp.stage}</p>
+                            </CardContent>
+                        </Card>
+                    )}
+
+                    {heart && (
+                        <Card className="transition-all hover:shadow-md">
+                            <CardHeader className="pb-2">
+                                <CardTitle className="text-sm font-semibold text-muted-foreground flex items-center gap-2"><Activity className='text-blue-500'/> HEART RATE</CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-2">
+                                <p className="text-3xl font-bold">{heart.rate.toFixed(0)}<span className="text-base text-muted-foreground ml-1">bpm</span></p>
+                                <div className="grid grid-cols-2 text-xs gap-1 pt-1">
+                                    <div><p className='text-muted-foreground'>SHOCK INDEX</p><p className='font-bold'>{heart.shockIndex}</p></div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
+
+                    {latestVital && (
+                        <Card className="transition-all hover:shadow-md">
+                            <CardHeader className="pb-2">
+                                <CardTitle className="text-sm font-semibold text-muted-foreground flex items-center gap-2"><Wind className='text-green-500'/> SpO2</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <p className="text-3xl font-bold">{latestVital.spo2.toFixed(1)}<span className="text-base text-muted-foreground">%</span></p>
+                                <p className="text-xs font-semibold text-muted-foreground pt-1">Oxygen Saturation</p>
+                            </CardContent>
+                        </Card>
+                    )}
+
+                    {latestVital?.ppg_raw && (
+                        <Card className="transition-all hover:shadow-md">
+                            <CardHeader className="pb-2">
+                                <CardTitle className="text-sm font-semibold text-muted-foreground flex items-center gap-2"><Thermometer className='text-orange-500'/> PPG</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <p className="text-3xl font-bold">{latestVital.ppg_raw.toFixed(0)}</p>
+                                <p className="text-xs font-semibold text-muted-foreground pt-1">Raw PPG Signal</p>
+                            </CardContent>
+                        </Card>
+                    )}
+                </div>
+            </>
+        ) : (
+            <Card>
+                <CardContent className="p-6 flex flex-col items-center justify-center text-center">
+                    <h3 className="text-xl font-bold tracking-tight">No Vitals Recorded Yet</h3>
+                    <p className="text-sm text-muted-foreground mt-2">
+                        Click "Scan Vitals Now" above to get your first reading.
+                    </p>
                 </CardContent>
             </Card>
         )}
-
-        <div className="grid grid-cols-2 gap-4">
-             {isLoading ? <Skeleton className="h-48 w-full rounded-lg" /> : bp && (
-                <Card className="transition-all hover:shadow-md">
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-semibold text-muted-foreground flex items-center gap-2"><HeartPulse className='text-red-500'/> BLOOD PRESSURE</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-2">
-                        <p className="text-3xl font-bold">{bp.systolic.toFixed(0)}<span className='text-muted-foreground'>/</span>{bp.diastolic.toFixed(0)}<span className="text-base text-muted-foreground ml-1">mmHg</span></p>
-                        <div className="grid grid-cols-2 text-xs gap-1 pt-1">
-                            <div><p className='text-muted-foreground'>MAP</p><p className='font-bold'>{bp.map}</p></div>
-                            <div><p className='text-muted-foreground'>PULSE P.</p><p className='font-bold'>{bp.pulsePressure}</p></div>
-                        </div>
-                        <p className={cn("text-xs font-bold pt-1", getStatusColor(bp.stage))}>{bp.stage}</p>
-                    </CardContent>
-                </Card>
-             )}
-
-             {isLoading ? <Skeleton className="h-48 w-full rounded-lg" /> : heart && (
-                <Card className="transition-all hover:shadow-md">
-                     <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-semibold text-muted-foreground flex items-center gap-2"><Activity className='text-blue-500'/> HEART RATE</CardTitle>
-                    </CardHeader>
-                     <CardContent className="space-y-2">
-                        <p className="text-3xl font-bold">{heart.rate.toFixed(0)}<span className="text-base text-muted-foreground ml-1">bpm</span></p>
-                         <div className="grid grid-cols-2 text-xs gap-1 pt-1">
-                            <div><p className='text-muted-foreground'>SHOCK INDEX</p><p className='font-bold'>{heart.shockIndex}</p></div>
-                        </div>
-                    </CardContent>
-                </Card>
-            )}
-
-             {isLoading ? <Skeleton className="h-36 w-full rounded-lg" /> : latestVital && (
-                <Card className="transition-all hover:shadow-md">
-                     <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-semibold text-muted-foreground flex items-center gap-2"><Wind className='text-green-500'/> SpO2</CardTitle>
-                    </CardHeader>
-                     <CardContent>
-                        <p className="text-3xl font-bold">{latestVital.spo2.toFixed(1)}<span className="text-base text-muted-foreground">%</span></p>
-                        <p className="text-xs font-semibold text-muted-foreground pt-1">Oxygen Saturation</p>
-                    </CardContent>
-                </Card>
-             )}
-
-             {isLoading ? <Skeleton className="h-36 w-full rounded-lg" /> : latestVital?.ppg_raw && (
-                 <Card className="transition-all hover:shadow-md">
-                     <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-semibold text-muted-foreground flex items-center gap-2"><Thermometer className='text-orange-500'/> PPG</CardTitle>
-                    </CardHeader>
-                     <CardContent>
-                        <p className="text-3xl font-bold">{latestVital.ppg_raw.toFixed(0)}</p>
-                         <p className="text-xs font-semibold text-muted-foreground pt-1">Raw PPG Signal</p>
-                    </CardContent>
-                </Card>
-             )}
-        </div>
-        
     </div>
   );
 }
