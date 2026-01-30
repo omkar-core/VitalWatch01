@@ -17,9 +17,9 @@ export function FirebaseClientProvider({
   // Use state to hold the initialized Firebase instances.
   // This prevents initialization during server-side rendering.
   const [firebase, setFirebase] = React.useState<{
-    app: FirebaseApp;
-    auth: Auth;
-    firestore: Firestore;
+    app: FirebaseApp | null;
+    auth: Auth | null;
+    firestore: Firestore | null;
   } | null>(null);
 
   React.useEffect(() => {
@@ -29,10 +29,9 @@ export function FirebaseClientProvider({
     setFirebase(instances);
   }, []);
 
-  // If Firebase is not yet initialized, we can't provide the context.
-  // We render the children directly. Hooks that depend on the context
-  // will receive `null` and should handle this gracefully (which they do).
-  if (!firebase) {
+  // If Firebase is not yet initialized OR if initialization failed (firebase.app is null),
+  // then we render the children without the provider. The hooks will gracefully handle null.
+  if (!firebase || !firebase.app) {
     return <>{children}</>;
   }
 
