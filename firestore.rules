@@ -20,25 +20,27 @@ service cloud.firestore {
       allow write: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'doctor';
     }
 
-    // Vitals can be read by the patient or any doctor. Vitals can only be written by a trusted source (e.g. Cloud Function).
+    // Vitals can be read by the patient or any doctor. Vitals can only be written by the patient themselves (simulating device upload).
     match /patients/{patientId}/vitals/{vitalId} {
       allow read: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'doctor'
                   || request.auth.uid == patientId;
-      allow write: if false; // Should be written by backend service
+      allow write: if request.auth.uid == patientId;
     }
 
-    // Estimations can be read by the patient or any doctor. Estimations can only be written by a trusted source.
+    // Estimations can be read by the patient or any doctor. Estimations can be written by the user who triggered the analysis.
     match /patients/{patientId}/estimations/{estimationId} {
        allow read: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'doctor'
                   || request.auth.uid == patientId;
-      allow write: if false; // Should be written by backend service/AI flow
+      allow write: if request.auth.uid == patientId;
     }
 
-    // Doctors can read all alerts, patients can only read alerts linked to them
+    // Doctors can read all alerts, patients can only read alerts linked to them.
+    // Alerts are created by the system (via user-triggered action).
      match /alerts/{alertId} {
       allow read: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'doctor'
                   || resource.data.patientId == request.auth.uid;
-      allow write: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'doctor';
+      allow create: if request.resource.data.patientId == request.auth.uid; // Allow user action to create alert for themself
+      allow update: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'doctor'; // Doctors can mark as read
     }
 
     // Doctors and admins can read device commands for debugging.

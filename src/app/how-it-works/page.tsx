@@ -22,7 +22,7 @@ export default function HowItWorksPage() {
     {
       step: 2,
       title: "Secure Data Transmission",
-      description: "A dedicated gateway collects data from the sensor and securely transmits it to the cloud using the MQTT protocol, with offline buffering to prevent data loss.",
+      description: "A dedicated gateway (or the user's phone) collects data from the sensor and securely transmits it to the cloud using the MQTT protocol, with offline buffering to prevent data loss.",
       icon: <Wifi />
     },
     {

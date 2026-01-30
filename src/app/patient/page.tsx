@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from '@/components/ui/skeleton';
 import { HeartPulse, Droplets, Thermometer, Wind, Wifi, Bot, ShieldCheck, Loader2 } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
-import { sendCommandToDevice } from '@/lib/device-commands';
 import { useUser } from '@/firebase/auth/use-user';
 import { collection, limit, onSnapshot, query, orderBy } from 'firebase/firestore';
 import { useFirestore } from '@/firebase/provider';
@@ -13,6 +12,7 @@ import type { Vital } from '@/lib/types';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { EstimateHealthMetricsOutput } from '@/ai/flows/suggest-initial-diagnoses';
 import { cn } from '@/lib/utils';
+import { triggerVitalsScanAndAnalysis } from '@/app/actions';
 
 // Helper function to get status colors
 const getStatusColor = (status: string) => {
@@ -37,7 +37,7 @@ export default function PatientPage() {
   const { toast } = useToast();
   const [isSyncing, setIsSyncing] = React.useState(false);
 
-  const vitalsQuery = user ? query(collection(firestore, `patients/${user.uid}/vitals`), orderBy("time", "desc"), limit(1)) : null;
+  const vitalsQuery = user ? query(collection(firestore, `patients/${user.uid}/vitals`), orderBy("timestamp", "desc"), limit(1)) : null;
   const { data: vitalsData, loading: loadingVitals } = useCollection<Vital>(vitalsQuery as any);
 
   const estimationsQuery = user ? query(collection(firestore, `patients/${user.uid}/estimations`), orderBy("timestamp", "desc"), limit(1)) : null;
@@ -47,27 +47,31 @@ export default function PatientPage() {
   const latestEstimation = estimationsData && estimationsData.length > 0 ? estimationsData[0] : null;
 
   const handleDeviceSync = async () => {
-      if (isSyncing) return;
-      if (!userProfile?.deviceId) {
-          toast({ variant: 'destructive', title: 'No Device Found', description: 'Please assign a device in your settings.' });
-          return;
-      }
-      setIsSyncing(true);
-      try {
-          sendCommandToDevice(firestore, userProfile.deviceId, 'start_scan');
-          toast({
-            title: 'Scan Initiated',
-            description: `A request has been sent to your device to start a new scan.`,
-          });
-      } catch (error: any) {
-          toast({
+    if (!user || !userProfile) return;
+    if (isSyncing) return;
+    
+    setIsSyncing(true);
+    toast({
+        title: 'Initiating Scan...',
+        description: `Requesting a new reading from your device. This will take a moment.`,
+    });
+
+    const result = await triggerVitalsScanAndAnalysis(user.uid, userProfile.displayName);
+    
+    setIsSyncing(false);
+    
+    if (result.error) {
+        toast({
             variant: 'destructive',
-            title: 'Sync Failed',
-            description: error.message || 'Could not initiate device scan.',
-          });
-      } finally {
-        setTimeout(() => setIsSyncing(false), 3000);
-      }
+            title: 'Scan Failed',
+            description: result.error,
+        });
+    } else {
+        toast({
+            title: 'Scan Complete!',
+            description: `Your latest vitals have been recorded and analyzed.`,
+        });
+    }
   };
 
   // Derived values from vitals
@@ -97,8 +101,8 @@ export default function PatientPage() {
                     {isSyncing ? <Loader2 className="h-6 w-6 animate-spin" /> : <Wifi className="h-6 w-6" />}
                 </div>
                 <div>
-                    <h2 className="font-bold text-lg font-headline">Scan Vitals</h2>
-                    <p className="text-sm opacity-80">{isSyncing ? 'Scanning...' : 'IoT Sensor Ready'}</p>
+                    <h2 className="font-bold text-lg font-headline">Scan Vitals Now</h2>
+                    <p className="text-sm opacity-80">{isSyncing ? 'Scanning...' : 'Ready to Scan'}</p>
                 </div>
             </CardContent>
         </Card>
@@ -191,6 +195,7 @@ export default function PatientPage() {
                          <span className='flex items-center gap-2'><ShieldCheck /> Health Prediction</span>
                         <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">AI POWERED</span>
                     </CardTitle>
+                    <CardDescription>This is an AI-powered estimation, not a medical diagnosis.</CardDescription>
                 </CardHeader>
                  <CardContent className='grid grid-cols-2 gap-4'>
                     <div>

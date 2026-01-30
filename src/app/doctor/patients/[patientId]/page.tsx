@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { VitalsChart } from "@/components/dashboard/vitals-chart";
 import Image from "next/image";
-import { ArrowLeft, Phone, MessageSquare, Pencil, User, HeartPulse, Droplets, Wind, Thermometer, Loader2 } from "lucide-react";
+import { ArrowLeft, Phone, MessageSquare, Pencil, User, HeartPulse, Droplets, Wind, Thermometer, Loader2, AlertTriangle, Info, Bot, ShieldCheck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -19,9 +19,12 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useFirestore } from "@/firebase/provider";
 import { useDoc } from "@/firebase/firestore/use-doc";
-import type { Patient } from "@/lib/types";
-import { doc } from "firebase/firestore";
+import { useCollection } from "@/firebase/firestore/use-collection";
+import type { Patient, Vital, Alert, EstimateHealthMetricsOutput } from "@/lib/types";
+import { doc, collection, query, where, orderBy, limit } from "firebase/firestore";
 import { Skeleton } from "@/components/ui/skeleton";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 export default function PatientDetailPage() {
   const router = useRouter();
@@ -30,15 +33,28 @@ export default function PatientDetailPage() {
   
   const firestore = useFirestore();
   const patientRef = doc(firestore, 'patients', patientId);
-  const { data: patient, loading } = useDoc<Patient>(patientRef);
+  const { data: patient, loading: patientLoading } = useDoc<Patient>(patientRef);
 
-  useEffect(() => {
-    if (patient) {
-      document.title = `${patient.name} - Patient Details | VitalWatch`;
-    } else if (!loading) {
-      document.title = 'Patient Not Found | VitalWatch';
-    }
-  }, [patient, loading]);
+  const vitalsQuery = query(collection(firestore, `patients/${patientId}/vitals`), orderBy('timestamp', 'desc'));
+  const { data: vitals, loading: vitalsLoading } = useCollection<Vital>(vitalsQuery);
+  
+  const estimationsQuery = query(collection(firestore, `patients/${patientId}/estimations`), orderBy('timestamp', 'desc'), limit(5));
+  const { data: estimations, loading: estimationsLoading } = useCollection<EstimateHealthMetricsOutput>(estimationsQuery);
+
+  const alertsQuery = query(collection(firestore, 'alerts'), where('patientId', '==', patientId), orderBy('timestamp', 'desc'), limit(5));
+  const { data: alerts, loading: alertsLoading } = useCollection<Alert>(alertsQuery);
+
+
+  const loading = patientLoading || vitalsLoading || estimationsLoading || alertsLoading;
+
+  const latestVital = vitals && vitals.length > 0 ? vitals[0] : null;
+
+  const vitalCards = latestVital ? [
+    { title: "Glucose", value: `${latestVital['Glucose']} mg/dL`, icon: <HeartPulse />, status: latestVital['Glucose'] > 180 ? 'High' : 'Normal' },
+    { title: "Blood Pressure", value: `${latestVital['Systolic']}/${latestVital['Diastolic']}`, icon: <Droplets />, status: latestVital['Systolic'] > 130 ? 'High' : 'Normal' },
+    { title: "Heart Rate", value: `${latestVital['Heart Rate']} BPM`, icon: <HeartPulse />, status: "Normal" },
+    { title: "SpO2", value: `${latestVital['SPO2']}%`, icon: <Wind />, status: latestVital['SPO2'] < 95 ? 'Low' : 'Normal' },
+  ] : [];
 
   if (loading) {
     return <div className="flex h-screen w-full items-center justify-center"><Loader2 className="animate-spin" /></div>
@@ -56,15 +72,6 @@ export default function PatientDetailPage() {
     );
   }
 
-  // Placeholder until vitals subcollection is implemented
-  const latestVitals = { 'Glucose': 0, 'Systolic': 0, 'Diastolic': 0, 'Heart Rate': 0, 'SPO2': 0 };
-
-  const vitalCards = [
-    { title: "Glucose", value: `${latestVitals['Glucose']} mg/dL`, icon: <HeartPulse />, status: 'Normal' },
-    { title: "Blood Pressure", value: `${latestVitals['Systolic']}/${latestVitals['Diastolic']}`, icon: <Droplets />, status: 'Normal' },
-    { title: "Heart Rate", value: `${latestVitals['Heart Rate']} BPM`, icon: <HeartPulse />, status: "Normal" },
-    { title: "SpO2", value: `${latestVitals['SPO2']}%`, icon: <Wind />, status: 'Normal' },
-  ];
 
   return (
     <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
@@ -88,8 +95,8 @@ export default function PatientDetailPage() {
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <Button variant="outline"><Phone className="mr-2"/>Call Patient</Button>
-                  <Button variant="outline"><MessageSquare className="mr-2"/>Send Message</Button>
+                  <Button variant="outline"><Phone className="mr-2"/>Call</Button>
+                  <Button variant="outline"><MessageSquare className="mr-2"/>Message</Button>
                   <Button variant="ghost" size="icon"><Pencil className="h-4 w-4"/></Button>
                 </div>
               </div>
@@ -102,10 +109,10 @@ export default function PatientDetailPage() {
            <Card>
             <CardHeader>
                 <CardTitle>Current Vitals</CardTitle>
-                <CardDescription>Last updated: 2 min ago</CardDescription>
+                <CardDescription>Last updated: {latestVital?.timestamp ? format(latestVital.timestamp.toDate(), 'PPpp') : 'N/A'}</CardDescription>
             </CardHeader>
             <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                 {vitalCards.map(vital => (
+                 {vitalCards.length > 0 ? vitalCards.map(vital => (
                     <div key={vital.title} className="p-4 rounded-lg border flex flex-col gap-1 bg-card">
                         <div className="flex items-center gap-2 text-muted-foreground text-sm font-medium">
                             {vital.icon} {vital.title}
@@ -113,17 +120,17 @@ export default function PatientDetailPage() {
                         <p className="text-2xl font-bold">{vital.value}</p>
                         <Badge variant={vital.status === 'High' || vital.status === 'Low' || vital.status === 'Critical' ? 'destructive' : 'default'} className="w-fit">{vital.status}</Badge>
                     </div>
-                ))}
+                )) : <p className="col-span-4 text-muted-foreground">No vital readings available.</p>}
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle>Glucose & BP Trend (Last 24 Hours)</CardTitle>
+              <CardTitle>Glucose & BP Trend (Last 7 Days)</CardTitle>
             </CardHeader>
             <CardContent>
               <VitalsChart 
-                data={[]} 
+                data={vitals || []} 
                 dataKey1="Glucose" 
                 label1="Glucose (mg/dL)" 
                 color1="hsl(var(--chart-1))" 
@@ -131,18 +138,6 @@ export default function PatientDetailPage() {
                 label2="BP (Systolic)"
                 color2="hsl(var(--chart-2))"
               />
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-                <CardTitle>Medication & Treatment</CardTitle>
-            </CardHeader>
-            <CardContent>
-                 <div className="mt-4 flex gap-2">
-                    <Button variant="outline">Edit Medications</Button>
-                    <Button variant="outline">Adjust Thresholds</Button>
-                </div>
             </CardContent>
           </Card>
 
@@ -161,11 +156,45 @@ export default function PatientDetailPage() {
         </div>
 
         <div className="lg:col-span-1 space-y-6">
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2"><Bot />AI Health Estimations</CardTitle>
+                    <CardDescription>This is an AI-powered estimation, not a medical diagnosis.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    {estimations && estimations.map((est, i) => (
+                        <div key={i} className="p-3 rounded-lg border bg-secondary/30">
+                            <p className="font-semibold text-sm">Prediction from {format(est.timestamp.toDate(), 'p')}</p>
+                            <div className="grid grid-cols-2 gap-2 mt-2 text-sm">
+                                <div>
+                                    <p className="text-muted-foreground">BP Category</p>
+                                    <p className="font-bold">{est.estimatedBpCategory}</p>
+                                </div>
+                                 <div>
+                                    <p className="text-muted-foreground">Glucose Trend</p>
+                                    <p className={cn("font-bold", est.glucoseTrend === 'Risky' && 'text-destructive')}>{est.glucoseTrend}</p>
+                                </div>
+                            </div>
+                            <p className="text-xs text-muted-foreground italic mt-2">{est.reasoning}</p>
+                        </div>
+                    ))}
+                </CardContent>
+            </Card>
+
            <Card>
                 <CardHeader>
-                    <CardTitle>Alert History</CardTitle>
+                    <CardTitle>Recent Alerts</CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-3">
+                    {alerts && alerts.length > 0 ? alerts.map(alert => (
+                        <div key={alert.id} className="flex gap-3">
+                            <AlertTriangle className={cn("mt-1", alert.severity === 'Critical' || alert.severity === 'High' ? 'text-destructive' : 'text-yellow-500')}/>
+                            <div>
+                                <p className="font-medium text-sm">{alert.message}</p>
+                                <p className="text-xs text-muted-foreground">{format(alert.timestamp.toDate(), 'PPpp')}</p>
+                            </div>
+                        </div>
+                    )) : <p className="text-sm text-muted-foreground">No recent alerts for this patient.</p>}
                      <Button variant="secondary" size="sm" className="mt-4 w-full">View All Alerts</Button>
                 </CardContent>
             </Card>
