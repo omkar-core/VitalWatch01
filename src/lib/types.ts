@@ -1,6 +1,8 @@
+import type { Timestamp } from 'firebase/firestore';
+
 export type Vital = {
   id?: string;
-  timestamp: any; // Firestore ServerTimestamp
+  timestamp: Timestamp;
   "Glucose": number;
   "Systolic": number;
   "Diastolic": number;
@@ -15,7 +17,7 @@ export type Alert = {
   patientName: string;
   severity: 'Critical' | 'High' | 'Medium' | 'Low' | 'Predictive';
   message: string;
-  timestamp: any; // Firestore ServerTimestamp
+  timestamp: Timestamp;
   isRead: boolean;
 };
 
