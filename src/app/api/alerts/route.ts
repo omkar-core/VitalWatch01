@@ -27,11 +27,12 @@ export async function GET(request: Request) {
     });
 
     // Sort by timestamp descending
-    alerts.sort((a, b) => new Date(b.alert_timestamp).getTime() - new Date(a.alert_timestamp).getTime());
+    alerts.sort((a: AlertHistory, b: AlertHistory) => new Date(b.alert_timestamp).getTime() - new Date(a.alert_timestamp).getTime());
 
     return NextResponse.json(alerts);
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'An internal server error occurred.';
     console.error('[/api/alerts] Error:', error);
-    return NextResponse.json({ error: error.message || 'An internal server error occurred.' }, { status: 500 });
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
