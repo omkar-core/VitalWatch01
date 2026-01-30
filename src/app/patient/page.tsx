@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from '@/components/ui/skeleton';
-import { HeartPulse, Droplets, Thermometer, Wind, Wifi, Bot, ShieldCheck, Loader2 } from "lucide-react";
+import { HeartPulse, Droplets, Thermometer, Wind, Wifi, Bot, ShieldCheck, Loader2, Info } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
 import { useUser } from '@/firebase/auth/use-user';
 import { collection, limit, onSnapshot, query, orderBy } from 'firebase/firestore';
@@ -13,12 +13,14 @@ import { useCollection } from '@/firebase/firestore/use-collection';
 import { EstimateHealthMetricsOutput } from '@/ai/flows/suggest-initial-diagnoses';
 import { cn } from '@/lib/utils';
 import { triggerVitalsScanAndAnalysis } from '@/app/actions';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 // Helper function to get status colors
 const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
         case 'critical':
         case 'stage 2 hypertension':
+        case 'risky':
             return 'text-destructive';
         case 'high':
         case 'stage 1 hypertension':
@@ -113,11 +115,19 @@ export default function PatientPage() {
             </CardContent>
         </Card>
 
+        <Alert variant="default" className="bg-accent/20 border-accent/50">
+            <Info className="h-4 w-4" />
+            <AlertTitle className="font-semibold">Not a Medical Device</AlertTitle>
+            <AlertDescription>
+                This system provides health estimations for informational purposes only. Consult a doctor for medical advice.
+            </AlertDescription>
+        </Alert>
+
         {isLoading ? <Skeleton className="h-32 w-full rounded-lg" /> : glucose !== null && (
             <Card className={cn("border-2", glucoseStatus === 'Critical' ? "border-destructive bg-destructive/5" : "border-transparent")}>
                 <CardHeader className="pb-2">
                     <CardTitle className="text-sm font-semibold text-muted-foreground flex items-center justify-between">
-                        <span className='flex items-center gap-2'><span className={cn('h-2 w-2 rounded-full', glucoseStatus === 'Critical' ? 'bg-destructive' : 'bg-yellow-500' )}></span>GLUCOSE LEVEL</span>
+                        <span className='flex items-center gap-2'><span className={cn('h-2 w-2 rounded-full', getStatusColor(glucoseStatus))}></span>GLUCOSE LEVEL</span>
                         {glucoseStatus === 'Critical' && <span className="text-xs font-bold text-destructive-foreground bg-destructive px-2 py-0.5 rounded-full">CRITICAL</span>}
                     </CardTitle>
                 </CardHeader>
@@ -126,14 +136,6 @@ export default function PatientPage() {
                         <p className="text-4xl font-bold">{glucose}<span className="text-lg text-muted-foreground ml-1">mg/dL</span></p>
                         <p className="text-sm font-semibold">{glucose > 180 ? 'Diabetes/High' : 'Normal'}</p>
                     </div>
-                    {glucoseStatus === 'Critical' && (
-                        <div className="relative h-16 w-16">
-                            <svg className="h-full w-full" width="36" height="36" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
-                                <circle cx="18" cy="18" r="16" fill="none" className="stroke-current text-destructive/20" strokeWidth="2"></circle>
-                                <circle cx="18" cy="18" r="16" fill="none" className="stroke-current text-destructive" strokeWidth="2" strokeDasharray="100" strokeDashoffset="25" strokeLinecap="round"></circle>
-                            </svg>
-                        </div>
-                    )}
                 </CardContent>
             </Card>
         )}
@@ -176,7 +178,7 @@ export default function PatientPage() {
                     </CardHeader>
                      <CardContent>
                         <p className="text-3xl font-bold">{latestVital["SPO2"]}<span className="text-base text-muted-foreground">%</span></p>
-                        <p className="text-xs font-semibold text-muted-foreground pt-1">Oxygen</p>
+                        <p className="text-xs font-semibold text-muted-foreground pt-1">Oxygen Saturation</p>
                     </CardContent>
                 </Card>
              )}
@@ -188,7 +190,7 @@ export default function PatientPage() {
                     </CardHeader>
                      <CardContent>
                         <p className="text-3xl font-bold">{latestVital["Temperature"]}<span className="text-base text-muted-foreground">°F</span></p>
-                         <p className="text-xs font-semibold text-muted-foreground pt-1">Fahrenheit</p>
+                         <p className="text-xs font-semibold text-muted-foreground pt-1">Body Temperature</p>
                     </CardContent>
                 </Card>
              )}
@@ -201,18 +203,17 @@ export default function PatientPage() {
                          <span className='flex items-center gap-2'><ShieldCheck /> Health Prediction</span>
                         <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">AI POWERED</span>
                     </CardTitle>
-                    <CardDescription>This is an AI-powered estimation, not a medical diagnosis.</CardDescription>
                 </CardHeader>
                  <CardContent className='grid grid-cols-2 gap-4'>
                     <div>
-                        <p className="text-xs text-muted-foreground">CONFIDENCE</p>
+                        <p className="text-xs text-muted-foreground">AI CONFIDENCE</p>
                         <p className="text-lg font-bold">{Math.round(latestEstimation.confidenceScore * 100)}%</p>
                     </div>
                      <div>
                         <p className="text-xs text-muted-foreground">PREDICTED GLUCOSE TREND</p>
-                         <p className={cn("text-lg font-bold", latestEstimation.glucoseTrend === 'Risky' ? 'text-destructive' : '')}>{latestEstimation.glucoseTrend}</p>
+                         <p className={cn("text-lg font-bold", getStatusColor(latestEstimation.glucoseTrend))}>{latestEstimation.glucoseTrend}</p>
                     </div>
-                    <div className='col-span-2 text-xs text-muted-foreground pt-2'>
+                    <div className='col-span-2 text-xs text-muted-foreground pt-2 italic'>
                         {latestEstimation.reasoning}
                     </div>
                 </CardContent>

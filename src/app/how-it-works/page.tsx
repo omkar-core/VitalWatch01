@@ -1,8 +1,8 @@
 import { VitalWatchLogo } from "@/components/icons";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ArrowDown, Smartphone, Cloud, Database, BrainCircuit, Bell, LayoutDashboard, Wifi } from "lucide-react";
+import { ArrowDown, Smartphone, Cloud, Database, BrainCircuit, Bell, LayoutDashboard, Wifi, Gauge, TestTube, Thermometer, Filter } from "lucide-react";
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -15,38 +15,44 @@ export default function HowItWorksPage() {
   const steps = [
     {
       step: 1,
-      title: "Wearable Sensor Data Collection",
-      description: "A wrist-mounted device with a MAX30100 sensor continuously captures photoplethysmography (PPG) signals, which measure changes in blood volume. From this, we directly derive Heart Rate (HR) and Blood Oxygen (SpO₂).",
+      title: "Data Acquisition (ESP32 + MAX30100)",
+      description: "A wrist-mounted device with a MAX30100 sensor continuously captures photoplethysmography (PPG) signals at ~100Hz. This raw data measures changes in blood volume, from which we can directly derive Heart Rate (HR) and Blood Oxygen (SpO₂).",
       icon: <Smartphone />
     },
     {
-      step: 2,
-      title: "Secure Data Transmission",
-      description: "A dedicated gateway (or the user's phone) collects data from the sensor and securely transmits it to the cloud using the MQTT protocol, with offline buffering to prevent data loss.",
-      icon: <Wifi />
+        step: 2,
+        title: "Initial Calibration & Signal Quality",
+        description: "Upon first use, a 60-second baseline calibration is performed to account for wrist placement, skin tone, and ambient light. A Signal Quality Index (SQI) is computed in real-time to discard motion artifacts and ensure data validity.",
+        icon: <Gauge />
     },
     {
       step: 3,
-      title: "AI-Powered Estimation",
-      description: "Our cloud-based AI model analyzes the time-series data (HR, SpO₂, pulse waveform) along with user profile information to estimate trends in blood pressure and glucose. This is an estimation, not a direct measurement.",
-      icon: <BrainCircuit />
+      title: "On-Demand Measurement Trigger",
+      description: "When the user presses 'Scan Vitals' in the web app, a command is securely sent via Firestore to the designated ESP32. The device then begins a focused 45-second measurement window, applying filtering and averaging.",
+      icon: <Wifi />
     },
     {
       step: 4,
-      title: "High-Performance Storage in Firestore",
-      description: "Raw sensor readings and AI-generated estimations are stored in a scalable time-series structure within Firestore, optimized for rapid querying and analysis.",
-      icon: <Database />
+      title: "On-Device Estimation (ESP32)",
+      description: "The ESP32 processes the filtered PPG signal to extract key features. It uses established formulas based on Pulse Transit Time (PTT) and waveform analysis to generate initial estimations for Systolic and Diastolic Blood Pressure. This is an estimation, not a direct measurement.",
+      icon: <Filter />
     },
-     {
+    {
       step: 5,
-      title: "Intelligent Alerts & Notifications",
-      description: "If direct readings (like SpO₂) or AI-estimated trends (like BP or glucose) cross critical thresholds, instant alerts are sent to both doctors and patients, enabling timely intervention.",
-      icon: <Bell />
+      title: "Cloud-Based AI Analysis (Gemini)",
+      description: "The processed vitals and on-device estimations are sent to the cloud. A server-side AI model analyzes this data in conjunction with the patient's historical vitals to identify complex trends, estimate glucose trend risk ('Normal', 'Elevated', 'Risky'), and refine the BP category.",
+      icon: <BrainCircuit />
     },
     {
       step: 6,
-      title: "Dashboard Visualization",
-      description: "Care teams and patients access real-time sensor data, AI-powered estimations, and historical trends through their respective secure web portals.",
+      title: "Secure Data Storage (Firestore)",
+      description: "All data—raw signals, processed values, and AI-generated estimations—is stored in Firestore with a server timestamp, linked to the specific user and device ID. The database is optimized for time-series queries.",
+      icon: <Database />
+    },
+     {
+      step: 7,
+      title: "Intelligent Alerts & Dashboard",
+      description: "If any value crosses a critical threshold, an alert is instantly generated and stored in Firestore. The patient and doctor dashboards update in real-time to display the latest vitals, AI insights, and any new alerts.",
       icon: <LayoutDashboard />
     },
   ];
@@ -74,8 +80,8 @@ export default function HowItWorksPage() {
             <div className="flex flex-col items-center space-y-4 text-center">
               <div className="space-y-2">
                 <h1 className="text-4xl font-bold font-headline tracking-tighter sm:text-5xl md:text-6xl">From Signal to Insight</h1>
-                <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl">
-                  Our system translates raw sensor data into actionable health estimations.
+                <p className="mx-auto max-w-[800px] text-muted-foreground md:text-xl">
+                  Our system translates raw sensor data into actionable health estimations using a multi-stage, medically-informed pipeline. This is an estimation-based system and is not a substitute for clinical diagnostic devices.
                 </p>
               </div>
             </div>
@@ -85,7 +91,7 @@ export default function HowItWorksPage() {
           <div className="container px-4 md:px-6">
              <div className="relative flex flex-col items-center gap-8">
                 {steps.map((step, index) => (
-                  <div key={step.step} className="flex flex-col items-center text-center w-full max-w-2xl">
+                  <div key={step.step} className="flex flex-col items-center text-center w-full max-w-3xl">
                      <Card className="w-full transition-all hover:shadow-lg">
                        <CardHeader>
                          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -93,11 +99,10 @@ export default function HowItWorksPage() {
                             <span className="flex items-center justify-center w-12 h-12 rounded-full bg-primary text-primary-foreground">
                               {step.icon}
                             </span>
-                            <span className="flex sm:hidden items-center justify-center w-8 h-8 rounded-full bg-primary text-primary-foreground font-bold">{step.step}</span>
                            </div>
                            <div className="text-center sm:text-left">
                             <CardTitle className="text-2xl">{step.title}</CardTitle>
-                            <p className="text-muted-foreground mt-1">{step.description}</p>
+                            <CardDescription className="mt-1">{step.description}</CardDescription>
                            </div>
                          </div>
                        </CardHeader>

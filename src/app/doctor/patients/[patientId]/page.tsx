@@ -25,6 +25,7 @@ import { doc, collection, query, where, orderBy, limit } from "firebase/firestor
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { Alert as AlertBox, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export default function PatientDetailPage() {
   const router = useRouter();
@@ -156,10 +157,17 @@ export default function PatientDetailPage() {
         </div>
 
         <div className="lg:col-span-1 space-y-6">
+             <AlertBox variant="default" className="bg-accent/20 border-accent/50">
+                <Info className="h-4 w-4" />
+                <AlertTitle className="font-semibold">Estimation, Not Diagnosis</AlertTitle>
+                <AlertDescription>
+                    The AI predictions shown are for informational purposes and are not a substitute for clinical judgement.
+                </AlertDescription>
+            </AlertBox>
+
             <Card>
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2"><Bot />AI Health Estimations</CardTitle>
-                    <CardDescription>This is an AI-powered estimation, not a medical diagnosis.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     {estimations && estimations.map((est, i) => (
@@ -176,6 +184,7 @@ export default function PatientDetailPage() {
                                 </div>
                             </div>
                             <p className="text-xs text-muted-foreground italic mt-2">{est.reasoning}</p>
+                            <p className="text-xs font-medium text-right mt-1">Confidence: {Math.round(est.confidenceScore * 100)}%</p>
                         </div>
                     ))}
                 </CardContent>
