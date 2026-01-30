@@ -1,6 +1,7 @@
 'use client';
 import * as React from 'react';
 import Link from "next/link";
+import { useRouter } from 'next/navigation';
 import {
   SidebarProvider,
   Sidebar,
@@ -14,17 +15,47 @@ import {
 } from "@/components/ui/sidebar";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { VitalWatchLogo } from "@/components/icons";
-import { Settings, LayoutDashboard, Users, Bell, BarChart, LifeBuoy } from "lucide-react";
+import { Settings, LayoutDashboard, Users, Bell, BarChart, LifeBuoy, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { mockDoctor, mockAlerts } from '@/lib/mock-data';
+import { useUser } from '@/firebase/auth/use-user';
+import { useCollection } from 'react-firebase-hooks/firestore';
+import { collection, query, where } from 'firebase/firestore';
+import { useFirestore } from '@/firebase';
+
 
 export default function DoctorLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const userProfile = mockDoctor;
-  const unreadAlerts = mockAlerts?.filter(a => !a.isRead).length || 0;
+  const { user, userProfile, loading } = useUser();
+  const router = useRouter();
+  const firestore = useFirestore();
+
+  const [alerts, alertsLoading, alertsError] = useCollection(
+    firestore ? query(
+      collection(firestore, "alert_history"),
+      where("acknowledged", "==", false)
+      // In a real app, you'd likely also filter by doctorId
+    ) : null
+  );
+
+  const unreadAlerts = alerts ? alerts.docs.length : 0;
+
+
+  React.useEffect(() => {
+    if (!loading && (!user || userProfile?.role !== 'doctor')) {
+      router.push('/login');
+    }
+  }, [user, userProfile, loading, router]);
+  
+  if (loading || !user || userProfile?.role !== 'doctor') {
+    return (
+      <div className="flex h-screen w-full items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <SidebarProvider>

@@ -15,14 +15,30 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { LogOut, Settings, User as UserIcon } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { UserProfile } from "@/lib/types";
+import { logout } from "@/firebase/auth/auth-service";
+import { useToast } from "@/hooks/use-toast";
+
 
 export function DashboardHeader({ title, userProfile }: { title: string, userProfile: UserProfile | null }) {
   const router = useRouter();
+  const { toast } = useToast();
   const settingsPath = userProfile ? `/${userProfile.role}/settings` : '/login';
 
   const handleSignOut = async () => {
-    // In mock mode, just redirect to login
-    router.push('/login');
+    try {
+      await logout();
+      toast({
+        title: "Logged Out",
+        description: "You have been successfully signed out.",
+      });
+      router.push('/login');
+    } catch (error: any) {
+       toast({
+        variant: "destructive",
+        title: "Logout Failed",
+        description: error.message || "An unknown error occurred.",
+      });
+    }
   };
 
   const getInitials = (name: string | null | undefined) => {

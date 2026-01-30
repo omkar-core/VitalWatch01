@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { VitalWatchLogo } from "@/components/icons";
-import { RegisterForm } from "@/components/auth/register-form";
+import { LoginForm } from "@/components/auth/login-form";
 
-export default function RegisterPage() {
+export default function LoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <div className="w-full max-w-md">
@@ -17,20 +17,20 @@ export default function RegisterPage() {
         </div>
         <Card>
           <CardHeader>
-            <CardTitle className="text-2xl font-headline">Create an Account</CardTitle>
-            <CardDescription>Join VitalWatch to monitor your health.</CardDescription>
+            <CardTitle className="text-2xl font-headline">Login</CardTitle>
+            <CardDescription>Enter your credentials to access your dashboard.</CardDescription>
           </CardHeader>
           <CardContent>
-            <RegisterForm />
+            <LoginForm />
           </CardContent>
         </Card>
-         <p className="px-8 text-center text-sm text-muted-foreground mt-4">
-            Already have an account?{" "}
+        <p className="px-8 text-center text-sm text-muted-foreground mt-4">
+            Don't have an account?{" "}
             <Link
-                href="/login"
+                href="/register"
                 className="underline underline-offset-4 hover:text-primary"
             >
-                Login
+                Register
             </Link>
         </p>
       </div>
