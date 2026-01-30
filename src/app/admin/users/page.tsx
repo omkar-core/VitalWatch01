@@ -15,25 +15,31 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, PlusCircle, Upload, Search } from "lucide-react";
+import { MoreHorizontal, PlusCircle, Upload, Search, Loader2 } from "lucide-react";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import Image from "next/image";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import type { UserProfile } from "@/lib/types";
-import { mockAllUsers } from "@/lib/mock-data";
+import { useCollection } from "react-firebase-hooks/firestore";
+import { collection } from "firebase/firestore";
+import { useFirestore } from "@/firebase";
 
 export default function AdminUsersPage() {
   const [searchTerm, setSearchTerm] = useState('');
+  const firestore = useFirestore();
   
-  const allUsers = mockAllUsers;
-  const loading = false;
+  const [usersSnapshot, loading, error] = useCollection(
+    firestore ? collection(firestore, 'users') : null
+  );
 
-  const filteredUsers = allUsers?.filter(user =>
-    user.displayName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchTerm.toLowerCase())
-  ) || [];
+  const allUsers = usersSnapshot?.docs.map(doc => ({ uid: doc.id, ...doc.data() } as UserProfile)) || [];
+
+  const filteredUsers = allUsers.filter(user =>
+    (user.displayName?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+    (user.email?.toLowerCase() || '').includes(searchTerm.toLowerCase())
+  );
 
   const doctors = filteredUsers.filter(u => u.role === 'doctor');
   const patients = filteredUsers.filter(u => u.role === 'patient');
@@ -63,9 +69,9 @@ export default function AdminUsersPage() {
             <Tabs defaultValue="doctors">
                 <CardHeader className="flex-col md:flex-row items-start md:items-center justify-between gap-4">
                     <TabsList className="grid w-full grid-cols-3 max-w-md">
-                        <TabsTrigger value="doctors">Doctors ({doctors.length})</TabsTrigger>
-                        <TabsTrigger value="patients">Patients ({patients.length})</TabsTrigger>
-                        <TabsTrigger value="staff">Staff ({staff.length})</TabsTrigger>
+                        <TabsTrigger value="doctors">Doctors ({loading ? '...' : doctors.length})</TabsTrigger>
+                        <TabsTrigger value="patients">Patients ({loading ? '...' : patients.length})</TabsTrigger>
+                        <TabsTrigger value="staff">Staff ({loading ? '...' : staff.length})</TabsTrigger>
                     </TabsList>
                      <div className="relative w-full max-w-sm">
                         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -73,17 +79,25 @@ export default function AdminUsersPage() {
                     </div>
                 </CardHeader>
                 <CardContent>
-                    <>
-                        <TabsContent value="doctors">
-                            <UserTable users={doctors} />
-                        </TabsContent>
-                        <TabsContent value="patients">
-                            <UserTable users={patients} />
-                        </TabsContent>
-                        <TabsContent value="staff">
-                             <UserTable users={staff} />
-                        </TabsContent>
-                    </>
+                    {loading && (
+                      <div className="flex justify-center items-center h-48">
+                        <Loader2 className="h-8 w-8 animate-spin" />
+                      </div>
+                    )}
+                    {!loading && error && <p className="text-destructive">Error: {error.message}</p>}
+                    {!loading && !error && (
+                        <>
+                            <TabsContent value="doctors">
+                                <UserTable users={doctors} />
+                            </TabsContent>
+                            <TabsContent value="patients">
+                                <UserTable users={patients} />
+                            </TabsContent>
+                            <TabsContent value="staff">
+                                 <UserTable users={staff} />
+                            </TabsContent>
+                        </>
+                    )}
                 </CardContent>
             </Tabs>
         </Card>
@@ -113,7 +127,7 @@ function UserTable({ users }: { users: UserProfile[] }) {
             {users.map((user) => (
                 <TableRow key={user.uid}>
                 <TableCell className="font-medium flex items-center gap-2">
-                    <Image src={user.avatarUrl || `https://i.pravatar.cc/150?u=${user.uid}`} alt={user.displayName} width={32} height={32} className="rounded-full object-cover" />
+                    <Image src={user.avatarUrl || `https://i.pravatar.cc/150?u=${user.uid}`} alt={user.displayName || 'user avatar'} width={32} height={32} className="rounded-full object-cover" />
                     {user.displayName}
                 </TableCell>
                 <TableCell>{user.email}</TableCell>

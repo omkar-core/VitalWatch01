@@ -39,11 +39,7 @@ export function LoginForm() {
     setIsLoading(true);
     try {
       await login(values.email, values.password);
-      toast({
-        title: 'Login Successful!',
-        description: `Redirecting you to your dashboard...`,
-      });
-      // Redirection will be handled by the parent page based on auth state
+      // The parent page (`/login`) will handle redirection.
     } catch (error: any) {
       toast({
         variant: 'destructive',
@@ -55,6 +51,7 @@ export function LoginForm() {
       });
       setIsLoading(false);
     }
+    // Do not set loading to false on success, as the page will redirect.
   }
 
   return (
