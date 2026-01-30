@@ -62,9 +62,14 @@ export function RegisterForm() {
       );
       toast({
         title: 'Account Created!',
-        description: "We've created your account for you.",
+        description: 'Redirecting you to your dashboard...',
       });
-      router.push('/login');
+      
+      if (values.role === 'doctor') {
+        router.push('/doctor');
+      } else {
+        router.push('/patient');
+      }
     } catch (error: any) {
       toast({
         variant: 'destructive',
@@ -72,7 +77,6 @@ export function RegisterForm() {
         description:
           error.message || 'There was a problem with your request.',
       });
-    } finally {
       setIsLoading(false);
     }
   }
