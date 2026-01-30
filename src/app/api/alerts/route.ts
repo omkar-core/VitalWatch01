@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getRows } from '@/lib/griddb-client';
+import type { AlertHistory } from '@/lib/types';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -18,11 +19,11 @@ export async function GET(request: Request) {
     }
 
     const columns = alertsResults.columns;
-    const alerts = alertsResults.results.map((row: any[]) => {
+    const alerts: AlertHistory[] = alertsResults.results.map((row: any[]) => {
        return columns.reduce((obj: any, col: any, index: number) => {
         obj[col.name] = row[index];
         return obj;
-      }, {});
+      }, {}) as AlertHistory;
     });
 
     // Sort by timestamp descending
