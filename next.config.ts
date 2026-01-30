@@ -42,9 +42,7 @@ const nextConfig: NextConfig = {
       }
     ],
   },
-  experimental: {
-    serverComponentsExternalPackages: ["@opentelemetry/sdk-node"],
-  },
+  serverExternalPackages: ["@opentelemetry/sdk-node"],
 };
 
 export default nextConfig;
