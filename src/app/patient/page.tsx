@@ -32,6 +32,7 @@ const getStatusColor = (status: string) => {
 
 const fetcher = (url: string) => fetch(url).then(res => {
   if (!res.ok) {
+    if (res.status === 404) return null; // Handle not found gracefully
     const error = new Error('An error occurred while fetching the data.');
     (error as any).status = res.status;
     throw error;
@@ -51,7 +52,7 @@ export default function PatientPage() {
   };
 
   const { data: patientData, isLoading: patientLoading } = useSWR<PatientProfile>(user ? `/api/patients/${user.uid}` : null, fetcher, swrOptions);
-  const { data: vitalsData, isLoading: vitalsLoading, mutate: mutateVitals } = useSWR<HealthVital>(patientData?.device_id ? `/api/vitals/latest/${patientData.device_id}` : null, fetcher, swrOptions);
+  const { data: vitalsData, isLoading: vitalsLoading, mutate: mutateVitals } = useSWR<HealthVital | null>(patientData?.device_id ? `/api/vitals/latest/${patientData.device_id}` : null, fetcher, swrOptions);
 
   const patient: PatientProfile | null = patientData || null;
   const latestVital: HealthVital | null = vitalsData || null;
@@ -110,7 +111,7 @@ export default function PatientPage() {
   const glucose = latestVital ? latestVital.predicted_glucose : null;
   const glucoseStatus = glucose ? (glucose > 180 ? 'Critical' : (glucose > 140 ? 'High' : 'Normal')) : 'Normal';
 
-  const isLoading = patientLoading || vitalsLoading;
+  const isLoading = patientLoading || (patientData && vitalsLoading);
 
   return (
     <div className="p-4 space-y-4">

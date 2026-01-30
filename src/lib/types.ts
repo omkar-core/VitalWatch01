@@ -8,13 +8,7 @@ export interface UserProfile {
   displayName?: string;
   role: UserRole;
   avatarUrl?: string;
-  age?: number;
-  gender?: string;
-  conditions?: string[];
-  medicalHistory?: string;
-  status?: 'Stable' | 'Needs Review' | 'Critical';
-  lastSeen?: string;
-  deviceId?: string;
+  createdAt: Timestamp;
 }
 
 export interface PatientProfile {

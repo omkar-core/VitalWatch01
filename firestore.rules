@@ -2,50 +2,69 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    function isDoctor() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'doctor';
+    }
+
+    function isPatient() {
+        return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'patient';
+    }
+
+    function isValidUserRole(role) {
+        return role is string && role in ['doctor', 'patient'];
+    }
+
     // Default deny all
     match /{document=**} {
       allow read, write: if false;
     }
 
     // Users:
-    // - Anyone can create a user document (for signup).
+    // - Anyone can create their own user document (for signup).
     // - Users can read/update their own document.
     match /users/{userId} {
-      allow create: if request.auth != null;
-      allow read, update: if request.auth.uid == userId;
+      allow create: if request.auth != null 
+                    && isOwner(userId)
+                    && request.resource.data.uid == userId
+                    && isValidUserRole(request.resource.data.role)
+                    && request.resource.data.email == request.auth.token.email
+                    && request.resource.data.displayName is string;
+      allow read, update: if isOwner(userId);
     }
 
     // Patient Profiles:
-    // - A user's profile can be created.
+    // - A user can create their own patient profile.
     // - Patients can read/update their own profile.
-    // - Doctors can read any patient's profile.
+    // - Doctors can read/list any patient's profile.
     match /patient_profiles/{patientId} {
-      allow create: if request.auth != null;
-      allow read, update: if request.auth.uid == patientId;
-      allow read: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'doctor';
-      allow list: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'doctor';
+      allow create: if request.auth != null && isOwner(patientId);
+      allow read, update: if isOwner(patientId);
+      allow read, list: if isDoctor();
     }
 
     // Health Vitals:
-    // - Only trusted backend processes or authenticated devices should write vitals. For this app, we allow any authenticated user to simulate device writes.
-    // - Patients can read their own vitals (by querying device_id).
+    // - For this app, we allow any authenticated user to simulate device writes.
+    // - Patients can read their own vitals (by querying on their patient_id, which matches their uid).
     // - Doctors can read all vitals.
     match /health_vitals/{vitalId} {
       allow create: if request.auth != null;
-      allow read, list: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'doctor';
-      allow read: if request.auth.uid == resource.data.patient_id; // Need to adjust for device_id query
+      allow read, list: if isDoctor() || (isPatient() && exists(/databases/$(database)/documents/patient_profiles/$(request.auth.uid)));
     }
 
     // Alert History:
-    // - Only trusted backend processes should create alerts. We allow any authenticated user for simulation.
+    // - We allow any authenticated user to create alerts for simulation.
     // - Doctors can read all alerts.
     // - Patients can read their own alerts.
     // - Doctors can update (acknowledge) alerts.
     match /alert_history/{alertId} {
       allow create: if request.auth != null;
-      allow read, list: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'doctor';
-      allow read: if request.auth.uid == resource.data.patient_id;
-      allow update: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'doctor';
+      allow read, list: if isDoctor() || (isPatient() && request.query.patientId == request.auth.uid);
+      allow read: if isOwner(resource.data.patient_id);
+      allow update: if isDoctor();
     }
   }
 }

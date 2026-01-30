@@ -10,6 +10,12 @@ type IngestRequestBody = {
   chatId?: string; // Optional chatId for Telegram reporting
 }
 
+// Helper to add realistic variance to predictions
+const addVariance = (value: number, percent: number) => {
+    const variance = value * (percent / 100);
+    return value + (Math.random() * variance * 2 - variance);
+};
+
 export async function POST(request: Request) {
   try {
     const { vitals: incomingVitals, chatId }: IngestRequestBody = await request.json();
@@ -87,6 +93,11 @@ export async function POST(request: Request) {
       }
       
       const now = new Date().toISOString();
+      
+      // 5. Create more realistic predicted values
+      const baseSystolic = predictions.estimatedBpCategory === 'High' ? 145 : 120;
+      const baseDiastolic = predictions.estimatedBpCategory === 'High' ? 95 : 80;
+      const baseGlucose = predictions.glucoseTrend === 'Risky' ? 210 : 110;
 
       // 5. Construct the full health vital record
       const healthVitalRecord: HealthVital = {
@@ -95,9 +106,9 @@ export async function POST(request: Request) {
         heart_rate: vital.heart_rate,
         spo2: vital.spo2,
         ppg_raw: vital.ppg_raw,
-        predicted_bp_systolic: predictions.estimatedBpCategory === 'High' ? 145 : 120, // Mock value
-        predicted_bp_diastolic: predictions.estimatedBpCategory === 'High' ? 95 : 80, // Mock value
-        predicted_glucose: predictions.glucoseTrend === 'Risky' ? 210 : 110, // Mock value
+        predicted_bp_systolic: addVariance(baseSystolic, 5), // +/- 5% variance
+        predicted_bp_diastolic: addVariance(baseDiastolic, 5),
+        predicted_glucose: addVariance(baseGlucose, 10), // +/- 10% variance
         alert_flag: alert_flag,
         created_at: now
       };
@@ -138,7 +149,8 @@ export async function POST(request: Request) {
 
   } catch (error: any) {
     console.error('[/api/vitals/ingest] Error:', error);
-    const chatId = (await request.clone().json()).chatId;
+    const body = await request.clone().json().catch(() => ({}));
+    const chatId = body.chatId;
     if (chatId) {
         await sendCriticalAlert(chatId, 'Critical', 'Failed to process vitals. Please check the system logs.');
     }

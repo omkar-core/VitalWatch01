@@ -1,44 +1,102 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import * as RadioGroupPrimitive from "@radix-ui/react-radio-group"
-import { Circle } from "lucide-react"
+import {
+  Line,
+  LineChart,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+} from "recharts";
+import {
+  ChartContainer,
+  ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent
+} from "@/components/ui/chart";
 
-import { cn } from "@/lib/utils"
+interface VitalsChartProps {
+  data: any[];
+  dataKey1: string;
+  label1: string;
+  color1: string;
+  dataKey2?: string;
+  label2?: string;
+  color2?: string;
+}
 
-const RadioGroup = React.forwardRef<
-  React.ElementRef<typeof RadioGroupPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof RadioGroupPrimitive.Root>
->(({ className, ...props }, ref) => {
+export function VitalsChart({ data, dataKey1, label1, color1, dataKey2, label2, color2 }: VitalsChartProps) {
+  const chartConfig = {
+    [dataKey1]: {
+      label: label1,
+      color: color1,
+    },
+    ...(dataKey2 && label2 && color2 && {
+      [dataKey2]: {
+        label: label2,
+        color: color2,
+      },
+    }),
+  };
+
   return (
-    <RadioGroupPrimitive.Root
-      className={cn("grid gap-2", className)}
-      {...props}
-      ref={ref}
-    />
-  )
-})
-RadioGroup.displayName = RadioGroupPrimitive.Root.displayName
-
-const RadioGroupItem = React.forwardRef<
-  React.ElementRef<typeof RadioGroupPrimitive.Item>,
-  React.ComponentPropsWithoutRef<typeof RadioGroupPrimitive.Item>
->(({ className, ...props }, ref) => {
-  return (
-    <RadioGroupPrimitive.Item
-      ref={ref}
-      className={cn(
-        "aspect-square h-4 w-4 rounded-full border border-primary text-primary ring-offset-background focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
-        className
-      )}
-      {...props}
+    <ChartContainer 
+      config={chartConfig} 
+      className="min-h-[200px] w-full"
+      aria-label={`Chart showing trends for ${label1}${label2 ? ` and ${label2}` : ''}`}
+      role="img"
     >
-      <RadioGroupPrimitive.Indicator className="flex items-center justify-center">
-        <Circle className="h-2.5 w-2.5 fill-current text-current" />
-      </RadioGroupPrimitive.Indicator>
-    </RadioGroupPrimitive.Item>
-  )
-})
-RadioGroupItem.displayName = RadioGroupPrimitive.Item.displayName
-
-export { RadioGroup, RadioGroupItem }
+      <LineChart data={data} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
+        <CartesianGrid strokeDasharray="3 3" vertical={false} />
+        <XAxis
+          dataKey="time"
+          tickLine={false}
+          axisLine={false}
+          tickMargin={8}
+        />
+        <YAxis
+          yAxisId="left"
+          stroke={color1}
+          tickLine={false}
+          axisLine={false}
+          tickMargin={8}
+          domain={['dataMin - 10', 'dataMax + 10']}
+          />
+        {dataKey2 && <YAxis
+          yAxisId="right"
+          orientation="right"
+          stroke={color2}
+          tickLine={false}
+          axisLine={false}
+          tickMargin={8}
+          domain={['dataMin - 10', 'dataMax + 10']}
+        />}
+        <Tooltip content={<ChartTooltipContent />} />
+        <Legend content={<ChartLegendContent />} />
+        <Line
+          yAxisId="left"
+          type="monotone"
+          dataKey={dataKey1}
+          stroke={color1}
+          strokeWidth={2}
+          dot={false}
+          name={label1}
+        />
+        {dataKey2 && <Line
+          yAxisId={dataKey2 && "right"}
+          type="monotone"
+          dataKey={dataKey2}
+          stroke={color2}
+          strokeWidth={2}
+          dot={false}
+          name={label2}
+        />}
+      </LineChart>
+    </ChartContainer>
+  );
+}

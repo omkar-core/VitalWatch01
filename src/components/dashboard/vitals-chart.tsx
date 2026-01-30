@@ -45,7 +45,12 @@ export function VitalsChart({ data, dataKey1, label1, color1, dataKey2, label2, 
   };
 
   return (
-    <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
+    <ChartContainer 
+      config={chartConfig} 
+      className="min-h-[200px] w-full"
+      aria-label={`Chart showing trends for ${label1}${label2 ? ` and ${label2}` : ''}`}
+      role="img"
+    >
       <LineChart data={data} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
         <CartesianGrid strokeDasharray="3 3" vertical={false} />
         <XAxis
@@ -72,7 +77,7 @@ export function VitalsChart({ data, dataKey1, label1, color1, dataKey2, label2, 
           domain={['dataMin - 10', 'dataMax + 10']}
         />}
         <Tooltip content={<ChartTooltipContent />} />
-        <Legend />
+        <Legend content={<ChartLegendContent />} />
         <Line
           yAxisId="left"
           type="monotone"
