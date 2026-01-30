@@ -1,6 +1,6 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { VitalsChart } from "@/components/dashboard/vitals-chart";
@@ -32,10 +32,9 @@ const fetcher = (url: string) => fetch(url).then(res => {
   return res.json()
 });
 
-export default function PatientDetailPage() {
+export default function PatientDetailPage({ params }: { params: { patientId: string } }) {
   const router = useRouter();
-  const params = useParams();
-  const patientId = params.patientId as string;
+  const patientId = params.patientId;
   
   const swrOptions = {
     errorRetryInterval: 2000,
