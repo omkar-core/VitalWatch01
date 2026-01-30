@@ -7,7 +7,7 @@ import { HeartPulse, Droplets, Thermometer, Wind, Wifi, Bot, ShieldCheck, Loader
 import { useToast } from '@/hooks/use-toast';
 import type { Vital } from '@/lib/types';
 import { mockVitals, mockEstimations, mockPatients } from "@/lib/mock-data";
-import { cn } from '@/lib/utils';
+import { cn } from "@/lib/utils";
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 // Helper function to get status colors
