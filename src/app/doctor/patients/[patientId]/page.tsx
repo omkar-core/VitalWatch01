@@ -55,10 +55,16 @@ export default function PatientDetailPage({ params }: { params: { patientId: str
   
   const latestVital = vitals && vitals.length > 0 ? vitals[vitals.length - 1] : null;
 
+  const getHeartRateStatus = (hr: number) => {
+    if (hr > 100) return 'High';
+    if (hr < 60) return 'Low';
+    return 'Normal';
+  };
+
   const vitalCards = latestVital ? [
     { title: "Glucose", value: `${latestVital.predicted_glucose?.toFixed(0) || 'N/A'} mg/dL`, icon: <Droplets />, status: (latestVital.predicted_glucose || 0) > 180 ? 'High' : 'Normal' },
     { title: "Blood Pressure", value: `${latestVital.predicted_bp_systolic?.toFixed(0) || 'N/A'}/${latestVital.predicted_bp_diastolic?.toFixed(0) || 'N/A'}`, icon: <HeartPulse />, status: (latestVital.predicted_bp_systolic || 0) > 130 ? 'High' : 'Normal' },
-    { title: "Heart Rate", value: `${latestVital.heart_rate.toFixed(0)} BPM`, icon: <Activity />, status: "Normal" },
+    { title: "Heart Rate", value: `${latestVital.heart_rate.toFixed(0)} BPM`, icon: <Activity />, status: getHeartRateStatus(latestVital.heart_rate) },
     { title: "SpO2", value: `${latestVital.spo2.toFixed(1)}%`, icon: <Wind />, status: latestVital.spo2 < 95 ? 'Low' : 'Normal' },
   ] : [];
 
@@ -186,19 +192,6 @@ export default function PatientDetailPage({ params }: { params: { patientId: str
               }
             </CardContent>
           </Card>
-
-          <Card>
-              <CardHeader>
-                <CardTitle>Clinical Notes</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="mt-4 space-y-2">
-                    <Textarea placeholder="Add a new note..." />
-                    <Button>Add Note</Button>
-                </div>
-              </CardContent>
-          </Card>
-
         </div>
 
         <div className="lg:col-span-1 space-y-6">

@@ -192,11 +192,8 @@ export default function LandingPage() {
 
       </main>
 
-      <footer className="flex flex-col gap-4 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">
-        <div>
-          <p className="text-xs text-muted-foreground">&copy; 2024 VitalWatch. All rights reserved.</p>
-          <p className="text-xs text-muted-foreground">Proud winner of the GridDB Hackathon.</p>
-        </div>
+      <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">
+        <p className="text-xs text-muted-foreground">&copy; 2024 VitalWatch. All rights reserved.</p>
         <nav className="sm:ml-auto flex gap-4 sm:gap-6">
           <Link href="#" className="text-xs hover:underline underline-offset-4" prefetch={false}>
             Terms of Service

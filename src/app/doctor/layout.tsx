@@ -33,7 +33,6 @@ export default function DoctorLayout({
 
   const [alerts, setAlerts] = React.useState<DocumentData[]>([]);
   const [alertsLoading, setAlertsLoading] = React.useState(true);
-  const [alertsError, setAlertsError] = React.useState<Error | null>(null);
 
   React.useEffect(() => {
     if (!firestore) {
@@ -53,7 +52,6 @@ export default function DoctorLayout({
       },
       (error) => {
         console.error("Error fetching alerts:", error);
-        setAlertsError(error);
         setAlertsLoading(false);
       }
     );

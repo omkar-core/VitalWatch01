@@ -1,6 +1,6 @@
 'use client';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Users, FileDown, LineChartIcon, Loader2 } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Users, Loader2 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import useSWR from 'swr';
 import type { PatientProfile, AlertHistory } from "@/lib/types";

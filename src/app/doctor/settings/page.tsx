@@ -24,7 +24,6 @@ export default function DoctorSettingsPage() {
               <Label htmlFor="email">Email Address</Label>
               <Input id="email" type="email" defaultValue="john.doe@example.com" disabled />
             </div>
-             <Button>Save Changes</Button>
           </CardContent>
         </Card>
       </div>

@@ -25,7 +25,6 @@ export default function DoctorSupportPage() {
               <Label htmlFor="message">Message</Label>
               <Textarea id="message" placeholder="Describe your issue in detail..."/>
             </div>
-             <Button>Submit Ticket</Button>
           </CardContent>
         </Card>
       </div>
