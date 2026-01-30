@@ -1,27 +1,39 @@
 'use client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Users, FileDown, LineChartIcon } from "lucide-react";
+import { Users, FileDown, LineChartIcon, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { mockPatients } from "@/lib/mock-data";
 import { Skeleton } from "@/components/ui/skeleton";
+import useSWR from 'swr';
+import type { PatientProfile, AlertHistory } from "@/lib/types";
 
+const fetcher = (url: string) => fetch(url).then(res => res.json());
 
 export default function DoctorAnalyticsPage() {
-  const patients = mockPatients;
-  const loading = false;
+  const { data: patients, isLoading: patientsLoading } = useSWR<PatientProfile[]>('/api/patients', fetcher);
+  const { data: alerts, isLoading: alertsLoading } = useSWR<AlertHistory[]>('/api/alerts', fetcher);
+
+  const loading = patientsLoading || alertsLoading;
+
+  const getStatus = (patientId: string) => {
+    const patientAlerts = alerts?.filter(a => a.patient_id === patientId);
+    if (patientAlerts?.some(a => a.severity === 'Critical')) return 'Critical';
+    if (patientAlerts?.some(a => a.severity === 'High')) return 'Needs Review';
+    return 'Stable';
+  };
 
   const riskDistribution = {
-    normal: patients?.filter(p => p.status === 'Stable').length || 0,
-    borderline: patients?.filter(p => p.status === 'Needs Review').length || 0,
-    highRisk: patients?.filter(p => p.status === 'Critical').length || 0,
+    stable: patients?.filter(p => getStatus(p.patient_id) === 'Stable').length || 0,
+    needsReview: patients?.filter(p => getStatus(p.patient_id) === 'Needs Review').length || 0,
+    critical: patients?.filter(p => getStatus(p.patient_id) === 'Critical').length || 0,
   };
+
   const totalPatients = patients?.length || 1; 
 
-  const normalPercent = Math.round((riskDistribution.normal / totalPatients) * 100);
-  const borderlinePercent = Math.round((riskDistribution.borderline / totalPatients) * 100);
-  const highRiskPercent = Math.round((riskDistribution.highRisk / totalPatients) * 100);
+  const stablePercent = Math.round((riskDistribution.stable / totalPatients) * 100);
+  const needsReviewPercent = Math.round((riskDistribution.needsReview / totalPatients) * 100);
+  const criticalPercent = Math.round((riskDistribution.critical / totalPatients) * 100);
 
 
   return (
@@ -40,21 +52,21 @@ export default function DoctorAnalyticsPage() {
                 <div>
                   <h4 className="font-semibold text-sm mb-2">Risk Level Distribution</h4>
                   <div className="space-y-1">
-                    <div className="flex justify-between items-center"><span className="text-sm">Stable</span><span className="text-sm font-bold">{riskDistribution.normal} ({normalPercent}%)</span></div>
+                    <div className="flex justify-between items-center"><span className="text-sm">Stable</span><span className="text-sm font-bold">{riskDistribution.stable} ({stablePercent}%)</span></div>
                     <div className="w-full bg-muted rounded-full h-2.5">
-                      <div className="bg-green-500 h-2.5 rounded-full" style={{width: `${normalPercent}%`}}></div>
+                      <div className="bg-green-500 h-2.5 rounded-full" style={{width: `${stablePercent}%`}}></div>
                     </div>
                   </div>
                   <div className="space-y-1 mt-2">
-                    <div className="flex justify-between items-center"><span className="text-sm">Needs Review</span><span className="text-sm font-bold">{riskDistribution.borderline} ({borderlinePercent}%)</span></div>
+                    <div className="flex justify-between items-center"><span className="text-sm">Needs Review</span><span className="text-sm font-bold">{riskDistribution.needsReview} ({needsReviewPercent}%)</span></div>
                     <div className="w-full bg-muted rounded-full h-2.5">
-                      <div className="bg-yellow-500 h-2.5 rounded-full" style={{width: `${borderlinePercent}%`}}></div>
+                      <div className="bg-yellow-500 h-2.5 rounded-full" style={{width: `${needsReviewPercent}%`}}></div>
                     </div>
                   </div>
                   <div className="space-y-1 mt-2">
-                    <div className="flex justify-between items-center"><span className="text-sm">Critical</span><span className="text-sm font-bold">{riskDistribution.highRisk} ({highRiskPercent}%)</span></div>
+                    <div className="flex justify-between items-center"><span className="text-sm">Critical</span><span className="text-sm font-bold">{riskDistribution.critical} ({criticalPercent}%)</span></div>
                     <div className="w-full bg-muted rounded-full h-2.5">
-                      <div className="bg-red-500 h-2.5 rounded-full" style={{width: `${highRiskPercent}%`}}></div>
+                      <div className="bg-red-500 h-2.5 rounded-full" style={{width: `${criticalPercent}%`}}></div>
                     </div>
                   </div>
                 </div>

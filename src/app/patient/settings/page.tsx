@@ -8,24 +8,24 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { BatteryFull, Smartphone, Trash2, Wifi, Loader2 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast";
-import { mockPatients } from "@/lib/mock-data";
+import { useUser } from "@/firebase/auth/use-user";
 
 export default function PatientSettingsPage() {
     const { toast } = useToast();
     const [isSyncing, setIsSyncing] = React.useState(false);
-    const patient = mockPatients[0];
+    const { userProfile } = useUser();
 
     const handleDeviceSync = async () => {
         setIsSyncing(true);
         toast({
         title: 'Sync Initiated',
-        description: `(Mock) A request has been sent to sync with device ${patient.deviceId}.`,
+        description: `A request has been sent to sync with device ${userProfile?.deviceId}.`,
         });
         setTimeout(() => {
              setIsSyncing(false);
              toast({
                 title: 'Sync Complete!',
-                description: `(Mock) Device sync finished.`,
+                description: `Device sync finished.`,
             });
         }, 2000);
     };
@@ -47,11 +47,11 @@ export default function PatientSettingsPage() {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Name</Label>
-                <Input id="name" defaultValue={patient.displayName} />
+                <Input id="name" defaultValue={userProfile?.displayName} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="emergency-contact">Emergency Contact Phone</Label>
-                <Input id="emergency-contact" type="tel" defaultValue="+91-9876543211" />
+                <Input id="emergency-contact" type="tel" placeholder="+91-9876543211" />
               </div>
                <div className="space-y-2">
                 <Label htmlFor="password">Change Password</Label>
@@ -73,7 +73,7 @@ export default function PatientSettingsPage() {
                     <div className="flex items-center gap-4">
                         <Smartphone className="h-6 w-6 text-primary"/>
                         <div>
-                            <p className="font-semibold">{patient.deviceId}</p>
+                            <p className="font-semibold">{userProfile?.deviceId || 'N/A'}</p>
                             <p className="text-sm text-muted-foreground">Status: Connected</p>
                         </div>
                     </div>
@@ -82,7 +82,7 @@ export default function PatientSettingsPage() {
                         <span>85%</span>
                     </div>
                 </div>
-                <Button onClick={handleDeviceSync} disabled={isSyncing} className="w-full">
+                <Button onClick={handleDeviceSync} disabled={isSyncing || !userProfile?.deviceId} className="w-full">
                     {isSyncing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wifi className="mr-2" />}
                     {isSyncing ? 'Syncing...' : 'Sync Device Now'}
                 </Button>

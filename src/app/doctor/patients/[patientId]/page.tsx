@@ -16,49 +16,56 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
-import type { UserProfile, Vital, Alert } from "@/lib/types";
-import { mockPatients, mockVitals, mockEstimations, mockAlerts } from "@/lib/mock-data";
+import type { PatientProfile, HealthVital, AlertHistory } from "@/lib/types";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Alert as AlertBox, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import useSWR from 'swr';
+import { Skeleton } from "@/components/ui/skeleton";
+
+const fetcher = (url: string) => fetch(url).then(res => res.json());
 
 export default function PatientDetailPage() {
   const router = useRouter();
   const params = useParams();
   const patientId = params.patientId as string;
   
-  const patient = mockPatients.find(p => p.uid === patientId);
-  const vitals = mockVitals[patientId] || [];
-  const estimations = mockEstimations[patientId] || [];
-  const alerts = mockAlerts.filter(a => a.patientId === patientId);
+  const { data: patient, error: patientError, isLoading: patientLoading } = useSWR<PatientProfile>(patientId ? `/api/patients/${patientId}` : null, fetcher);
+  const { data: vitals, error: vitalsError, isLoading: vitalsLoading } = useSWR<HealthVital[]>(patient?.device_id ? `/api/vitals/history/${patient.device_id}` : null, fetcher);
+  const { data: alerts, error: alertsError, isLoading: alertsLoading } = useSWR<AlertHistory[]>(patientId ? `/api/alerts?patientId=${patientId}` : null, fetcher);
 
-  const loading = false;
-
-  const latestVital = vitals && vitals.length > 0 ? vitals[0] : null;
+  const loading = patientLoading || vitalsLoading || alertsLoading;
+  
+  const latestVital = vitals && vitals.length > 0 ? vitals[vitals.length - 1] : null;
 
   const vitalCards = latestVital ? [
-    { title: "Glucose", value: `${latestVital['Glucose']} mg/dL`, icon: <Droplets />, status: latestVital['Glucose'] > 180 ? 'High' : 'Normal' },
-    { title: "Blood Pressure", value: `${latestVital['Systolic']}/${latestVital['Diastolic']}`, icon: <HeartPulse />, status: latestVital['Systolic'] > 130 ? 'High' : 'Normal' },
-    { title: "Heart Rate", value: `${latestVital['Heart Rate']} BPM`, icon: <Activity />, status: "Normal" },
-    { title: "SpO2", value: `${latestVital['SPO2']}%`, icon: <Wind />, status: latestVital['SPO2'] < 95 ? 'Low' : 'Normal' },
+    { title: "Glucose", value: `${latestVital.predicted_glucose?.toFixed(0) || 'N/A'} mg/dL`, icon: <Droplets />, status: (latestVital.predicted_glucose || 0) > 180 ? 'High' : 'Normal' },
+    { title: "Blood Pressure", value: `${latestVital.predicted_bp_systolic?.toFixed(0) || 'N/A'}/${latestVital.predicted_bp_diastolic?.toFixed(0) || 'N/A'}`, icon: <HeartPulse />, status: (latestVital.predicted_bp_systolic || 0) > 130 ? 'High' : 'Normal' },
+    { title: "Heart Rate", value: `${latestVital.heart_rate.toFixed(0)} BPM`, icon: <Activity />, status: "Normal" },
+    { title: "SpO2", value: `${latestVital.spo2.toFixed(1)}%`, icon: <Wind />, status: latestVital.spo2 < 95 ? 'Low' : 'Normal' },
   ] : [];
 
   if (loading) {
-    return <div className="flex h-screen w-full items-center justify-center"><Loader2 className="animate-spin" /></div>
+    return <div className="flex h-screen w-full items-center justify-center"><Loader2 className="animate-spin h-12 w-12" /></div>
   }
 
-  if (!patient) {
+  if (!patient || patientError) {
     return (
       <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed shadow-sm p-4">
         <div className="text-center">
           <h2 className="text-2xl font-bold">Patient not found</h2>
-          <p className="text-muted-foreground">The patient you are looking for does not exist.</p>
+          <p className="text-muted-foreground">The patient you are looking for does not exist or there was an error loading the data.</p>
           <Button onClick={() => router.back()} className="mt-4">Go Back</Button>
         </div>
       </div>
     );
   }
 
+  const conditions = [
+      patient.has_diabetes && "Diabetes",
+      patient.has_hypertension && "Hypertension",
+      patient.has_heart_condition && "Heart Condition"
+    ].filter(Boolean).join(', ');
 
   return (
     <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
@@ -75,10 +82,10 @@ export default function PatientDetailPage() {
             <CardHeader>
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
-                  <Image src={patient.avatarUrl || `https://i.pravatar.cc/150?u=${patient.uid}`} alt={patient.displayName} width={64} height={64} className="rounded-full object-cover" />
+                  <Image src={`https://i.pravatar.cc/150?u=${patient.patient_id}`} alt={patient.name || ''} width={64} height={64} className="rounded-full object-cover" />
                   <div>
-                    <CardTitle className="text-2xl font-headline">{patient.displayName}</CardTitle>
-                    <CardDescription>{patient.age} y/o {patient.gender} | ID: {patient.uid}</CardDescription>
+                    <CardTitle className="text-2xl font-headline">{patient.name}</CardTitle>
+                    <CardDescription>{patient.age} y/o {patient.gender} | ID: {patient.patient_id}</CardDescription>
                   </div>
                 </div>
                 <div className="flex gap-2">
@@ -89,17 +96,18 @@ export default function PatientDetailPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <p className="text-sm"><strong>Conditions:</strong> {patient.conditions?.join(', ')}</p>
+              <p className="text-sm"><strong>Conditions:</strong> {conditions || 'N/A'}</p>
             </CardContent>
           </Card>
 
            <Card>
             <CardHeader>
                 <CardTitle>Current Vitals</CardTitle>
-                <CardDescription>Last updated: {latestVital?.timestamp ? format(latestVital.timestamp.toDate(), 'PPpp') : 'N/A'}</CardDescription>
+                <CardDescription>Last updated: {latestVital?.timestamp ? format(new Date(latestVital.timestamp), 'PPpp') : 'N/A'}</CardDescription>
             </CardHeader>
             <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                 {vitalCards.length > 0 ? vitalCards.map(vital => (
+                 {vitalsLoading ? Array.from({length: 4}).map((_, i) => <Skeleton key={i} className="h-24 w-full" />) :
+                  vitalCards.length > 0 ? vitalCards.map(vital => (
                     <div key={vital.title} className="p-4 rounded-lg border flex flex-col gap-1 bg-card">
                         <div className="flex items-center gap-2 text-muted-foreground text-sm font-medium">
                             {vital.icon} {vital.title}
@@ -116,15 +124,17 @@ export default function PatientDetailPage() {
               <CardTitle>Glucose & BP Trend (Last 7 Days)</CardTitle>
             </CardHeader>
             <CardContent>
-              <VitalsChart 
-                data={vitals?.map(v => ({...v, time: v.timestamp?.toDate ? format(v.timestamp.toDate(), 'p') : 'N/A' })).reverse() || []} 
-                dataKey1="Glucose" 
-                label1="Glucose (mg/dL)" 
-                color1="hsl(var(--chart-1))" 
-                dataKey2="Systolic"
-                label2="BP (Systolic)"
-                color2="hsl(var(--chart-2))"
-              />
+              {vitalsLoading ? <Skeleton className="h-48 w-full" /> : 
+                <VitalsChart 
+                  data={vitals?.map(v => ({...v, time: format(new Date(v.timestamp), 'p') })) || []} 
+                  dataKey1="predicted_glucose" 
+                  label1="Glucose (mg/dL)" 
+                  color1="hsl(var(--chart-1))" 
+                  dataKey2="predicted_bp_systolic"
+                  label2="BP (Systolic)"
+                  color2="hsl(var(--chart-2))"
+                />
+              }
             </CardContent>
           </Card>
 
@@ -151,47 +161,22 @@ export default function PatientDetailPage() {
                 </AlertDescription>
             </AlertBox>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2"><Bot />AI Health Estimations</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    {estimations && estimations.map((est, i) => (
-                        <div key={i} className="p-3 rounded-lg border bg-secondary/30">
-                            <p className="font-semibold text-sm">Prediction from {est.timestamp?.toDate ? format(est.timestamp.toDate(), 'p') : 'N/A'}</p>
-                            <div className="grid grid-cols-2 gap-2 mt-2 text-sm">
-                                <div>
-                                    <p className="text-muted-foreground">BP Category</p>
-                                    <p className="font-bold">{est.estimatedBpCategory}</p>
-                                </div>
-                                 <div>
-                                    <p className="text-muted-foreground">Glucose Trend</p>
-                                    <p className={cn("font-bold", est.glucoseTrend === 'Risky' && 'text-destructive')}>{est.glucoseTrend}</p>
-                                </div>
-                            </div>
-                            <p className="text-xs text-muted-foreground italic mt-2">{est.reasoning}</p>
-                            <p className="text-xs font-medium text-right mt-1">Confidence: {Math.round(est.confidenceScore * 100)}%</p>
-                        </div>
-                    ))}
-                     {(!estimations || estimations.length === 0) && <p className="text-sm text-muted-foreground">No AI estimations available for this patient.</p>}
-                </CardContent>
-            </Card>
-
            <Card>
                 <CardHeader>
                     <CardTitle>Recent Alerts</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                    {alerts && alerts.length > 0 ? alerts.map(alert => (
-                        <div key={alert.id} className="flex gap-3">
+                    {alertsLoading ? <Skeleton className="h-32 w-full"/> : 
+                      alerts && alerts.length > 0 ? alerts.slice(0, 5).map(alert => (
+                        <div key={alert.alert_id} className="flex gap-3">
                             <AlertTriangle className={cn("mt-1", alert.severity === 'Critical' || alert.severity === 'High' ? 'text-destructive' : 'text-yellow-500')}/>
                             <div>
-                                <p className="font-medium text-sm">{alert.message}</p>
-                                <p className="text-xs text-muted-foreground">{alert.timestamp?.toDate() ? format(alert.timestamp.toDate(), 'PPpp') : 'N/A'}</p>
+                                <p className="font-medium text-sm">{alert.alert_message}</p>
+                                <p className="text-xs text-muted-foreground">{format(new Date(alert.alert_timestamp), 'PPpp')}</p>
                             </div>
                         </div>
                     )) : <p className="text-sm text-muted-foreground">No recent alerts for this patient.</p>}
-                     <Button variant="secondary" size="sm" className="mt-4 w-full">View All Alerts</Button>
+                     <Button variant="secondary" size="sm" className="mt-4 w-full" asChild><Link href="/doctor/alerts">View All Alerts</Link></Button>
                 </CardContent>
             </Card>
         </div>

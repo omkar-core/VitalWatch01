@@ -1,13 +1,16 @@
 'use client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertTriangle, Info } from "lucide-react";
-import { mockAlerts, mockPatients } from "@/lib/mock-data";
+import { AlertTriangle, Info, Loader2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { useUser } from "@/firebase/auth/use-user";
+import useSWR from 'swr';
+import type { AlertHistory } from "@/lib/types";
+
+const fetcher = (url: string) => fetch(url).then(res => res.json());
 
 export default function PatientAlertsPage() {
-  const patient = mockPatients[0]; // Use first mock patient
-  const alerts = mockAlerts.filter(a => a.patientId === patient.uid);
-  const loading = false;
+  const { user } = useUser();
+  const { data: alerts, isLoading } = useSWR<AlertHistory[]>(user ? `/api/alerts?patientId=${user.uid}` : null, fetcher);
 
   return (
     <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
@@ -15,18 +18,22 @@ export default function PatientAlertsPage() {
         <h1 className="text-lg font-semibold md:text-2xl">Alerts & Advice</h1>
       </div>
       <div className="flex flex-1 flex-col gap-4 rounded-lg border border-dashed shadow-sm p-4">
-        {alerts && alerts.length > 0 ? (
+        {isLoading ? (
+             <div className="flex flex-1 items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin" />
+            </div>
+        ) : alerts && alerts.length > 0 ? (
             alerts.map((item) => (
-                <Card key={item.id}>
+                <Card key={item.alert_id}>
                     <CardHeader className="flex flex-row items-start gap-4">
                         {item.severity === 'Critical' || item.severity === 'High' ? <AlertTriangle className="h-6 w-6 text-yellow-500" /> : <Info className="h-6 w-6 text-primary" />}
                         <div>
                             <CardTitle>{item.severity} Alert</CardTitle>
-                            <CardDescription>{item.timestamp?.toDate ? formatDistanceToNow(item.timestamp.toDate(), {addSuffix: true}) : ''}</CardDescription>
+                            <CardDescription>{formatDistanceToNow(new Date(item.alert_timestamp), {addSuffix: true})}</CardDescription>
                         </div>
                     </CardHeader>
                     <CardContent>
-                        <p>{item.message}</p>
+                        <p>{item.alert_message}</p>
                     </CardContent>
                 </Card>
             ))

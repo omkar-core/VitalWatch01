@@ -22,24 +22,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import type { UserProfile } from "@/lib/types";
-import { useCollection } from "react-firebase-hooks/firestore";
-import { collection } from "firebase/firestore";
-import { useFirestore } from "@/firebase";
+import useSWR from "swr";
+
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function AdminUsersPage() {
   const [searchTerm, setSearchTerm] = useState('');
-  const firestore = useFirestore();
-  
-  const [usersSnapshot, loading, error] = useCollection(
-    firestore ? collection(firestore, 'users') : null
-  );
+  const { data: allUsers, error, isLoading: loading } = useSWR<UserProfile[]>('/api/users', fetcher);
 
-  const allUsers = usersSnapshot?.docs.map(doc => ({ uid: doc.id, ...doc.data() } as UserProfile)) || [];
-
-  const filteredUsers = allUsers.filter(user =>
+  const filteredUsers = allUsers?.filter(user =>
     (user.displayName?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
     (user.email?.toLowerCase() || '').includes(searchTerm.toLowerCase())
-  );
+  ) || [];
 
   const doctors = filteredUsers.filter(u => u.role === 'doctor');
   const patients = filteredUsers.filter(u => u.role === 'patient');

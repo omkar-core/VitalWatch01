@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getRows } from '@/lib/griddb-client';
+import { getRows, putRows } from '@/lib/griddb-client';
 import { PatientProfile } from '@/lib/types';
 
 export async function GET() {
@@ -27,19 +27,39 @@ export async function GET() {
 
 export async function POST(request: Request) {
     try {
-        const profile: Omit<PatientProfile, 'created_at' | 'updated_at'> = await request.json();
-
-        const now = new Date().toISOString();
-        const newProfile: PatientProfile = {
-            ...profile,
-            created_at: now,
-            updated_at: now,
-        };
+        const profile: PatientProfile = await request.json();
 
         // GridDB expects an array of arrays for rows
-        await putRows('patient_profiles', [Object.values(newProfile)]);
+        const profileRow = [
+            profile.patient_id,
+            profile.device_id,
+            profile.name,
+            profile.age,
+            profile.gender,
+            profile.email,
+            profile.phone,
+            profile.baseline_hr,
+            profile.baseline_spo2,
+            profile.baseline_bp_systolic,
+            profile.baseline_bp_diastolic,
+            profile.has_diabetes,
+            profile.has_hypertension,
+            profile.has_heart_condition,
+            profile.alert_threshold_hr_high,
+            profile.alert_threshold_hr_low,
+            profile.alert_threshold_spo2_low,
+            profile.alert_threshold_bp_systolic_high,
+            profile.alert_threshold_glucose_high,
+            profile.emergency_contact_name,
+            profile.emergency_contact_phone,
+            profile.created_at,
+            profile.updated_at,
+            profile.is_active
+        ];
 
-        return NextResponse.json({ message: "Patient registered successfully", patientId: newProfile.patient_id }, { status: 201 });
+        await putRows('patient_profiles', [profileRow]);
+
+        return NextResponse.json({ message: "Patient registered successfully", patientId: profile.patient_id }, { status: 201 });
 
     } catch (error: any) {
         console.error('[/api/patients] POST Error:', error);

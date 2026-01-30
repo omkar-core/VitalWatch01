@@ -1,6 +1,6 @@
 'use client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Users, AlertTriangle, Bell, Activity, Phone, Check } from "lucide-react";
+import { Users, AlertTriangle, Bell, Activity, Phone, Check, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import {
@@ -12,31 +12,37 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { mockPatients, mockAlerts } from "@/lib/mock-data";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDistanceToNow } from "date-fns";
+import useSWR from 'swr';
+import type { PatientProfile, AlertHistory } from "@/lib/types";
 
+const fetcher = (url: string) => fetch(url).then(res => res.json());
 
 export default function DoctorDashboard() {
-  const patients = mockPatients;
-  const alerts = mockAlerts;
-  const loading = false;
+  const { data: patients, error: patientsError, isLoading: patientsLoading } = useSWR<PatientProfile[]>('/api/patients', fetcher);
+  const { data: alerts, error: alertsError, isLoading: alertsLoading } = useSWR<AlertHistory[]>('/api/alerts', fetcher);
   
-  const criticalAlerts = alerts?.filter(a => (a.severity === 'Critical' || a.severity === 'High') && !a.isRead).slice(0, 2);
-  const criticalPatients = patients?.filter(p => p.status === 'Critical') || [];
+  const loading = patientsLoading || alertsLoading;
+  
+  const criticalAlerts = alerts?.filter(a => (a.severity === 'Critical' || a.severity === 'High') && !a.acknowledged).slice(0, 2);
+  const criticalPatients = patients?.filter(p => {
+    const patientAlerts = alerts?.filter(a => a.patient_id === p.patient_id);
+    return patientAlerts?.some(a => a.severity === 'Critical' || a.severity === 'High');
+  }) || [];
 
   const summaryCards = [
     {
       title: "Total Patients",
       value: patients?.length || 0,
       icon: <Users className="h-6 w-6 text-muted-foreground" />,
-      loading: loading,
+      loading: patientsLoading,
     },
     {
       title: "Active Alerts",
-      value: alerts?.filter(a => !a.isRead).length || 0,
+      value: alerts?.filter(a => !a.acknowledged).length || 0,
       icon: <Bell className="h-6 w-6 text-muted-foreground" />,
-      loading: loading,
+      loading: alertsLoading,
     },
     {
       title: "Critical Risk",
@@ -46,9 +52,9 @@ export default function DoctorDashboard() {
     },
     {
       title: "Readings Today",
-      value: "14,610", // This is mock data
+      value: "14,610", // This can be replaced with a real query later
       icon: <Activity className="h-6 w-6 text-muted-foreground" />,
-      loading: false,
+      loading: false, // Assuming this is a static value for now
     },
   ];
 
@@ -74,20 +80,27 @@ export default function DoctorDashboard() {
                 <CardDescription>Patients with vitals that have crossed critical thresholds.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-                 {criticalAlerts && criticalAlerts.length > 0 ? (
-                    criticalAlerts.map(alert => (
-                        <div key={alert.id} className="p-4 border rounded-lg flex flex-wrap items-center justify-between gap-4 bg-destructive/10 border-destructive/20">
-                            <div className="flex-1 min-w-[200px]">
-                                <p className="font-bold">{alert.patientName}</p>
-                                <p className="text-sm"><span className="text-destructive font-semibold">{alert.message}</span></p>
-                            </div>
-                            <div className="flex items-center gap-2 flex-wrap">
-                                <Button size="sm" asChild><Link href={`/doctor/patients/${alert.patientId}`}><Users className="mr-2"/> View Details</Link></Button>
-                                <Button size="sm" variant="outline"><Phone className="mr-2"/> Call Patient</Button>
-                                <Button size="sm" variant="ghost"><Check className="mr-2"/> Acknowledge</Button>
-                            </div>
-                        </div>
-                    ))
+                 {loading ? (
+                    <div className="flex justify-center items-center h-24">
+                        <Loader2 className="h-8 w-8 animate-spin" />
+                    </div>
+                 ) : criticalAlerts && criticalAlerts.length > 0 ? (
+                    criticalAlerts.map(alert => {
+                        const patient = patients?.find(p => p.patient_id === alert.patient_id);
+                        return (
+                          <div key={alert.alert_id} className="p-4 border rounded-lg flex flex-wrap items-center justify-between gap-4 bg-destructive/10 border-destructive/20">
+                              <div className="flex-1 min-w-[200px]">
+                                  <p className="font-bold">{patient?.name || 'Unknown Patient'}</p>
+                                  <p className="text-sm"><span className="text-destructive font-semibold">{alert.alert_message}</span></p>
+                              </div>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                  <Button size="sm" asChild><Link href={`/doctor/patients/${alert.patient_id}`}><Users className="mr-2"/> View Details</Link></Button>
+                                  <Button size="sm" variant="outline"><Phone className="mr-2"/> Call Patient</Button>
+                                  <Button size="sm" variant="ghost"><Check className="mr-2"/> Acknowledge</Button>
+                              </div>
+                          </div>
+                        )
+                    })
                  ) : (
                     <p className="text-sm text-muted-foreground">No critical alerts at this time.</p>
                  )}
@@ -100,30 +113,36 @@ export default function DoctorDashboard() {
                     <CardTitle>Patient Quick View</CardTitle>
                 </CardHeader>
                 <CardContent>
-                     <Table>
-                        <TableHeader>
-                            <TableRow>
-                            <TableHead>Name</TableHead>
-                            <TableHead>Risk</TableHead>
-                            <TableHead>Last Update</TableHead>
-                            <TableHead>Action</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {patients && patients.slice(0,4).map(p => (
-                                <TableRow key={p.uid}>
-                                    <TableCell className="font-medium">{p.displayName}</TableCell>
-                                    <TableCell>
-                                        <Badge variant={p.status === 'Critical' ? 'destructive' : p.status === 'Needs Review' ? 'secondary' : 'default'} className={p.status === 'Stable' ? 'bg-green-500 hover:bg-green-500/80' : ''}>{p.status}</Badge>
-                                    </TableCell>
-                                    <TableCell>{formatDistanceToNow(new Date(p.lastSeen || Date.now()), { addSuffix: true })}</TableCell>
-                                    <TableCell>
-                                        <Button asChild variant="link" size="sm"><Link href={`/doctor/patients/${p.uid}`}>View</Link></Button>
-                                    </TableCell>
+                     {loading ? <Skeleton className="h-48 w-full" /> : (
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                <TableHead>Name</TableHead>
+                                <TableHead>Risk</TableHead>
+                                <TableHead>Last Update</TableHead>
+                                <TableHead>Action</TableHead>
                                 </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
+                            </TableHeader>
+                            <TableBody>
+                                {patients && patients.slice(0,4).map(p => {
+                                    const patientAlerts = alerts?.filter(a => a.patient_id === p.patient_id);
+                                    const status = patientAlerts?.some(a => a.severity === 'Critical') ? 'Critical' : patientAlerts?.some(a => a.severity === 'High') ? 'Needs Review' : 'Stable';
+                                    return (
+                                        <TableRow key={p.patient_id}>
+                                            <TableCell className="font-medium">{p.name}</TableCell>
+                                            <TableCell>
+                                                <Badge variant={status === 'Critical' ? 'destructive' : status === 'Needs Review' ? 'secondary' : 'default'} className={status === 'Stable' ? 'bg-green-500 hover:bg-green-500/80' : ''}>{status}</Badge>
+                                            </TableCell>
+                                            <TableCell>{formatDistanceToNow(new Date(p.updated_at || Date.now()), { addSuffix: true })}</TableCell>
+                                            <TableCell>
+                                                <Button asChild variant="link" size="sm"><Link href={`/doctor/patients/${p.patient_id}`}>View</Link></Button>
+                                            </TableCell>
+                                        </TableRow>
+                                    )
+                                })}
+                            </TableBody>
+                        </Table>
+                     )}
                      <Button variant="secondary" className="mt-4 w-full" asChild><Link href="/doctor/patients">View All Patients</Link></Button>
                 </CardContent>
             </Card>
@@ -135,20 +154,25 @@ export default function DoctorDashboard() {
                     </Button>
                 </CardHeader>
                 <CardContent>
-                    <div className="space-y-4">
-                        {alerts && alerts.filter(a => !a.isRead).slice(0, 3).map(alert => (
-                            <div key={alert.id} className="flex items-start gap-3">
-                                <div className="flex-shrink-0 pt-1">
-                                    <Bell className={`h-4 w-4 ${alert.severity === 'Critical' || alert.severity === 'High' ? 'text-destructive' : 'text-yellow-500'}`} />
+                    {loading ? <Skeleton className="h-32 w-full" /> : (
+                      <div className="space-y-4">
+                          {alerts && alerts.filter(a => !a.acknowledged).slice(0, 3).map(alert => {
+                              const patient = patients?.find(p => p.patient_id === alert.patient_id);
+                              return (
+                                <div key={alert.alert_id} className="flex items-start gap-3">
+                                    <div className="flex-shrink-0 pt-1">
+                                        <Bell className={`h-4 w-4 ${alert.severity === 'Critical' || alert.severity === 'High' ? 'text-destructive' : 'text-yellow-500'}`} />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-medium leading-tight">{patient?.name || 'Unknown Patient'}: {alert.alert_message}</p>
+                                        <p className="text-xs text-muted-foreground">{formatDistanceToNow(new Date(alert.alert_timestamp))} ago</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <p className="text-sm font-medium leading-tight">{alert.patientName}: {alert.message}</p>
-                                    <p className="text-xs text-muted-foreground">{formatDistanceToNow(alert.timestamp.toDate())} ago</p>
-                                </div>
-                            </div>
-                        ))}
-                         {alerts.filter(a => !a.isRead).length === 0 && <p className="text-sm text-muted-foreground">No unread notifications.</p>}
-                    </div>
+                              )
+                          })}
+                          {alerts?.filter(a => !a.acknowledged).length === 0 && <p className="text-sm text-muted-foreground">No unread notifications.</p>}
+                      </div>
+                    )}
                 </CardContent>
             </Card>
         </div>
