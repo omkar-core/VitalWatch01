@@ -1,36 +1,34 @@
 "use server";
 
-import { estimateHealthMetrics, EstimateHealthMetricsInput } from "@/ai/flows/suggest-initial-diagnoses";
-import type { Vital, UserProfile, Alert } from '@/lib/types';
+import type { HealthVital, PatientProfile, AlertHistory, ESP32Data } from '@/lib/types';
 import { sendTelegramAlert } from "@/lib/telegram";
-
+import { estimateHealthMetrics, EstimateHealthMetricsInput } from "@/ai/flows/suggest-initial-diagnoses";
 
 type ActionResult<T> = {
     data?: T;
     error?: string;
 }
 
-export async function estimateHealthMetricsAction(input: EstimateHealthMetricsInput): Promise<ActionResult<Awaited<ReturnType<typeof estimateHealthMetrics>>>> {
-    try {
-        const output = await estimateHealthMetrics(input);
-        return { data: output };
-    } catch (e: any) {
-        console.error(e);
-        return { error: e.message || 'An unknown error occurred.' };
-    }
-}
-
-
-export async function triggerVitalsScanAndAnalysis(patientId: string): Promise<ActionResult<string>> {
-  // Mock implementation
+export async function ingestVitalsAction(vitals: ESP32Data[]): Promise<ActionResult<string>> {
   try {
-     console.log(`Mock scan triggered for patient ${patientId}`);
-     // In a real scenario, this would interact with a device.
-     // Here we just return success after a delay.
-     await new Promise(resolve => setTimeout(resolve, 2000));
-     return { data: `Mock vitals scan complete.` };
+    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/vitals/ingest`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(vitals),
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.json();
+      throw new Error(errorBody.error || 'Failed to ingest vitals data.');
+    }
+
+    const result = await response.json();
+    return { data: result.message };
+
   } catch (e: any) {
-    console.error("Error in mock triggerVitalsScanAndAnalysis:", e);
-    return { error: e.message || 'An unknown error occurred during the mock vitals scan process.' };
+    console.error("Error in ingestVitalsAction:", e);
+    return { error: e.message || 'An unknown error occurred during the vitals ingestion process.' };
   }
 }

@@ -1,3 +1,7 @@
+// This file is conceptually correct but would be implemented via a separate mechanism
+// like MQTT, WebSockets, or a dedicated IoT service in a real production environment.
+// Using Firestore for commands is a common pattern for prototypes.
+
 'use client';
 
 import { doc, setDoc, serverTimestamp, Firestore } from 'firebase/firestore';

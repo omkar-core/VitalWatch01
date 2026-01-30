@@ -17,27 +17,21 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal, PlusCircle, Loader2 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { useCollection } from 'react-firebase-hooks/firestore';
-import { collection } from "firebase/firestore";
-import { useFirestore } from "@/firebase";
+import useSWR from 'swr';
+import type { PatientProfile } from "@/lib/types";
+
+const fetcher = (url: string) => fetch(url).then(res => res.json());
 
 
 export default function AdminDevicesPage() {
-  const firestore = useFirestore();
-  
-  const [patientProfiles, loading, error] = useCollection(
-    firestore ? collection(firestore, "patient_profiles") : null
-  );
+  const { data: patientProfiles, error, isLoading } = useSWR<PatientProfile[]>('/api/patients', fetcher);
 
-  const devices = patientProfiles?.docs.map(doc => {
-    const data = doc.data();
-    return {
-      id: data.device_id,
-      assignedTo: data.name,
-      patientId: doc.id,
-      isActive: data.is_active,
-    };
-  }) || [];
+  const devices = patientProfiles?.map(profile => ({
+      id: profile.device_id,
+      assignedTo: profile.name,
+      patientId: profile.patient_id,
+      isActive: profile.is_active,
+    })) || [];
 
   return (
     <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
@@ -57,13 +51,13 @@ export default function AdminDevicesPage() {
             <CardTitle>Registered Devices</CardTitle>
           </CardHeader>
           <CardContent>
-            {loading && (
+            {isLoading && (
               <div className="flex justify-center items-center h-48">
                 <Loader2 className="h-8 w-8 animate-spin" />
               </div>
             )}
-            {!loading && error && <p className="text-destructive">Error: {error.message}</p>}
-            {!loading && !error && (
+            {!isLoading && error && <p className="text-destructive">Error: {error.message}</p>}
+            {!isLoading && !error && (
               <Table>
                 <TableHeader>
                     <TableRow>

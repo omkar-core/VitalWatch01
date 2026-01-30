@@ -5,10 +5,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from '@/components/ui/skeleton';
 import { HeartPulse, Droplets, Thermometer, Wind, Wifi, Bot, ShieldCheck, Loader2, Info, Activity } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
-import type { Vital } from '@/lib/types';
-import { mockVitals, mockEstimations, mockPatients } from "@/lib/mock-data";
+import { ingestVitalsAction } from '@/app/actions';
+import type { HealthVital, PatientProfile } from '@/lib/types';
 import { cn } from "@/lib/utils";
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { useUser } from '@/firebase/auth/use-user';
+import useSWR from 'swr';
 
 // Helper function to get status colors
 const getStatusColor = (status: string) => {
@@ -28,53 +30,76 @@ const getStatusColor = (status: string) => {
     }
 };
 
+const fetcher = (url: string) => fetch(url).then(res => res.json());
+
+
 export default function PatientPage() {
   const { toast } = useToast();
   const [isSyncing, setIsSyncing] = React.useState(false);
+  const { user } = useUser();
 
-  const patient = mockPatients[0];
-  const vitalsData = mockVitals[patient.uid] || [];
-  const estimationsData = mockEstimations[patient.uid] || [];
+  const { data: patientData, error: patientError, isLoading: patientLoading } = useSWR(user ? `/api/patients/${user.uid}` : null, fetcher);
+  const { data: vitalsData, error: vitalsError, isLoading: vitalsLoading, mutate: mutateVitals } = useSWR(patientData?.device_id ? `/api/vitals/latest/${patientData.device_id}` : null, fetcher);
 
-  const latestVital = vitalsData && vitalsData.length > 0 ? vitalsData[0] : null;
-  const latestEstimation = estimationsData && estimationsData.length > 0 ? estimationsData[0] : null;
+  const patient: PatientProfile | null = patientData;
+  const latestVital: HealthVital | null = vitalsData;
+
 
   const handleDeviceSync = async () => {
-    if (isSyncing) return;
+    if (isSyncing || !patient?.device_id) return;
     
     setIsSyncing(true);
     toast({
         title: 'Initiating Scan...',
-        description: `Requesting a new reading from your device. (Mock Action)`,
+        description: `Requesting a new reading from your device.`,
     });
 
-    // Simulate a scan
-    setTimeout(() => {
-        setIsSyncing(false);
+    // Simulate generating data from the ESP32 device
+    const mockESP32Data = [{
+      deviceId: patient.device_id,
+      ts: new Date().toISOString(),
+      heart_rate: 70 + Math.random() * 15,
+      spo2: 96 + Math.random() * 3,
+      ppg_raw: 1000 + Math.random() * 200,
+    }];
+    
+    const result = await ingestVitalsAction(mockESP32Data);
+
+    if (result.error) {
+       toast({
+            variant: 'destructive',
+            title: 'Scan Failed!',
+            description: result.error,
+        });
+    } else {
         toast({
             title: 'Scan Complete!',
-            description: `Your latest vitals have been recorded and analyzed. (Mock Data)`,
+            description: `Your latest vitals have been recorded and analyzed.`,
         });
-    }, 3000);
+        // Re-fetch the latest vitals
+        mutateVitals();
+    }
+    
+    setIsSyncing(false);
   };
 
   const bp = latestVital ? {
-      systolic: latestVital["Systolic"],
-      diastolic: latestVital["Diastolic"],
-      map: Math.round(latestVital["Diastolic"] + (latestVital["Systolic"] - latestVital["Diastolic"]) / 3),
-      pulsePressure: latestVital["Systolic"] - latestVital["Diastolic"],
-      stage: latestVital["Systolic"] >= 140 || latestVital["Diastolic"] >= 90 ? 'Stage 2 Hypertension' : (latestVital["Systolic"] >= 130 ? 'Stage 1 Hypertension' : (latestVital["Systolic"] > 120 ? 'Elevated' : 'Normal'))
+      systolic: latestVital.predicted_bp_systolic || 0,
+      diastolic: latestVital.predicted_bp_diastolic || 0,
+      map: Math.round((latestVital.predicted_bp_diastolic || 0) + ((latestVital.predicted_bp_systolic || 0) - (latestVital.predicted_bp_diastolic || 0)) / 3),
+      pulsePressure: (latestVital.predicted_bp_systolic || 0) - (latestVital.predicted_bp_diastolic || 0),
+      stage: (latestVital.predicted_bp_systolic || 0) >= 140 || (latestVital.predicted_bp_diastolic || 0) >= 90 ? 'Stage 2 Hypertension' : ((latestVital.predicted_bp_systolic || 0) >= 130 ? 'Stage 1 Hypertension' : ((latestVital.predicted_bp_systolic || 0) > 120 ? 'Elevated' : 'Normal'))
   } : null;
   
   const heart = latestVital && bp ? {
-      rate: latestVital["Heart Rate"],
-      shockIndex: bp.systolic > 0 ? (latestVital["Heart Rate"] / bp.systolic).toFixed(2) : 'N/A'
+      rate: latestVital.heart_rate,
+      shockIndex: bp.systolic > 0 ? (latestVital.heart_rate / bp.systolic).toFixed(2) : 'N/A'
   } : null;
 
-  const glucose = latestVital ? latestVital["Glucose"] : null;
+  const glucose = latestVital ? latestVital.predicted_glucose : null;
   const glucoseStatus = glucose ? (glucose > 180 ? 'Critical' : (glucose > 140 ? 'High' : 'Normal')) : 'Normal';
 
-  const isLoading = false;
+  const isLoading = patientLoading || vitalsLoading;
 
   return (
     <div className="p-4 space-y-4">
@@ -98,7 +123,7 @@ export default function PatientPage() {
             </AlertDescription>
         </Alert>
 
-        {isLoading ? <Skeleton className="h-32 w-full rounded-lg" /> : glucose !== null && (
+        {isLoading ? <Skeleton className="h-32 w-full rounded-lg" /> : glucose !== null && glucose !== undefined && (
             <Card className={cn("border-2 transition-all hover:shadow-md", glucoseStatus === 'Critical' ? "border-destructive bg-destructive/5" : "border-transparent")}>
                 <CardHeader className="pb-2">
                     <CardTitle className="text-sm font-semibold text-muted-foreground flex items-center justify-between">
@@ -108,7 +133,7 @@ export default function PatientPage() {
                 </CardHeader>
                 <CardContent className='flex items-center justify-between'>
                     <div>
-                        <p className="text-4xl font-bold">{glucose}<span className="text-lg text-muted-foreground ml-1">mg/dL</span></p>
+                        <p className="text-4xl font-bold">{glucose.toFixed(0)}<span className="text-lg text-muted-foreground ml-1">mg/dL</span></p>
                         <p className="text-sm font-semibold">{glucose > 180 ? 'Diabetes/High' : 'Normal'}</p>
                     </div>
                 </CardContent>
@@ -122,7 +147,7 @@ export default function PatientPage() {
                         <CardTitle className="text-sm font-semibold text-muted-foreground flex items-center gap-2"><HeartPulse className='text-red-500'/> BLOOD PRESSURE</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-2">
-                        <p className="text-3xl font-bold">{bp.systolic}<span className='text-muted-foreground'>/</span>{bp.diastolic}<span className="text-base text-muted-foreground ml-1">mmHg</span></p>
+                        <p className="text-3xl font-bold">{bp.systolic.toFixed(0)}<span className='text-muted-foreground'>/</span>{bp.diastolic.toFixed(0)}<span className="text-base text-muted-foreground ml-1">mmHg</span></p>
                         <div className="grid grid-cols-2 text-xs gap-1 pt-1">
                             <div><p className='text-muted-foreground'>MAP</p><p className='font-bold'>{bp.map}</p></div>
                             <div><p className='text-muted-foreground'>PULSE P.</p><p className='font-bold'>{bp.pulsePressure}</p></div>
@@ -138,7 +163,7 @@ export default function PatientPage() {
                         <CardTitle className="text-sm font-semibold text-muted-foreground flex items-center gap-2"><Activity className='text-blue-500'/> HEART RATE</CardTitle>
                     </CardHeader>
                      <CardContent className="space-y-2">
-                        <p className="text-3xl font-bold">{heart.rate}<span className="text-base text-muted-foreground ml-1">bpm</span></p>
+                        <p className="text-3xl font-bold">{heart.rate.toFixed(0)}<span className="text-base text-muted-foreground ml-1">bpm</span></p>
                          <div className="grid grid-cols-2 text-xs gap-1 pt-1">
                             <div><p className='text-muted-foreground'>SHOCK INDEX</p><p className='font-bold'>{heart.shockIndex}</p></div>
                         </div>
@@ -152,48 +177,25 @@ export default function PatientPage() {
                         <CardTitle className="text-sm font-semibold text-muted-foreground flex items-center gap-2"><Wind className='text-green-500'/> SpO2</CardTitle>
                     </CardHeader>
                      <CardContent>
-                        <p className="text-3xl font-bold">{latestVital["SPO2"]}<span className="text-base text-muted-foreground">%</span></p>
+                        <p className="text-3xl font-bold">{latestVital.spo2.toFixed(1)}<span className="text-base text-muted-foreground">%</span></p>
                         <p className="text-xs font-semibold text-muted-foreground pt-1">Oxygen Saturation</p>
                     </CardContent>
                 </Card>
              )}
 
-             {isLoading ? <Skeleton className="h-36 w-full rounded-lg" /> : latestVital?.Temperature && (
+             {isLoading ? <Skeleton className="h-36 w-full rounded-lg" /> : latestVital?.ppg_raw && (
                  <Card className="transition-all hover:shadow-md">
                      <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-semibold text-muted-foreground flex items-center gap-2"><Thermometer className='text-orange-500'/> TEMP</CardTitle>
+                        <CardTitle className="text-sm font-semibold text-muted-foreground flex items-center gap-2"><Thermometer className='text-orange-500'/> PPG</CardTitle>
                     </CardHeader>
                      <CardContent>
-                        <p className="text-3xl font-bold">{latestVital["Temperature"].toFixed(1)}<span className="text-base text-muted-foreground">°F</span></p>
-                         <p className="text-xs font-semibold text-muted-foreground pt-1">Body Temperature</p>
+                        <p className="text-3xl font-bold">{latestVital.ppg_raw.toFixed(0)}</p>
+                         <p className="text-xs font-semibold text-muted-foreground pt-1">Raw PPG Signal</p>
                     </CardContent>
                 </Card>
              )}
         </div>
-
-        {isLoading ? <Skeleton className="h-32 w-full rounded-lg" /> : latestEstimation && (
-             <Card className="transition-all hover:shadow-xl hover:-translate-y-1">
-                <CardHeader>
-                    <CardTitle className="text-sm font-semibold text-muted-foreground flex items-center justify-between">
-                         <span className='flex items-center gap-2'><ShieldCheck /> Health Prediction</span>
-                        <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">AI POWERED</span>
-                    </CardTitle>
-                </CardHeader>
-                 <CardContent className='grid grid-cols-2 gap-4'>
-                    <div>
-                        <p className="text-xs text-muted-foreground">AI CONFIDENCE</p>
-                        <p className="text-lg font-bold">{Math.round(latestEstimation.confidenceScore * 100)}%</p>
-                    </div>
-                     <div>
-                        <p className="text-xs text-muted-foreground">PREDICTED GLUCOSE TREND</p>
-                         <p className={cn("text-lg font-bold", getStatusColor(latestEstimation.glucoseTrend))}>{latestEstimation.glucoseTrend}</p>
-                    </div>
-                    <div className='col-span-2 text-xs text-muted-foreground pt-2 italic'>
-                        {latestEstimation.reasoning}
-                    </div>
-                </CardContent>
-            </Card>
-        )}
+        
     </div>
   );
 }
