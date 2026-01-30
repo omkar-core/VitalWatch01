@@ -1,4 +1,6 @@
 
+let isDbInitialized = false;
+
 const GRIDDB_API_URL = process.env.GRIDDB_API_URL;
 const GRIDDB_USERNAME = process.env.GRIDDB_USERNAME;
 const GRIDDB_PASSWORD = process.env.GRIDDB_PASSWORD;
@@ -17,6 +19,12 @@ function getDbCredentials() {
 
 
 async function griddbFetch(endpoint: string, options: RequestInit) {
+  if (!isDbInitialized) {
+    await initializeDatabase();
+    isDbInitialized = true;
+    console.log("Database initialization completed.");
+  }
+
   const { apiUrl, username, password } = getDbCredentials();
   const authHeader = `Basic ${Buffer.from(`${username}:${password}`).toString('base64')}`;
   const url = `${apiUrl}/${endpoint}`;
@@ -52,11 +60,21 @@ export async function createTable(tableName: string, columns: any[]) {
         "row_key": true,
         "columns": columns
     };
-    await griddbFetch(`tables`, {
-        method: 'POST',
-        body: JSON.stringify(body)
-    });
-    console.log(`Table '${tableName}' checked/created successfully.`);
+    try {
+        await griddbFetch(`tables`, {
+            method: 'POST',
+            body: JSON.stringify(body)
+        });
+        console.log(`Table '${tableName}' created successfully.`);
+    } catch (error: any) {
+        // GridDB might error if the table already exists, which is fine.
+        if (error.message.includes("already exists")) {
+            console.log(`Table '${tableName}' already exists.`);
+        } else {
+            // Re-throw other errors
+            throw error;
+        }
+    }
 }
 
 
@@ -76,6 +94,7 @@ export async function getRows(tableName: string, query: string) {
 
 export async function initializeDatabase() {
     try {
+        console.log("Initializing GridDB database schema...");
         await createTable('health_vitals', [
             { "name": "timestamp", "type": "TIMESTAMP" },
             { "name": "device_id", "type": "STRING" },
@@ -135,6 +154,7 @@ export async function initializeDatabase() {
             { "name": "acknowledged_at", "type": "TIMESTAMP" },
             { "name": "created_at", "type": "TIMESTAMP" },
         ]);
+        console.log("GridDB schema initialization check complete.");
     } catch (error) {
         console.error("Failed to initialize GridDB database:", error);
         // In a real app, you might want to handle this more gracefully
