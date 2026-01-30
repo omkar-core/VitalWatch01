@@ -37,6 +37,27 @@ const patientSchema = z.object({
 
 const formSchema = z.discriminatedUnion("role", [doctorSchema, patientSchema]);
 
+// Define default values for each form type to prevent uncontrolled inputs.
+const doctorDefaults = {
+    role: 'doctor' as const,
+    name: "",
+    license: "",
+    clinic: "",
+    email: "",
+    password: "",
+};
+
+const patientDefaults = {
+    role: 'patient' as const,
+    name: "",
+    age: '' as unknown as number, // Use empty string for number input for better UX
+    gender: undefined,
+    phone: "",
+    email: "",
+    password: "",
+};
+
+
 export function RegisterForm() {
   const router = useRouter();
   const { toast } = useToast();
@@ -48,14 +69,14 @@ export function RegisterForm() {
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: { role: activeTab },
+    defaultValues: initialRole === 'doctor' ? doctorDefaults : patientDefaults,
   });
 
   const onTabChange = (value: string) => {
     const newRole = value as UserRole;
     setActiveTab(newRole);
-    form.reset();
-    form.setValue("role", newRole);
+    // Reset the form with the defaults for the newly selected role
+    form.reset(newRole === 'doctor' ? doctorDefaults : patientDefaults);
   };
   
   const onSubmit = (values: z.infer<typeof formSchema>) => {
