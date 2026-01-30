@@ -9,29 +9,31 @@ let firestore: Firestore;
 
 // This function ensures that we initialize Firebase only once, and only on the client.
 function getFirebase() {
-  // Check if we are on the client side
-  if (typeof window !== 'undefined') {
-    if (!getApps().length) {
-      app = initializeApp(firebaseConfig);
-      auth = getAuth(app);
-      firestore = getFirestore(app);
-    } else {
-      app = getApp();
-      auth = getAuth(app);
-      firestore = getFirestore(app);
-    }
-    return { app, auth, firestore };
+  // Always return null on the server
+  if (typeof window === 'undefined') {
+    return { app: null, auth: null, firestore: null } as any;
+  }
+
+  // On the client, check if config is valid
+  if (!firebaseConfig.apiKey) {
+    console.error(
+      'Firebase API Key is missing. Please check your NEXT_PUBLIC_FIREBASE_API_KEY environment variable.'
+    );
+    return { app: null, auth: null, firestore: null } as any;
   }
   
-  // On the server, we return a dummy object with null values.
-  // This code is only reached during the build process for static analysis.
-  // The functions that use these values (e.g., login, signUp) are only
-  // ever called on the client, so this path is safe.
-  return { app: null, auth: null, firestore: null } as unknown as {
-    app: FirebaseApp;
-    auth: Auth;
-    firestore: Firestore;
-  };
+  // Initialize if not already initialized
+  if (!getApps().length) {
+    app = initializeApp(firebaseConfig);
+    auth = getAuth(app);
+    firestore = getFirestore(app);
+  } else {
+    app = getApp();
+    auth = getAuth(app);
+    firestore = getFirestore(app);
+  }
+
+  return { app, auth, firestore };
 }
 
 // Export the initialization function and hooks

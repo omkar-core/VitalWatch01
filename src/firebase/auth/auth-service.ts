@@ -9,6 +9,10 @@ import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { getFirebase } from '..';
 import type { UserRole, PatientProfile } from '@/lib/types';
 
+const firebaseNotConfiguredError = new Error(
+  "Firebase is not configured. Please check your environment variables."
+);
+
 export async function signUp(
   email: string,
   password: string,
@@ -16,6 +20,9 @@ export async function signUp(
   role: UserRole
 ) {
   const { auth, firestore } = getFirebase();
+  if (!auth || !firestore) {
+    throw firebaseNotConfiguredError;
+  }
   const userCredential = await createUserWithEmailAndPassword(
     auth,
     email,
@@ -92,10 +99,16 @@ export async function signUp(
 
 export async function login(email: string, password: string) {
   const { auth } = getFirebase();
+   if (!auth) {
+    throw firebaseNotConfiguredError;
+  }
   return signInWithEmailAndPassword(auth, email, password);
 }
 
 export async function logout() {
   const { auth } = getFirebase();
+   if (!auth) {
+    throw firebaseNotConfiguredError;
+  }
   return signOut(auth);
 }
