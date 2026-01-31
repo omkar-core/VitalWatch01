@@ -3,10 +3,14 @@ import { getRows, putRows } from '@/lib/griddb-client';
 import type { AlertHistory } from '@/lib/types';
 
 export async function POST(
-  request: NextRequest,
-  { params }: { params: { alertId: string } }
+  request: NextRequest
 ) {
-  const { alertId } = params;
+  // The URL will be like /api/alerts/some-alert-id/acknowledge
+  const pathname = new URL(request.url).pathname;
+  const parts = pathname.split('/');
+  // Expected: ['', 'api', 'alerts', '{alertId}', 'acknowledge']
+  const alertId = parts[3];
+
 
   if (!alertId) {
     return NextResponse.json({ error: 'Alert ID is required' }, { status: 400 });
