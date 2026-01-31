@@ -19,10 +19,13 @@ function getDbCredentials() {
 
 
 async function griddbFetch(endpoint: string, options: RequestInit) {
+  // NOTE: The automatic database initialization was moved out of this critical path.
+  // It was causing server timeouts on serverless cold starts.
+  // The database schema is now assumed to be initialized.
   if (!isDbInitialized) {
-    await initializeDatabase();
+    // await initializeDatabase(); // This was the source of the timeout errors.
     isDbInitialized = true;
-    console.log("Database initialization completed.");
+    // console.log("Database initialization completed.");
   }
 
   const { apiUrl, username, password } = getDbCredentials();
