@@ -3,10 +3,6 @@ import { notFound } from 'next/navigation';
 import type { PatientProfile, HealthVital, AlertHistory } from "@/lib/types";
 import { PatientDetailView } from './patient-detail-view';
 
-type PageProps = {
-  params: { patientId: string };
-};
-
 async function getPatient(patientId: string): Promise<PatientProfile | null> {
   const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/patients/${patientId}`, { cache: 'no-store' });
   if (!res.ok) return null;
@@ -25,7 +21,7 @@ async function getAlerts(patientId: string): Promise<AlertHistory[]> {
   return res.json();
 }
 
-export default async function PatientDetailPage({ params }: PageProps) {
+export default async function PatientDetailPage({ params }: { params: { patientId: string } }) {
   const { patientId } = params;
 
   const patient = await getPatient(patientId);
