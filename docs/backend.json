@@ -12,6 +12,7 @@
         "gender": { "type": "string", "enum": ["Male", "Female", "Other"] },
         "email": { "type": "string", "format": "email" },
         "phone": { "type": "string" },
+        "avatar_url": { "type": "string", "description": "URL of the user's avatar image." },
         "baseline_hr": { "type": "number" },
         "baseline_spo2": { "type": "number" },
         "baseline_bp_systolic": { "type": "number" },
@@ -68,6 +69,7 @@
         "predicted_bp_systolic": { "type": "number" },
         "predicted_bp_diastolic": { "type": "number" },
         "predicted_glucose": { "type": "number" },
+        "confidence_score": { "type": "number", "description": "The AI model's confidence in the estimations that may have triggered the alert." },
         "acknowledged": { "type": "boolean" },
         "acknowledged_at": { "type": "string", "format": "date-time" },
         "created_at": { "type": "string", "format": "date-time" }

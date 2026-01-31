@@ -12,29 +12,65 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, Check, Loader2 } from "lucide-react";
 import { format } from "date-fns";
-import useSWR from 'swr';
+import useSWR, { useSWRConfig } from 'swr';
 import type { AlertHistory, PatientProfile } from "@/lib/types";
+import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
 export default function DoctorAlertsPage() {
     const { data: alerts, error: alertsError, isLoading: alertsLoading } = useSWR<AlertHistory[]>('/api/alerts', fetcher);
     const { data: patients, error: patientsError, isLoading: patientsLoading } = useSWR<PatientProfile[]>('/api/patients', fetcher);
+    const { mutate } = useSWRConfig();
+    const { toast } = useToast();
+    const [acknowledgingId, setAcknowledgingId] = useState<string | null>(null);
+
+    const handleAcknowledge = async (alertId: string) => {
+        setAcknowledgingId(alertId);
+        try {
+            const res = await fetch(`/api/alerts/${alertId}/acknowledge`, {
+                method: 'POST',
+            });
+
+            if (!res.ok) {
+                const errorData = await res.json();
+                throw new Error(errorData.error || 'Failed to acknowledge alert');
+            }
+
+            toast({
+                title: "Success",
+                description: "Alert has been acknowledged.",
+            });
+
+            // Re-fetch alerts data to update the UI
+            mutate('/api/alerts');
+
+        } catch (error: any) {
+            toast({
+                variant: 'destructive',
+                title: "Error",
+                description: error.message,
+            });
+        } finally {
+            setAcknowledgingId(null);
+        }
+    };
 
     const loading = alertsLoading || patientsLoading;
 
-  const getSeverityClass = (severity: string) => {
-    switch (severity) {
-      case "Critical":
-        return "text-destructive";
-      case "High":
-        return "text-destructive";
-      case "Medium":
-        return "text-yellow-500";
-      default:
-        return "text-muted-foreground";
-    }
-  };
+    const getSeverityClass = (severity: string) => {
+        switch (severity) {
+        case "Critical":
+            return "text-destructive";
+        case "High":
+            return "text-destructive";
+        case "Medium":
+            return "text-yellow-500";
+        default:
+            return "text-muted-foreground";
+        }
+    };
 
   return (
     <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
@@ -63,6 +99,7 @@ export default function DoctorAlertsPage() {
           <TableBody>
               {alerts && alerts.map((alert) => {
                 const patient = patients?.find(p => p.patient_id === alert.patient_id);
+                const isAcknowledging = acknowledgingId === alert.alert_id;
                 return (
                   <TableRow key={alert.alert_id} className={!alert.acknowledged ? 'bg-secondary/50' : ''}>
                       <TableCell>
@@ -81,8 +118,8 @@ export default function DoctorAlertsPage() {
                       </TableCell>
                       <TableCell>
                           {!alert.acknowledged && (
-                              <Button variant="outline" size="sm">
-                                  <Check className="mr-2 h-4 w-4"/>
+                              <Button variant="outline" size="sm" onClick={() => handleAcknowledge(alert.alert_id)} disabled={isAcknowledging}>
+                                  {isAcknowledging ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Check className="mr-2 h-4 w-4"/>}
                                   Acknowledge
                               </Button>
                           )}

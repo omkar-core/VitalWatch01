@@ -14,15 +14,48 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDistanceToNow } from "date-fns";
-import useSWR from 'swr';
+import useSWR, { useSWRConfig } from 'swr';
 import type { PatientProfile, AlertHistory } from "@/lib/types";
+import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
 export default function DoctorDashboard() {
-  const { data: patients, error: patientsError, isLoading: patientsLoading } = useSWR<PatientProfile[]>('/api/patients', fetcher);
-  const { data: alerts, error: alertsError, isLoading: alertsLoading } = useSWR<AlertHistory[]>('/api/alerts', fetcher);
-  const { data: readings, error: readingsError, isLoading: readingsLoading } = useSWR<{count: number}>('/api/vitals/today', fetcher);
+  const { data: patients, isLoading: patientsLoading } = useSWR<PatientProfile[]>('/api/patients', fetcher);
+  const { data: alerts, isLoading: alertsLoading } = useSWR<AlertHistory[]>('/api/alerts', fetcher);
+  const { data: readings, isLoading: readingsLoading } = useSWR<{count: number}>('/api/vitals/today', fetcher);
+  const { mutate } = useSWRConfig();
+  const { toast } = useToast();
+  const [acknowledgingId, setAcknowledgingId] = useState<string | null>(null);
+
+  const handleAcknowledge = async (alertId: string) => {
+    setAcknowledgingId(alertId);
+    try {
+        const res = await fetch(`/api/alerts/${alertId}/acknowledge`, {
+            method: 'POST',
+        });
+
+        if (!res.ok) {
+            const errorData = await res.json();
+            throw new Error(errorData.error || 'Failed to acknowledge alert');
+        }
+
+        toast({
+            title: "Success",
+            description: "Alert has been acknowledged.",
+        });
+        mutate('/api/alerts');
+    } catch (error: any) {
+        toast({
+            variant: 'destructive',
+            title: "Error",
+            description: error.message,
+        });
+    } finally {
+        setAcknowledgingId(null);
+    }
+  };
 
   const loading = patientsLoading || alertsLoading || readingsLoading;
   
@@ -88,6 +121,7 @@ export default function DoctorDashboard() {
                  ) : criticalAlerts && criticalAlerts.length > 0 ? (
                     criticalAlerts.map(alert => {
                         const patient = patients?.find(p => p.patient_id === alert.patient_id);
+                        const isAcknowledging = acknowledgingId === alert.alert_id;
                         return (
                           <div key={alert.alert_id} className="p-4 border rounded-lg flex flex-wrap items-center justify-between gap-4 bg-background/50 border-destructive/20">
                               <div className="flex-1 min-w-[200px]">
@@ -97,7 +131,10 @@ export default function DoctorDashboard() {
                               <div className="flex items-center gap-2 flex-wrap">
                                   <Button size="sm" asChild><Link href={`/doctor/patients/${alert.patient_id}`}><Users className="mr-2"/> View Details</Link></Button>
                                   <Button size="sm" variant="outline"><Phone className="mr-2"/> Call Patient</Button>
-                                  <Button size="sm" variant="ghost"><Check className="mr-2"/> Acknowledge</Button>
+                                  <Button size="sm" variant="ghost" onClick={() => handleAcknowledge(alert.alert_id)} disabled={isAcknowledging}>
+                                    {isAcknowledging ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Check className="mr-2 h-4 w-4"/>}
+                                    Acknowledge
+                                </Button>
                               </div>
                           </div>
                         )
