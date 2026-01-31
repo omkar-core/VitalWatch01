@@ -2,11 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getRows } from '@/lib/griddb-client';
 
 export async function GET(
-  request: NextRequest,
-  { params }: { params: { patientId: string } }
+  request: NextRequest
 ) {
   try {
-    const { patientId } = params;
+    const patientId = request.nextUrl.pathname.split('/')[3];
+
+    if (!patientId) {
+        return NextResponse.json({ error: 'Patient ID is required' }, { status: 400 });
+    }
+    
     const patientProfileResults = await getRows('patient_profiles', `patient_id='${patientId}'`);
     
     if (!patientProfileResults.results || patientProfileResults.results.length === 0) {

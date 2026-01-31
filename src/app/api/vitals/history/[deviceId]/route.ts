@@ -3,11 +3,15 @@ import { getRows } from '@/lib/griddb-client';
 import { HealthVital } from '@/lib/types';
 
 export async function GET(
-  request: NextRequest,
-  { params }: { params: { deviceId: string } }
+  request: NextRequest
 ) {
   try {
-    const { deviceId } = params;
+    const deviceId = request.nextUrl.pathname.split('/')[4];
+    
+    if (!deviceId) {
+        return NextResponse.json({ error: 'Device ID is required' }, { status: 400 });
+    }
+
     const vitalsResults = await getRows('health_vitals', `device_id='${deviceId}'`);
     
     if (!vitalsResults.results || vitalsResults.results.length === 0) {

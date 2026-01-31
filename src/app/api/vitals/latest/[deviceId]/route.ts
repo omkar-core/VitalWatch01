@@ -3,11 +3,15 @@ import { getRows } from '@/lib/griddb-client';
 import { HealthVital } from '@/lib/types';
 
 export async function GET(
-  request: NextRequest,
-  { params }: { params: { deviceId: string } }
+  request: NextRequest
 ) {
   try {
-    const { deviceId } = params;
+    const deviceId = request.nextUrl.pathname.split('/')[4];
+
+    if (!deviceId) {
+        return NextResponse.json({ error: 'Device ID is required' }, { status: 400 });
+    }
+
     // TQL for getting the latest record is a bit more complex, often involving order by and limit.
     // Assuming a simplified query for demonstration.
     // A real implementation might be: `select * from health_vitals where device_id='${deviceId}' order by timestamp desc limit 1`
