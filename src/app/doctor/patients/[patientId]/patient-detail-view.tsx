@@ -1,4 +1,3 @@
-
 "use client";
 
 import * as React from "react";
@@ -10,35 +9,72 @@ import { VitalsChart } from "@/components/dashboard/vitals-chart";
 import Image from "next/image";
 import { ArrowLeft, Phone, MessageSquare, Pencil, Loader2, Info, Bot, Droplets, HeartPulse, Wind, Activity, AlertTriangle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import {
-  Table,
-  TableHeader,
-  TableRow,
-  TableHead,
-  TableBody,
-  TableCell,
-} from "@/components/ui/table";
-import { Textarea } from "@/components/ui/textarea";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Alert as AlertBox, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { generatePatientSummary } from '@/ai/flows/generate-patient-summary';
 import type { PatientProfile, HealthVital, AlertHistory } from "@/lib/types";
+import useSWR from 'swr';
+import { Skeleton } from "@/components/ui/skeleton";
 
+const fetcher = (url: string) => fetch(url).then(res => {
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error('An error occurred while fetching the data.');
+  return res.json();
+});
 
-export function PatientDetailView({
-  patient,
-  vitals,
-  alerts,
-}: {
-  patient: PatientProfile;
-  vitals: HealthVital[];
-  alerts: AlertHistory[];
-}) {
+export function PatientDetailView({ patientId }: { patientId: string }) {
+  const { data: patient, isLoading: patientLoading } = useSWR<PatientProfile | null>(`/api/patients/${patientId}`, fetcher);
+  const { data: vitals, isLoading: vitalsLoading } = useSWR<HealthVital[] | null>(patient?.device_id ? `/api/vitals/history/${patient.device_id}` : null, fetcher);
+  const { data: alerts, isLoading: alertsLoading } = useSWR<AlertHistory[] | null>(patient?.patient_id ? `/api/alerts?patientId=${patient.patient_id}` : null, fetcher);
+
+  const isLoading = patientLoading || (patient === undefined || (vitals === undefined || alerts === undefined));
   const router = useRouter();
   const [summary, setSummary] = React.useState<string | null>(null);
   const [isGeneratingSummary, setIsGeneratingSummary] = React.useState(false);
 
+  if (isLoading) {
+    return (
+        <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
+            <div>
+              <Button variant="ghost" onClick={() => router.back()} className="mb-4">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Patient List
+              </Button>
+            </div>
+            <div className="grid gap-6 lg:grid-cols-3">
+                <div className="lg:col-span-2 space-y-6">
+                    <Skeleton className="h-48 w-full" />
+                    <Skeleton className="h-48 w-full" />
+                    <Skeleton className="h-64 w-full" />
+                </div>
+                <div className="lg:col-span-1 space-y-6">
+                    <Skeleton className="h-24 w-full" />
+                    <Skeleton className="h-48 w-full" />
+                    <Skeleton className="h-64 w-full" />
+                </div>
+            </div>
+        </main>
+    );
+  }
+
+  if (!patient) {
+      return (
+           <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
+              <Button variant="ghost" onClick={() => router.back()} className="mb-4">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Patient List
+              </Button>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Patient Not Found</CardTitle>
+                  <CardDescription>The requested patient could not be found.</CardDescription>
+                </CardHeader>
+              </Card>
+           </main>
+      )
+  }
+  
   const latestVital = vitals && vitals.length > 0 ? vitals[vitals.length - 1] : null;
 
   const getHeartRateStatus = (hr: number) => {

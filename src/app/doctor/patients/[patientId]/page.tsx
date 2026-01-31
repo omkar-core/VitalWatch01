@@ -1,25 +1,11 @@
-
-import { notFound } from 'next/navigation';
-import { getPatient, getVitals, getAlerts } from '@/lib/data-access';
 import { PatientDetailView } from './patient-detail-view';
 
-export default async function PatientDetailPage({
+// This is now a simple, non-async component.
+// It only extracts the patientId and passes it to the client component.
+export default function PatientDetailPage({
   params,
 }: {
   params: { patientId: string };
 }) {
-  const { patientId } = params;
-
-  const patient = await getPatient(patientId);
-
-  if (!patient) {
-    notFound();
-  }
-  
-  const [vitals, alerts] = await Promise.all([
-    getVitals(patient.device_id),
-    getAlerts(patient.patient_id)
-  ]);
-  
-  return <PatientDetailView patient={patient} vitals={vitals} alerts={alerts} />;
+  return <PatientDetailView patientId={params.patientId} />;
 }
