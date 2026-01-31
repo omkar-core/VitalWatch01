@@ -70,20 +70,24 @@ export async function POST(request: NextRequest) {
       const alertMessages: string[] = [];
       let alert_severity: 'Critical' | 'High' = 'High';
 
-      // Check direct vitals against thresholds
-       if (vital.temperature > 38.5) {
+      // Check direct vitals against thresholds from environment or patient profile
+      if (vital.temperature > parseFloat(process.env.TEMP_HIGH || '38.5')) {
         alertMessages.push(`High temperature detected: ${vital.temperature.toFixed(1)}°C.`);
         alert_severity = 'High';
       }
-      if (vital.temperature < 35.0) {
+      if (vital.temperature < parseFloat(process.env.TEMP_LOW || '35.0')) {
         alertMessages.push(`Low temperature detected: ${vital.temperature.toFixed(1)}°C.`);
         alert_severity = 'High';
       }
-      if (vital.heart_rate > (patientProfile.alert_threshold_hr_high || 120)) {
+      if (vital.heart_rate > (patientProfile.alert_threshold_hr_high || parseInt(process.env.HR_HIGH || '120'))) {
         alertMessages.push(`Critical heart rate detected: ${vital.heart_rate.toFixed(0)} BPM.`);
         alert_severity = 'Critical';
       }
-      if (vital.spo2 < (patientProfile.alert_threshold_spo2_low || 92)) {
+       if (vital.heart_rate < (patientProfile.alert_threshold_hr_low || parseInt(process.env.HR_LOW || '50'))) {
+        alertMessages.push(`Critical low heart rate detected: ${vital.heart_rate.toFixed(0)} BPM.`);
+        alert_severity = 'Critical';
+      }
+      if (vital.spo2 < (patientProfile.alert_threshold_spo2_low || parseInt(process.env.SPO2_LOW || '92'))) {
         alertMessages.push(`Critically Low SpO2 detected: ${vital.spo2.toFixed(1)}%.`);
         alert_severity = 'Critical';
       }
