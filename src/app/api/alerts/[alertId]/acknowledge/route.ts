@@ -16,7 +16,7 @@ export async function POST(
     // 1. Fetch the existing alert
     const alertResults = await getRows('alert_history', `alert_id='${alertId}'`);
 
-    if (!alertResults.results || alertResults.results.length === 0) {
+    if (!alertResults || !alertResults.results || alertResults.results.length === 0) {
       return NextResponse.json({ error: 'Alert not found' }, { status: 404 });
     }
 
