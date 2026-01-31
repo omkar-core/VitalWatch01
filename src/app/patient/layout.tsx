@@ -71,8 +71,7 @@ export default function PatientLayout({
                     <AvatarFallback>{getInitials(userProfile?.displayName)}</AvatarFallback>
                 </Avatar>
                 <div>
-                    <h1 className="text-sm font-semibold text-muted-foreground">My Health</h1>
-                    <p className="text-lg font-bold font-headline">{userProfile?.displayName}</p>
+                    <p className="text-lg font-bold font-headline">Welcome, {userProfile?.displayName}</p>
                 </div>
             </div>
             {/* Future icons for device status etc. can go here */}
