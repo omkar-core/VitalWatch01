@@ -38,7 +38,6 @@ export async function POST(
     existingAlert.acknowledged_at = new Date().toISOString();
 
     // 3. Prepare the row for GridDB PUT operation. Order must be precise.
-    // This order is based on the `alertRow` creation in `/api/vitals/route.ts`
     const updatedAlertRow = [
       existingAlert.alert_timestamp,
       existingAlert.alert_id,
@@ -49,6 +48,7 @@ export async function POST(
       existingAlert.alert_message,
       existingAlert.heart_rate,
       existingAlert.spo2,
+      existingAlert.temperature || null,
       existingAlert.ppg_raw,
       existingAlert.predicted_bp_systolic,
       existingAlert.predicted_bp_diastolic,

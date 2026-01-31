@@ -58,10 +58,11 @@ export async function triggerVitalsScanFromTelegram(chatId: string, patientId: s
     
     // 3. Generate mock data and call the ingest API
     const mockESP32Data: ESP32Data[] = [{
-      deviceId: patientId, // For the demo, patientId is used as deviceId
-      ts: new Date().toISOString(),
+      device_id: patientId, // For the demo, patientId is used as deviceId
+      timestamp: new Date().toISOString(),
       heart_rate: 70 + Math.random() * 15,
       spo2: 96 + Math.random() * 3,
+      temperature: 36.5 + Math.random(),
       ppg_raw: 1000 + Math.random() * 200,
     }];
     

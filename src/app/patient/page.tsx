@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from '@/components/ui/skeleton';
-import { HeartPulse, Droplets, Wind, Wifi, Bot, Loader2, Info, Activity, BarChartHorizontal, Waves } from "lucide-react";
+import { HeartPulse, Droplets, Wind, Wifi, Bot, Loader2, Info, Activity, BarChartHorizontal, Waves, Thermometer } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
 import { ingestVitalsAction } from '@/app/actions';
 import type { HealthVital, PatientProfile } from "@/lib/types";
@@ -86,10 +86,11 @@ export default function PatientPage() {
     });
 
     const mockESP32Data = [{
-      deviceId: patient.device_id,
-      ts: new Date().toISOString(),
+      device_id: patient.device_id,
+      timestamp: new Date().toISOString(),
       heart_rate: 70 + Math.random() * 15,
       spo2: 96 + Math.random() * 3,
+      temperature: 36.5 + Math.random(),
       ppg_raw: 1000 + Math.random() * 200,
     }];
     
@@ -180,7 +181,7 @@ export default function PatientPage() {
                     </CardContent>
                 </Card>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                      {latestVital.heart_rate && (
                         <Card className="transition-all hover:shadow-md">
                             <CardHeader className="pb-2">
@@ -199,6 +200,16 @@ export default function PatientPage() {
                             </CardHeader>
                             <CardContent>
                                 <p className="text-3xl font-bold">{latestVital.spo2.toFixed(1)}<span className="text-base text-muted-foreground">%</span></p>
+                            </CardContent>
+                        </Card>
+                    )}
+                    {latestVital.temperature && (
+                        <Card className="transition-all hover:shadow-md">
+                            <CardHeader className="pb-2">
+                                <CardTitle className="text-sm font-semibold text-muted-foreground flex items-center gap-2"><Thermometer/> TEMPERATURE</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <p className="text-3xl font-bold">{latestVital.temperature.toFixed(1)}<span className="text-base text-muted-foreground ml-1">°C</span></p>
                             </CardContent>
                         </Card>
                     )}

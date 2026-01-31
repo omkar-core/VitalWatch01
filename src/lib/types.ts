@@ -45,6 +45,7 @@ export interface HealthVital {
     device_id: string;
     heart_rate: number;
     spo2: number;
+    temperature: number;
     ppg_raw: number;
     predicted_bp_systolic?: number;
     predicted_bp_diastolic?: number;
@@ -64,6 +65,7 @@ export interface AlertHistory {
     alert_message: string;
     heart_rate?: number;
     spo2?: number;
+    temperature?: number;
     ppg_raw?: number;
     predicted_bp_systolic?: number;
     predicted_bp_diastolic?: number;
@@ -76,10 +78,11 @@ export interface AlertHistory {
 
 
 export type ESP32Data = {
-  deviceId: string;
-  ts: string; // ISO 8601 format
+  device_id: string;
+  timestamp: string; // ISO 8601 format
   heart_rate: number;
   spo2: number;
+  temperature: number;
   ppg_raw: number;
 };
 

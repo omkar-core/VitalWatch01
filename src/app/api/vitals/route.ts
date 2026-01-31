@@ -37,10 +37,10 @@ export async function POST(request: NextRequest) {
     // Process each reading (usually just one from the bot/scan)
     for (const vital of incomingVitals) {
       // 2. Fetch patient profile to get context and thresholds
-      const patientProfileResults = await getRows('patient_profiles', `device_id='${vital.deviceId}'`);
+      const patientProfileResults = await getRows('patient_profiles', `device_id='${vital.device_id}'`);
       
       if (!patientProfileResults.results || patientProfileResults.results.length === 0) {
-        console.warn(`No patient profile found for deviceId: ${vital.deviceId}. Skipping.`);
+        console.warn(`No patient profile found for deviceId: ${vital.device_id}. Skipping.`);
         continue;
       }
 
@@ -57,9 +57,10 @@ export async function POST(request: NextRequest) {
           gender: patientProfile.gender || 'Other',
           medicalHistory: `Diabetes: ${patientProfile.has_diabetes}, Hypertension: ${patientProfile.has_hypertension}, Heart Condition: ${patientProfile.has_heart_condition}`,
           currentVitals: {
-              timestamp: vital.ts,
+              timestamp: vital.timestamp,
               'Heart Rate': vital.heart_rate,
               SPO2: vital.spo2,
+              Temperature: vital.temperature
           }
       };
 
@@ -70,6 +71,14 @@ export async function POST(request: NextRequest) {
       let alert_severity: 'Critical' | 'High' = 'High';
 
       // Check direct vitals against thresholds
+       if (vital.temperature > 38.5) {
+        alertMessages.push(`High temperature detected: ${vital.temperature.toFixed(1)}°C.`);
+        alert_severity = 'High';
+      }
+      if (vital.temperature < 35.0) {
+        alertMessages.push(`Low temperature detected: ${vital.temperature.toFixed(1)}°C.`);
+        alert_severity = 'High';
+      }
       if (vital.heart_rate > (patientProfile.alert_threshold_hr_high || 120)) {
         alertMessages.push(`Critical heart rate detected: ${vital.heart_rate.toFixed(0)} BPM.`);
         alert_severity = 'Critical';
@@ -94,10 +103,11 @@ export async function POST(request: NextRequest) {
       
       // 5. Construct the full health vital record using AI estimations
       const healthVitalRecord: HealthVital = {
-        timestamp: vital.ts,
-        device_id: vital.deviceId,
+        timestamp: vital.timestamp,
+        device_id: vital.device_id,
         heart_rate: vital.heart_rate,
         spo2: vital.spo2,
+        temperature: vital.temperature,
         ppg_raw: vital.ppg_raw,
         predicted_bp_systolic: predictions.estimatedSystolic,
         predicted_bp_diastolic: predictions.estimatedDiastolic,
@@ -112,6 +122,7 @@ export async function POST(request: NextRequest) {
           healthVitalRecord.device_id,
           healthVitalRecord.heart_rate,
           healthVitalRecord.spo2,
+          healthVitalRecord.temperature,
           healthVitalRecord.ppg_raw,
           healthVitalRecord.predicted_bp_systolic,
           healthVitalRecord.predicted_bp_diastolic,
@@ -130,15 +141,16 @@ export async function POST(request: NextRequest) {
       if (alert_flag) {
         const alert_message = alertMessages.join(' ');
         const alertRecord: AlertHistory = {
-            alert_timestamp: vital.ts,
+            alert_timestamp: vital.timestamp,
             alert_id: randomUUID(),
-            device_id: vital.deviceId,
+            device_id: vital.device_id,
             patient_id: patientProfile.patient_id,
             alert_type: "AI/Vital Threshold Exceeded",
             severity: alert_severity,
             alert_message: alert_message,
             heart_rate: vital.heart_rate,
             spo2: vital.spo2,
+            temperature: vital.temperature,
             ppg_raw: vital.ppg_raw,
             predicted_glucose: healthVitalRecord.predicted_glucose,
             predicted_bp_systolic: healthVitalRecord.predicted_bp_systolic,
@@ -157,6 +169,7 @@ export async function POST(request: NextRequest) {
             alertRecord.alert_message,
             alertRecord.heart_rate,
             alertRecord.spo2,
+            alertRecord.temperature,
             alertRecord.ppg_raw,
             alertRecord.predicted_bp_systolic,
             alertRecord.predicted_bp_diastolic,
