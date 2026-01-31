@@ -24,7 +24,7 @@ service cloud.firestore {
                     && request.resource.data.uid == userId
                     && isValidUserRole(request.resource.data.role)
                     && request.resource.data.email == request.auth.token.email
-                    && request.resource.data.displayName is string;
+                    && request.resource.data.display_name is string;
       allow read, update: if isOwner(userId);
     }
 

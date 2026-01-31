@@ -1,7 +1,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import type { ESP32Data, PatientProfile, HealthVital, AlertHistory } from '@/lib/types';
-import { estimateHealthMetrics } from '@/ai/flows/suggest-initial-diagnoses';
+import { estimateHealthMetrics, EstimateHealthMetricsOutput } from '@/ai/flows/suggest-initial-diagnoses';
 import { sendHealthReport, sendCriticalAlert } from '@/lib/telegram';
 import { putRows, getRows } from '@/lib/griddb-client';
 import { validateDeviceRequest } from '@/lib/device-auth';
@@ -12,6 +12,26 @@ type IngestRequestBody = {
   chatId?: string; // Optional chatId for Telegram reporting
   internal_secret?: string; // Optional secret for internal calls
 }
+
+// Rule-based fallback when AI is unavailable
+function fallbackAnalysis(vital: ESP32Data, profile: PatientProfile): EstimateHealthMetricsOutput {
+    // Simple estimation logic based on HR and age. Not medically accurate.
+    const ageFactor = (profile.age || 50) / 50;
+    const hrFactor = vital.heart_rate / 80;
+
+    const estimated_systolic = 110 * ageFactor + 10 * hrFactor;
+    const estimated_diastolic = 70 * ageFactor + 5 * hrFactor;
+    const estimated_glucose = 90 + (vital.heart_rate - 75) * 2;
+    
+    return {
+        estimated_systolic: Math.round(estimated_systolic),
+        estimated_diastolic: Math.round(estimated_diastolic),
+        estimated_glucose: Math.round(estimated_glucose),
+        confidence_score: 0.3, // Low confidence for fallback
+        reasoning: "Rule-based analysis (AI unavailable). Estimations are based on basic correlations."
+    };
+}
+
 
 export async function POST(request: NextRequest) {
   const body: IngestRequestBody = await request.json();
@@ -51,20 +71,26 @@ export async function POST(request: NextRequest) {
           return obj;
       }, {});
 
-      // 3. Call Gemini AI model for predictions
-      const predictionInput = {
-          age: patientProfile.age || 50,
-          gender: patientProfile.gender || 'Other',
-          medical_history: `Diabetes: ${patientProfile.has_diabetes}, Hypertension: ${patientProfile.has_hypertension}, Heart Condition: ${patientProfile.has_heart_condition}`,
-          current_vitals: {
-              timestamp: vital.timestamp,
-              heart_rate: vital.heart_rate,
-              spo2: vital.spo2,
-              temperature: vital.temperature
-          }
-      };
+      // 3. Call Gemini AI model for predictions, with a fallback
+      let predictions: EstimateHealthMetricsOutput;
+      try {
+          const predictionInput = {
+              age: patientProfile.age || 50,
+              gender: patientProfile.gender || 'Other',
+              medical_history: `Diabetes: ${patientProfile.has_diabetes}, Hypertension: ${patientProfile.has_hypertension}, Heart Condition: ${patientProfile.has_heart_condition}`,
+              current_vitals: {
+                  timestamp: vital.timestamp,
+                  heart_rate: vital.heart_rate,
+                  spo2: vital.spo2,
+                  temperature: vital.temperature
+              }
+          };
+          predictions = await estimateHealthMetrics(predictionInput);
+      } catch (aiError) {
+          console.error("AI analysis failed, using fallback.", aiError);
+          predictions = fallbackAnalysis(vital, patientProfile);
+      }
 
-      const predictions = await estimateHealthMetrics(predictionInput);
 
       // 4. Evaluate alert conditions based on AI output and fixed thresholds
       const alertMessages: string[] = [];
@@ -109,6 +135,7 @@ export async function POST(request: NextRequest) {
       const healthVitalRecord: HealthVital = {
         timestamp: vital.timestamp,
         device_id: vital.device_id,
+        patient_id: patientProfile.patient_id,
         heart_rate: vital.heart_rate,
         spo2: vital.spo2,
         temperature: vital.temperature,
@@ -134,6 +161,7 @@ export async function POST(request: NextRequest) {
           healthVitalRecord.alert_flag,
           healthVitalRecord.created_at,
           healthVitalRecord.confidence_score,
+          healthVitalRecord.patient_id
       ];
 
       // 6. Save vitals to GridDB

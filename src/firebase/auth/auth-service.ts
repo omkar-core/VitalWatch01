@@ -30,12 +30,12 @@ export async function signUp(
   );
   const user = userCredential.user;
 
-  const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(
+  const avatar_url = `https://ui-avatars.com/api/?name=${encodeURIComponent(
     displayName
   )}&background=random`;
 
   // Update profile in Firebase Auth
-  await updateProfile(user, { displayName, photoURL: avatarUrl });
+  await updateProfile(user, { displayName, photoURL: avatar_url });
 
   // Create user document in Firestore for role management
   const userRef = doc(firestore, 'users', user.uid);
@@ -44,7 +44,7 @@ export async function signUp(
     email: user.email,
     display_name: displayName,
     role: role,
-    avatar_url: avatarUrl,
+    avatar_url: avatar_url,
     created_at: serverTimestamp(),
   });
 
@@ -62,7 +62,7 @@ export async function signUp(
       age: 0,
       gender: 'Other',
       phone: '',
-      avatar_url: avatarUrl,
+      avatar_url: avatar_url,
       baseline_hr: 0,
       baseline_spo2: 0,
       baseline_bp_systolic: 0,
