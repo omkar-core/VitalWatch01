@@ -22,9 +22,8 @@ async function getAlerts(patientId: string): Promise<AlertHistory[]> {
 }
 
 type PatientDetailPageProps = {
-  params: {
-    patientId: string;
-  };
+  params: { patientId: string };
+  searchParams: { [key: string]: string | string[] | undefined };
 };
 
 export default async function PatientDetailPage({ params }: PatientDetailPageProps) {
