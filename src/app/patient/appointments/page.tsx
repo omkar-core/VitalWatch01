@@ -12,12 +12,11 @@ export default function PatientAppointmentsPage() {
             <div className="flex flex-col items-center gap-1 text-center">
             <Calendar className="w-12 h-12 text-muted-foreground mb-4" />
             <h3 className="text-2xl font-bold tracking-tight">
-                No Appointments Yet
+                Appointments Not Available
             </h3>
             <p className="text-sm text-muted-foreground">
-                You have no upcoming or past appointments scheduled.
+                This feature is not currently enabled. Please use the AI Chat for questions.
             </p>
-            <Button className="mt-4" disabled>Request Appointment</Button>
             </div>
         </div>
     </main>

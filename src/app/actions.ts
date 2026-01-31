@@ -2,6 +2,7 @@
 
 import type { HealthVital, PatientProfile, AlertHistory, ESP32Data } from '@/lib/types';
 import { sendTelegramMessage, sendPreparationMessage, sendProgressUpdate } from "@/lib/telegram";
+import { getHealthChatResponse as getHealthChatResponseFlow } from '@/ai/flows/health-chat';
 
 type ActionResult<T> = {
     data?: T;
@@ -93,5 +94,18 @@ export async function triggerVitalsScanFromTelegram(chatId: string, patientId: s
      console.error("Error in triggerVitalsScanFromTelegram:", e);
     await sendTelegramMessage({ chatId, text: `❌ *Error:* ${e.message || 'An unknown error occurred.'}` });
     return { error: e.message || 'An unknown error occurred.' };
+  }
+}
+
+export async function getHealthChatResponse(
+  question: string,
+  vitalsContext: string
+): Promise<ActionResult<string>> {
+  try {
+    const result = await getHealthChatResponseFlow({ question, vitalsContext });
+    return { data: result.answer };
+  } catch (e: any) {
+    console.error("Error in getHealthChatResponse:", e);
+    return { error: e.message || 'The AI assistant is currently unavailable.' };
   }
 }
