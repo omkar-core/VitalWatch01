@@ -1,3 +1,4 @@
+
 import { NextRequest, NextResponse } from 'next/server';
 import type { ESP32Data, PatientProfile, HealthVital, AlertHistory } from '@/lib/types';
 import { estimateHealthMetrics } from '@/ai/flows/suggest-initial-diagnoses';
@@ -16,7 +17,6 @@ export async function POST(request: NextRequest) {
   const body: IngestRequestBody = await request.json();
   
   // 1. Authenticate Request
-  // Bypass device auth if the internal secret is provided and correct
   const isInternalCall = body.internal_secret === process.env.INTERNAL_API_SECRET;
   if (!isInternalCall) {
     const authError = validateDeviceRequest(request);
@@ -66,34 +66,30 @@ export async function POST(request: NextRequest) {
       const predictions = await estimateHealthMetrics(predictionInput);
 
       // 4. Evaluate alert conditions based on AI output and fixed thresholds
-      let alert_flag = false;
-      let alert_message = '';
+      const alertMessages: string[] = [];
       let alert_severity: 'Critical' | 'High' = 'High';
 
-      // Fixed threshold alerts
+      // Check direct vitals against thresholds
       if (vital.heart_rate > (patientProfile.alert_threshold_hr_high || 120)) {
-        alert_flag = true;
-        alert_message = `Critical heart rate detected: ${vital.heart_rate.toFixed(0)} BPM.`;
+        alertMessages.push(`Critical heart rate detected: ${vital.heart_rate.toFixed(0)} BPM.`);
         alert_severity = 'Critical';
       }
       if (vital.spo2 < (patientProfile.alert_threshold_spo2_low || 92)) {
-        alert_flag = true;
-        alert_message = `Critically Low SpO2 detected: ${vital.spo2.toFixed(1)}%.`;
+        alertMessages.push(`Critically Low SpO2 detected: ${vital.spo2.toFixed(1)}%.`);
         alert_severity = 'Critical';
       }
       
-      // AI-driven alerts
+      // Check AI-driven predictions against thresholds, considering confidence
       if (predictions.estimatedSystolic > (patientProfile.alert_threshold_bp_systolic_high || 140) && predictions.confidenceScore > 0.5) {
-         alert_flag = true;
-         alert_message = `AI detected high systolic blood pressure risk: ~${predictions.estimatedSystolic.toFixed(0)} mmHg.`;
+         alertMessages.push(`AI detected high systolic BP risk: ~${predictions.estimatedSystolic.toFixed(0)} mmHg.`);
          alert_severity = 'Critical';
       }
       if (predictions.estimatedGlucose > (patientProfile.alert_threshold_glucose_high || 180) && predictions.confidenceScore > 0.5) {
-         alert_flag = true;
-         alert_message = `AI detected high blood glucose risk: ~${predictions.estimatedGlucose.toFixed(0)} mg/dL.`;
+         alertMessages.push(`AI detected high blood glucose risk: ~${predictions.estimatedGlucose.toFixed(0)} mg/dL.`);
          alert_severity = 'Critical';
       }
 
+      const alert_flag = alertMessages.length > 0;
       const now = new Date().toISOString();
       
       // 5. Construct the full health vital record using AI estimations
@@ -132,6 +128,7 @@ export async function POST(request: NextRequest) {
 
       // 7. If alert triggered, save to GridDB and send Telegram notification
       if (alert_flag) {
+        const alert_message = alertMessages.join(' ');
         const alertRecord: AlertHistory = {
             alert_timestamp: vital.ts,
             alert_id: randomUUID(),
@@ -187,7 +184,7 @@ export async function POST(request: NextRequest) {
 
   } catch (error: any) {
     console.error('[/api/vitals] Error:', error);
-    const chatId = body.chatId;
+    const chatId = body.chatId || process.env.TELEGRAM_CHAT_ID;
     if (chatId) {
         await sendCriticalAlert(chatId, 'Critical', 'Failed to process vitals. System error.');
     }
