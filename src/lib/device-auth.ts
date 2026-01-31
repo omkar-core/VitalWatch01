@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 
-const EXPECTED_DEVICE_ID = process.env.DEVICE_ID;
+const ALLOWED_DEVICES = (process.env.ALLOWED_DEVICES || '').split(',');
 const EXPECTED_API_KEY = process.env.DEVICE_API_KEY;
 
 /**
@@ -12,13 +12,13 @@ export function validateDeviceRequest(request: NextRequest): string | null {
   const deviceId = request.headers.get('x-device-id');
   const apiKey = request.headers.get('x-api-key');
 
-  if (!EXPECTED_DEVICE_ID || !EXPECTED_API_KEY) {
-    console.error("Device ID or API Key is not set in server environment variables.");
+  if (!EXPECTED_API_KEY || !ALLOWED_DEVICES.length || (ALLOWED_DEVICES.length === 1 && !ALLOWED_DEVICES[0])) {
+    console.error("Device API Key or Allowed Devices are not set in server environment variables.");
     return "Server configuration error.";
   }
 
-  if (deviceId !== EXPECTED_DEVICE_ID) {
-    return "Invalid device ID.";
+  if (!deviceId || !ALLOWED_DEVICES.includes(deviceId)) {
+    return `Invalid or unregistered device ID: ${deviceId}`;
   }
 
   if (apiKey !== EXPECTED_API_KEY) {
