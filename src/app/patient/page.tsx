@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from '@/components/ui/skeleton';
-import { HeartPulse, Droplets, Wind, Wifi, Bot, Loader2, Info, Activity, BarChartHorizontal } from "lucide-react";
+import { HeartPulse, Droplets, Wind, Wifi, Bot, Loader2, Info, Activity, BarChartHorizontal, Waves } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
 import { ingestVitalsAction } from '@/app/actions';
 import type { HealthVital, PatientProfile } from "@/lib/types";
@@ -12,6 +12,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useUser } from '@/firebase/auth/use-user';
 import useSWR from 'swr';
 import { VitalsChart } from '@/components/dashboard/vitals-chart';
+import { WaveformChart } from '@/components/dashboard/waveform-chart';
 import { format } from 'date-fns';
 
 // Helper function to get status colors
@@ -152,28 +153,11 @@ export default function PatientPage() {
                     <Skeleton className="h-48 w-full rounded-lg" />
                     <Skeleton className="h-48 w-full rounded-lg" />
                 </div>
+                 <Skeleton className="h-48 w-full rounded-lg" />
             </div>
         ) : latestVital ? (
             <div className="space-y-4">
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2 text-base"><BarChartHorizontal/>Live Trends</CardTitle>
-                        <CardDescription>Recent Heart Rate and SpO₂ readings</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <VitalsChart 
-                            data={chartData} 
-                            dataKey1="heart_rate" 
-                            label1="Heart Rate (BPM)" 
-                            color1="hsl(var(--chart-2))" 
-                            dataKey2="spo2"
-                            label2="SpO₂ (%)"
-                            color2="hsl(var(--chart-1))"
-                        />
-                    </CardContent>
-                </Card>
-
-                <Card className="border-2 border-primary/30 bg-primary/5">
+                 <Card className="border-2 border-primary/30 bg-primary/5">
                     <CardHeader className="pb-2">
                         <CardTitle className="text-sm font-semibold text-muted-foreground flex items-center gap-2"><Bot/>AI PREDICTIONS</CardTitle>
                         <CardDescription>Confidence: {(latestVital.confidence_score! * 100).toFixed(0)}%</CardDescription>
@@ -195,7 +179,7 @@ export default function PatientPage() {
                        )}
                     </CardContent>
                 </Card>
-                
+
                 <div className="grid grid-cols-2 gap-4">
                      {latestVital.heart_rate && (
                         <Card className="transition-all hover:shadow-md">
@@ -219,6 +203,39 @@ export default function PatientPage() {
                         </Card>
                     )}
                 </div>
+
+                 <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-base"><Waves />Live PPG Waveform</CardTitle>
+                        <CardDescription>Raw sensor signal from the last 20 readings</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <WaveformChart 
+                            data={chartData} 
+                            dataKey="ppg_raw"
+                            color="hsl(var(--chart-4))"
+                            gradientColor="hsl(var(--chart-4))"
+                        />
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-base"><BarChartHorizontal/>Live Trends</CardTitle>
+                        <CardDescription>Recent Heart Rate and SpO₂ readings</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <VitalsChart 
+                            data={chartData} 
+                            dataKey1="heart_rate" 
+                            label1="Heart Rate (BPM)" 
+                            color1="hsl(var(--chart-2))" 
+                            dataKey2="spo2"
+                            label2="SpO₂ (%)"
+                            color2="hsl(var(--chart-1))"
+                        />
+                    </CardContent>
+                </Card>
             </div>
         ) : (
             <Card>
