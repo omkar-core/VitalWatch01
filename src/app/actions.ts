@@ -3,6 +3,8 @@
 import type { HealthVital, PatientProfile, AlertHistory, ESP32Data } from '@/lib/types';
 import { sendTelegramMessage, sendPreparationMessage, sendProgressUpdate } from "@/lib/telegram";
 import { getHealthChatResponse as getHealthChatResponseFlow } from '@/ai/flows/health-chat';
+import { generateTrendAnalysis as generateTrendAnalysisFlow, type GenerateTrendAnalysisInput } from '@/ai/flows/generate-trend-analysis';
+
 
 type ActionResult<T> = {
     data?: T;
@@ -108,4 +110,14 @@ export async function getHealthChatResponse(
     console.error("Error in getHealthChatResponse:", e);
     return { error: e.message || 'The AI assistant is currently unavailable.' };
   }
+}
+
+export async function generateTrendAnalysis(input: GenerateTrendAnalysisInput): Promise<ActionResult<string>> {
+    try {
+        const result = await generateTrendAnalysisFlow(input);
+        return { data: result.analysis };
+    } catch(e: any) {
+        console.error("Error in generateTrendAnalysis:", e);
+        return { error: e.message || 'The AI assistant is currently unavailable.' };
+    }
 }
