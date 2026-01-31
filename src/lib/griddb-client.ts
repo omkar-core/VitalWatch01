@@ -25,7 +25,7 @@ async function griddbFetch(endpoint: string, options: RequestInit) {
   if (!isDbInitialized) {
     // await initializeDatabase(); // This was the source of the timeout errors.
     isDbInitialized = true;
-    // console.log("Database initialization completed.");
+    // console.log("Database initialization check skipped on request path.");
   }
 
   const { apiUrl, username, password } = getDbCredentials();
