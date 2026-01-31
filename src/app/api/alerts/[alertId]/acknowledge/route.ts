@@ -48,7 +48,7 @@ export async function POST(
       existingAlert.alert_message,
       existingAlert.heart_rate,
       existingAlert.spo2,
-      existingAlert.temperature || null,
+      existingAlert.temperature,
       existingAlert.ppg_raw,
       existingAlert.predicted_bp_systolic,
       existingAlert.predicted_bp_diastolic,

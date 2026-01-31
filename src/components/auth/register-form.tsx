@@ -29,7 +29,7 @@ import { Loader2 } from 'lucide-react';
 import type { UserRole } from '@/lib/types';
 
 const formSchema = z.object({
-  displayName: z.string().min(2, 'Display name must be at least 2 characters'),
+  display_name: z.string().min(2, 'Display name must be at least 2 characters'),
   email: z.string().email(),
   password: z.string().min(6, 'Password must be at least 6 characters'),
   role: z.enum(['doctor', 'patient'], {
@@ -47,7 +47,7 @@ export function RegisterForm() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      displayName: '',
+      display_name: '',
       email: '',
       password: '',
       role: undefined,
@@ -67,7 +67,7 @@ export function RegisterForm() {
       await signUp(
         values.email,
         values.password,
-        values.displayName,
+        values.display_name,
         values.role as UserRole
       );
       toast({
@@ -96,7 +96,7 @@ export function RegisterForm() {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <FormField
           control={form.control}
-          name="displayName"
+          name="display_name"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Full Name</FormLabel>

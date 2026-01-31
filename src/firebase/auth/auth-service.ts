@@ -42,10 +42,10 @@ export async function signUp(
   await setDoc(userRef, {
     uid: user.uid,
     email: user.email,
-    displayName: displayName,
+    display_name: displayName,
     role: role,
-    avatarUrl: avatarUrl,
-    createdAt: serverTimestamp(),
+    avatar_url: avatarUrl,
+    created_at: serverTimestamp(),
   });
 
   // If the user is a patient, create a corresponding patient_profile in GridDB

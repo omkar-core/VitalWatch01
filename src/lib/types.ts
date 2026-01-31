@@ -6,10 +6,10 @@ export type UserRole = 'doctor' | 'patient';
 export interface UserProfile {
   uid: string;
   email?: string;
-  displayName?: string;
+  display_name?: string;
   role: UserRole;
-  avatarUrl?: string;
-  createdAt: Timestamp;
+  avatar_url?: string;
+  created_at: Timestamp;
 }
 
 export interface PatientProfile {
@@ -90,21 +90,22 @@ export type ESP32Data = {
 // AI-related types
 const VitalsSchema = z.object({
   timestamp: z.string().describe('ISO 8601 timestamp of the reading.'),
-  'Heart Rate': z.number().describe('Heart rate in beats per minute (BPM).'),
-  SPO2: z.number().describe('Blood oxygen saturation percentage (SpO2).'),
+  heart_rate: z.number().describe('Heart rate in beats per minute (BPM).'),
+  spo2: z.number().describe('Blood oxygen saturation percentage (SpO2).'),
+  temperature: z.number().describe('Body temperature in Celsius.'),
 });
 
 export const EstimateHealthMetricsInputSchema = z.object({
   age: z.number().describe('The age of the user.'),
   gender: z.string().describe('The gender of the user.'),
-  medicalHistory: z
+  medical_history: z
     .string()
     .optional()
     .describe(
       "A brief summary of the user's relevant medical history (e.g., existing conditions like diabetes, hypertension)."
     ),
-  currentVitals: VitalsSchema.describe('The most recent vital signs reading.'),
-  recentVitals: z
+  current_vitals: VitalsSchema.describe('The most recent vital signs reading.'),
+  recent_vitals: z
     .array(VitalsSchema)
     .optional()
     .describe(
@@ -117,16 +118,16 @@ export type EstimateHealthMetricsInput = z.infer<
 >;
 
 export const EstimateHealthMetricsOutputSchema = z.object({
-  estimatedSystolic: z
+  estimated_systolic: z
     .number()
     .describe('The estimated systolic blood pressure in mmHg.'),
-  estimatedDiastolic: z
+  estimated_diastolic: z
     .number()
     .describe('The estimated diastolic blood pressure in mmHg.'),
-  estimatedGlucose: z
+  estimated_glucose: z
     .number()
     .describe('The estimated blood glucose level in mg/dL.'),
-  confidenceScore: z
+  confidence_score: z
     .number()
     .min(0)
     .max(1)

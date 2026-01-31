@@ -54,14 +54,14 @@ export function DashboardHeader({ title, userProfile }: { title: string, userPro
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="relative h-9 w-9 rounded-full">
             <Avatar>
-                <AvatarImage src={userProfile?.avatarUrl || ''} alt={userProfile?.displayName || 'User Avatar'} />
-                <AvatarFallback>{getInitials(userProfile?.displayName)}</AvatarFallback>
+                <AvatarImage src={userProfile?.avatar_url || ''} alt={userProfile?.display_name || 'User Avatar'} />
+                <AvatarFallback>{getInitials(userProfile?.display_name)}</AvatarFallback>
             </Avatar>
             <span className="sr-only">Toggle user menu</span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuLabel>{userProfile?.displayName || 'My Account'}</DropdownMenuLabel>
+          <DropdownMenuLabel>{userProfile?.display_name || 'My Account'}</DropdownMenuLabel>
           <DropdownMenuSeparator />
            <DropdownMenuItem asChild>
               <Link href="/doctor/settings">

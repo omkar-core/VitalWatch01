@@ -69,11 +69,11 @@ export default function PatientLayout({
         <header className="flex h-16 items-center justify-between gap-4 border-b bg-card px-6 sticky top-0 z-40">
             <div className='flex items-center gap-3'>
                  <Avatar>
-                    <AvatarImage src={userProfile?.avatarUrl || ''} alt={userProfile?.displayName || 'User Avatar'} />
-                    <AvatarFallback>{getInitials(userProfile?.displayName)}</AvatarFallback>
+                    <AvatarImage src={userProfile?.avatar_url || ''} alt={userProfile?.display_name || 'User Avatar'} />
+                    <AvatarFallback>{getInitials(userProfile?.display_name)}</AvatarFallback>
                 </Avatar>
                 <div>
-                    <p className="text-lg font-bold font-headline">Welcome, {userProfile?.displayName}</p>
+                    <p className="text-lg font-bold font-headline">Welcome, {userProfile?.display_name}</p>
                 </div>
             </div>
             {/* Future icons for device status etc. can go here */}

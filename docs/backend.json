@@ -42,14 +42,16 @@
         "device_id": { "type": "string" },
         "heart_rate": { "type": "number" },
         "spo2": { "type": "number" },
+        "temperature": { "type": "number" },
         "ppg_raw": { "type": "number" },
         "predicted_bp_systolic": { "type": "number" },
         "predicted_bp_diastolic": { "type": "number" },
         "predicted_glucose": { "type": "number" },
         "alert_flag": { "type": "boolean" },
-        "created_at": { "type": "string", "format": "date-time" }
+        "created_at": { "type": "string", "format": "date-time" },
+        "confidence_score": { "type": "number" }
       },
-      "required": ["timestamp", "device_id", "heart_rate", "spo2", "ppg_raw", "alert_flag", "created_at"]
+      "required": ["timestamp", "device_id", "heart_rate", "spo2", "temperature", "ppg_raw", "alert_flag", "created_at"]
     },
     "alert_history": {
       "title": "Alert History",
@@ -65,6 +67,7 @@
         "alert_message": { "type": "string" },
         "heart_rate": { "type": "number" },
         "spo2": { "type": "number" },
+        "temperature": { "type": "number" },
         "ppg_raw": { "type": "number" },
         "predicted_bp_systolic": { "type": "number" },
         "predicted_bp_diastolic": { "type": "number" },
@@ -83,10 +86,12 @@
       "properties": {
         "uid": { "type": "string" },
         "email": { "type": "string", "format": "email" },
-        "displayName": { "type": "string" },
-        "role": { "type": "string", "enum": ["doctor", "patient"] }
+        "display_name": { "type": "string" },
+        "role": { "type": "string", "enum": ["doctor", "patient"] },
+        "avatar_url": { "type": "string" },
+        "created_at": { "type": "string", "format": "date-time" }
       },
-      "required": ["uid", "email", "role", "displayName"]
+      "required": ["uid", "email", "role", "display_name"]
     }
   },
   "auth": {

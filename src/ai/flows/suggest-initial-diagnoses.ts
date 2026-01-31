@@ -11,22 +11,22 @@ import {z} from 'genkit';
 
 const VitalsSchema = z.object({
   timestamp: z.string().describe('ISO 8601 timestamp of the reading.'),
-  'Heart Rate': z.number().describe('Heart rate in beats per minute (BPM).'),
-  SPO2: z.number().describe('Blood oxygen saturation percentage (SpO2).'),
-  Temperature: z.number().describe('Body temperature in Celsius.'),
+  heart_rate: z.number().describe('Heart rate in beats per minute (BPM).'),
+  spo2: z.number().describe('Blood oxygen saturation percentage (SpO2).'),
+  temperature: z.number().describe('Body temperature in Celsius.'),
 });
 
 const EstimateHealthMetricsInputSchema = z.object({
   age: z.number().describe('The age of the user.'),
   gender: z.string().describe('The gender of the user.'),
-  medicalHistory: z
+  medical_history: z
     .string()
     .optional()
     .describe(
       "A brief summary of the user's relevant medical history (e.g., existing conditions like diabetes, hypertension)."
     ),
-  currentVitals: VitalsSchema.describe('The most recent vital signs reading.'),
-  recentVitals: z
+  current_vitals: VitalsSchema.describe('The most recent vital signs reading.'),
+  recent_vitals: z
     .array(VitalsSchema)
     .optional()
     .describe(
@@ -39,16 +39,16 @@ export type EstimateHealthMetricsInput = z.infer<
 >;
 
 const EstimateHealthMetricsOutputSchema = z.object({
-  estimatedSystolic: z
+  estimated_systolic: z
     .number()
     .describe('The estimated systolic blood pressure in mmHg.'),
-  estimatedDiastolic: z
+  estimated_diastolic: z
     .number()
     .describe('The estimated diastolic blood pressure in mmHg.'),
-  estimatedGlucose: z
+  estimated_glucose: z
     .number()
     .describe('The estimated blood glucose level in mg/dL.'),
-  confidenceScore: z
+  confidence_score: z
     .number()
     .min(0)
     .max(1)
@@ -83,18 +83,18 @@ const estimateHealthMetricsPrompt = ai.definePrompt({
   **User Profile:**
   - Age: {{{age}}}
   - Gender: {{{gender}}}
-  - Medical History: {{{medicalHistory}}}
+  - Medical History: {{{medical_history}}}
 
   **Historical Vitals Data (oldest to newest):**
-  {{#each recentVitals}}
-  - HR: {{this.['Heart Rate']}}, SpO2: {{this.SPO2}} at {{this.timestamp}}
+  {{#each recent_vitals}}
+  - HR: {{this.heart_rate}}, SpO2: {{this.spo2}} at {{this.timestamp}}
   {{/each}}
 
   **Current Vitals Data:**
-  - Heart Rate: {{{currentVitals.['Heart Rate']}}} BPM
-  - SpO2: {{{currentVitals.SPO2}}}%
-  - Temperature: {{{currentVitals.Temperature}}}°C
-  - Timestamp: {{{currentVitals.timestamp}}}
+  - Heart Rate: {{{current_vitals.heart_rate}}} BPM
+  - SpO2: {{{current_vitals.spo2}}}%
+  - Temperature: {{{current_vitals.temperature}}}°C
+  - Timestamp: {{{current_vitals.timestamp}}}
 
   **Analysis Task:**
   1.  **Blood Pressure Estimation:** Based on correlations between heart rate, SpO₂, temperature, and demographic data (age, gender), and considering the trend from historical data, provide a numerical estimation for Systolic and Diastolic blood pressure in mmHg. For example, a consistently high resting heart rate may correlate with higher blood pressure. A 50-year-old male with hypertension and a high heart rate would likely have a higher estimated BP than a healthy 25-year-old female with a normal heart rate.

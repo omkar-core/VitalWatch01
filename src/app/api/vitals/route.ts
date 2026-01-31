@@ -55,12 +55,12 @@ export async function POST(request: NextRequest) {
       const predictionInput = {
           age: patientProfile.age || 50,
           gender: patientProfile.gender || 'Other',
-          medicalHistory: `Diabetes: ${patientProfile.has_diabetes}, Hypertension: ${patientProfile.has_hypertension}, Heart Condition: ${patientProfile.has_heart_condition}`,
-          currentVitals: {
+          medical_history: `Diabetes: ${patientProfile.has_diabetes}, Hypertension: ${patientProfile.has_hypertension}, Heart Condition: ${patientProfile.has_heart_condition}`,
+          current_vitals: {
               timestamp: vital.timestamp,
-              'Heart Rate': vital.heart_rate,
-              SPO2: vital.spo2,
-              Temperature: vital.temperature
+              heart_rate: vital.heart_rate,
+              spo2: vital.spo2,
+              temperature: vital.temperature
           }
       };
 
@@ -93,12 +93,12 @@ export async function POST(request: NextRequest) {
       }
       
       // Check AI-driven predictions against thresholds, considering confidence
-      if (predictions.estimatedSystolic > (patientProfile.alert_threshold_bp_systolic_high || 140) && predictions.confidenceScore > 0.5) {
-         alertMessages.push(`AI detected high systolic BP risk: ~${predictions.estimatedSystolic.toFixed(0)} mmHg.`);
+      if (predictions.estimated_systolic > (patientProfile.alert_threshold_bp_systolic_high || 140) && predictions.confidence_score > 0.5) {
+         alertMessages.push(`AI detected high systolic BP risk: ~${predictions.estimated_systolic.toFixed(0)} mmHg.`);
          alert_severity = 'Critical';
       }
-      if (predictions.estimatedGlucose > (patientProfile.alert_threshold_glucose_high || 180) && predictions.confidenceScore > 0.5) {
-         alertMessages.push(`AI detected high blood glucose risk: ~${predictions.estimatedGlucose.toFixed(0)} mg/dL.`);
+      if (predictions.estimated_glucose > (patientProfile.alert_threshold_glucose_high || 180) && predictions.confidence_score > 0.5) {
+         alertMessages.push(`AI detected high blood glucose risk: ~${predictions.estimated_glucose.toFixed(0)} mg/dL.`);
          alert_severity = 'Critical';
       }
 
@@ -113,12 +113,12 @@ export async function POST(request: NextRequest) {
         spo2: vital.spo2,
         temperature: vital.temperature,
         ppg_raw: vital.ppg_raw,
-        predicted_bp_systolic: predictions.estimatedSystolic,
-        predicted_bp_diastolic: predictions.estimatedDiastolic,
-        predicted_glucose: predictions.estimatedGlucose,
+        predicted_bp_systolic: predictions.estimated_systolic,
+        predicted_bp_diastolic: predictions.estimated_diastolic,
+        predicted_glucose: predictions.estimated_glucose,
         alert_flag: alert_flag,
         created_at: now,
-        confidence_score: predictions.confidenceScore,
+        confidence_score: predictions.confidence_score,
       };
       
       const healthVitalRow = [
@@ -159,7 +159,7 @@ export async function POST(request: NextRequest) {
             predicted_glucose: healthVitalRecord.predicted_glucose,
             predicted_bp_systolic: healthVitalRecord.predicted_bp_systolic,
             predicted_bp_diastolic: healthVitalRecord.predicted_bp_diastolic,
-            confidence_score: predictions.confidenceScore,
+            confidence_score: predictions.confidence_score,
             acknowledged: false,
             created_at: now
         };
