@@ -18,8 +18,11 @@ import { VitalWatchLogo } from "@/components/icons";
 import { Settings, LayoutDashboard, Users, Bell, BarChart, LifeBuoy, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useUser } from '@/firebase/auth/use-user';
-import { collection, query, where, onSnapshot, type DocumentData } from 'firebase/firestore';
-import { useFirestore } from '@/firebase';
+import useSWR from 'swr';
+import type { AlertHistory } from '@/lib/types';
+
+
+const fetcher = (url: string) => fetch(url).then(res => res.json());
 
 
 export default function DoctorLayout({
@@ -29,37 +32,10 @@ export default function DoctorLayout({
 }) {
   const { user, userProfile, loading: userLoading } = useUser();
   const router = useRouter();
-  const firestore = useFirestore();
 
-  const [alerts, setAlerts] = React.useState<DocumentData[]>([]);
-  const [alertsLoading, setAlertsLoading] = React.useState(true);
+  const { data: alerts, isLoading: alertsLoading } = useSWR<AlertHistory[]>('/api/alerts', fetcher, { refreshInterval: 5000 });
 
-  React.useEffect(() => {
-    if (!firestore) {
-      setAlertsLoading(false);
-      return;
-    }
-    
-    const alertsQuery = query(
-      collection(firestore, "alert_history"),
-      where("acknowledged", "==", false)
-    );
-
-    const unsubscribe = onSnapshot(alertsQuery, 
-      (querySnapshot) => {
-        setAlerts(querySnapshot.docs);
-        setAlertsLoading(false);
-      },
-      (error) => {
-        console.error("Error fetching alerts:", error);
-        setAlertsLoading(false);
-      }
-    );
-
-    return () => unsubscribe();
-  }, [firestore]);
-
-  const unreadAlerts = alerts.length;
+  const unreadAlerts = alerts?.filter(a => !a.acknowledged).length || 0;
   const loading = userLoading || alertsLoading;
 
   React.useEffect(() => {
