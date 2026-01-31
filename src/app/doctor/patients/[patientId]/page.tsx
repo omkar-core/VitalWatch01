@@ -1,11 +1,10 @@
 import { PatientDetailView } from './patient-detail-view';
 
-// This is now a simple, non-async component.
-// It only extracts the patientId and passes it to the client component.
-export default function PatientDetailPage({
-  params,
-}: {
-  params: { patientId: string };
-}) {
-  return <PatientDetailView patientId={params.patientId} />;
+/**
+ * This is the page component for the patient detail view.
+ * It's a server component that renders the client component responsible for data fetching.
+ * It no longer needs to handle params directly, as the client component uses a hook.
+ */
+export default function PatientDetailPage() {
+  return <PatientDetailView />;
 }

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { VitalsChart } from "@/components/dashboard/vitals-chart";
@@ -23,8 +23,11 @@ const fetcher = (url: string) => fetch(url).then(res => {
   return res.json();
 });
 
-export function PatientDetailView({ patientId }: { patientId: string }) {
-  const { data: patient, isLoading: patientLoading } = useSWR<PatientProfile | null>(`/api/patients/${patientId}`, fetcher);
+export function PatientDetailView() {
+  const params = useParams();
+  const patientId = params.patientId as string;
+
+  const { data: patient, isLoading: patientLoading } = useSWR<PatientProfile | null>(patientId ? `/api/patients/${patientId}` : null, fetcher);
   const { data: vitals, isLoading: vitalsLoading } = useSWR<HealthVital[] | null>(patient?.device_id ? `/api/vitals/history/${patient.device_id}` : null, fetcher);
   const { data: alerts, isLoading: alertsLoading } = useSWR<AlertHistory[] | null>(patient?.patient_id ? `/api/alerts?patientId=${patient.patient_id}` : null, fetcher);
 
