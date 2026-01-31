@@ -21,13 +21,11 @@ async function getAlerts(patientId: string): Promise<AlertHistory[]> {
   return res.json();
 }
 
-type PatientDetailPageProps = {
+export default async function PatientDetailPage(props: {
   params: { patientId: string };
   searchParams: { [key: string]: string | string[] | undefined };
-};
-
-export default async function PatientDetailPage({ params }: PatientDetailPageProps) {
-  const { patientId } = params;
+}) {
+  const { patientId } = props.params;
 
   const patient = await getPatient(patientId);
 
