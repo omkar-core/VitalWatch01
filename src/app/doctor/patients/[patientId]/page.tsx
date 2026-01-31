@@ -4,7 +4,7 @@ import type { PatientProfile, HealthVital, AlertHistory } from "@/lib/types";
 import { PatientDetailView } from './patient-detail-view';
 
 type PageProps = {
-  params: Promise<{ patientId: string }>;
+  params: { patientId: string };
 };
 
 async function getPatient(patientId: string): Promise<PatientProfile | null> {
@@ -26,7 +26,7 @@ async function getAlerts(patientId: string): Promise<AlertHistory[]> {
 }
 
 export default async function PatientDetailPage({ params }: PageProps) {
-  const { patientId } = await params;
+  const { patientId } = params;
 
   const patient = await getPatient(patientId);
 

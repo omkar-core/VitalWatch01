@@ -3,10 +3,10 @@ import { getRows } from '@/lib/griddb-client';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ patientId: string }> }
+  { params }: { params: { patientId: string } }
 ) {
   try {
-    const { patientId } = await params;
+    const { patientId } = params;
     const patientProfileResults = await getRows('patient_profiles', `patient_id='${patientId}'`);
     
     if (!patientProfileResults.results || patientProfileResults.results.length === 0) {

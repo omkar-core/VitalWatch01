@@ -4,10 +4,10 @@ import { HealthVital } from '@/lib/types';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ deviceId: string }> }
+  { params }: { params: { deviceId: string } }
 ) {
   try {
-    const { deviceId } = await params;
+    const { deviceId } = params;
     const vitalsResults = await getRows('health_vitals', `device_id='${deviceId}'`);
     
     if (!vitalsResults.results || vitalsResults.results.length === 0) {

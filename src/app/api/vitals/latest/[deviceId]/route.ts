@@ -4,10 +4,10 @@ import { HealthVital } from '@/lib/types';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ deviceId: string }> }
+  { params }: { params: { deviceId: string } }
 ) {
   try {
-    const { deviceId } = await params;
+    const { deviceId } = params;
     // TQL for getting the latest record is a bit more complex, often involving order by and limit.
     // Assuming a simplified query for demonstration.
     // A real implementation might be: `select * from health_vitals where device_id='${deviceId}' order by timestamp desc limit 1`
