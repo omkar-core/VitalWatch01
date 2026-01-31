@@ -11,9 +11,6 @@ import {z} from 'genkit';
 
 const VitalsSchema = z.object({
   timestamp: z.string().describe('ISO 8601 timestamp of the reading.'),
-  Glucose: z.number().describe('Blood glucose level in mg/dL.'),
-  Systolic: z.number().describe('Systolic blood pressure.'),
-  Diastolic: z.number().describe('Diastolic blood pressure.'),
   'Heart Rate': z.number().describe('Heart rate in beats per minute (BPM).'),
   SPO2: z.number().describe('Blood oxygen saturation percentage (SpO2).'),
 });
@@ -41,12 +38,15 @@ export type EstimateHealthMetricsInput = z.infer<
 >;
 
 const EstimateHealthMetricsOutputSchema = z.object({
-  estimatedBpCategory: z
-    .enum(['Normal', 'Elevated', 'High', 'Low'])
-    .describe('The estimated blood pressure category.'),
-  glucoseTrend: z
-    .enum(['Normal', 'Elevated', 'Risky'])
-    .describe('The estimated short-term blood glucose trend.'),
+  estimatedSystolic: z
+    .number()
+    .describe('The estimated systolic blood pressure in mmHg.'),
+  estimatedDiastolic: z
+    .number()
+    .describe('The estimated diastolic blood pressure in mmHg.'),
+  estimatedGlucose: z
+    .number()
+    .describe('The estimated blood glucose level in mg/dL.'),
   confidenceScore: z
     .number()
     .min(0)
@@ -75,9 +75,9 @@ const estimateHealthMetricsPrompt = ai.definePrompt({
   output: {schema: EstimateHealthMetricsOutputSchema},
   prompt: `You are an expert system that estimates health indicators from physiological signals. Your estimations are based on established medical correlations but are NOT a diagnosis.
 
-  **IMPORTANT:** Do NOT claim to measure blood pressure or glucose directly. Use phrases like "estimated category" or "potential trend."
+  **IMPORTANT:** Do NOT claim to measure blood pressure or glucose directly. You are providing an ESTIMATION based on correlations with PPG data.
 
-  Based on the following data from a PPG sensor and user profile, provide an estimated blood pressure category and glucose trend. Analyze the sequence of recent vital signs to identify trends, not just the single latest reading. For example, a rapid increase in heart rate over the last 3 readings is more significant than a single high reading.
+  Based on the following data from a PPG sensor and user profile, provide an estimated blood pressure (systolic and diastolic) and an estimated blood glucose level. Analyze the sequence of recent vital signs to identify trends, not just the single latest reading.
 
   **User Profile:**
   - Age: {{{age}}}
@@ -86,21 +86,19 @@ const estimateHealthMetricsPrompt = ai.definePrompt({
 
   **Historical Vitals Data (oldest to newest):**
   {{#each recentVitals}}
-  - HR: {{this.['Heart Rate']}}, SpO2: {{this.SPO2}}, Glucose: {{this.Glucose}}, BP: {{this.Systolic}}/{{this.Diastolic}} at {{this.timestamp}}
+  - HR: {{this.['Heart Rate']}}, SpO2: {{this.SPO2}} at {{this.timestamp}}
   {{/each}}
 
   **Current Vitals Data:**
   - Heart Rate: {{{currentVitals.['Heart Rate']}}} BPM
   - SpO2: {{{currentVitals.SPO2}}}%
-  - Glucose: {{{currentVitals.Glucose}}} mg/dL
-  - Blood Pressure: {{{currentVitals.Systolic}}}/{{{currentVitals.Diastolic}}} mmHg
   - Timestamp: {{{currentVitals.timestamp}}}
 
   **Analysis Task:**
-  1.  **Blood Pressure Estimation:** Based on correlations between heart rate, SpO₂, and demographic data (age, gender), and considering the trend from historical data, classify the blood pressure into one of the following categories: 'Normal', 'Elevated', 'High', 'Low'. For example, a consistently high resting heart rate may correlate with higher blood pressure.
-  2.  **Glucose Trend Estimation:** Based on the inputs and historical trend, infer a potential short-term glucose trend. For instance, certain patterns in heart rate variability (which you can infer from the provided signals) can be loosely correlated with glycemic changes. Classify the trend as 'Normal', 'Elevated', or 'Risky'.
-  3.  **Confidence Score:** Provide an overall confidence score for your estimations from 0.0 to 1.0, where 1.0 is very confident. This score should reflect the inherent limitations of estimating BP and glucose from PPG data.
-  4.  **Reasoning:** Briefly explain your reasoning. For example: "The elevated heart rate and the upward trend in glucose readings over the past hour suggest a 'Risky' glucose trend."
+  1.  **Blood Pressure Estimation:** Based on correlations between heart rate, SpO₂, and demographic data (age, gender), and considering the trend from historical data, provide a numerical estimation for Systolic and Diastolic blood pressure in mmHg. For example, a consistently high resting heart rate may correlate with higher blood pressure. A 50-year-old male with hypertension and a high heart rate would likely have a higher estimated BP than a healthy 25-year-old female with a normal heart rate.
+  2.  **Glucose Estimation:** Based on the inputs and historical trend, infer a potential blood glucose value in mg/dL. Certain patterns in heart rate variability (which you can infer from the provided signals) can be loosely correlated with glycemic changes. A user with diabetes and erratic heart rate patterns might have a higher estimated glucose level.
+  3.  **Confidence Score:** Provide an overall confidence score for your estimations from 0.0 to 1.0, where 1.0 is very confident. This score should reflect the inherent limitations of estimating BP and glucose from PPG data. Confidence should be lower for users with sparse data or complex medical histories.
+  4.  **Reasoning:** Briefly explain your reasoning for the numerical estimations. For example: "The elevated heart rate and the user's history of hypertension lead to a higher BP estimate. The glucose estimation is based on subtle HR variability changes."
 
   Generate the response in the required JSON format.
   `,

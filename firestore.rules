@@ -6,19 +6,11 @@ service cloud.firestore {
       return request.auth.uid == userId;
     }
 
-    function isDoctor() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'doctor';
-    }
-
-    function isPatient() {
-        return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'patient';
-    }
-
     function isValidUserRole(role) {
         return role is string && role in ['doctor', 'patient'];
     }
 
-    // Default deny all
+    // Default deny all other collections
     match /{document=**} {
       allow read, write: if false;
     }
@@ -36,35 +28,7 @@ service cloud.firestore {
       allow read, update: if isOwner(userId);
     }
 
-    // Patient Profiles:
-    // - A user can create their own patient profile.
-    // - Patients can read/update their own profile.
-    // - Doctors can read/list any patient's profile.
-    match /patient_profiles/{patientId} {
-      allow create: if request.auth != null && isOwner(patientId);
-      allow read, update: if isOwner(patientId);
-      allow read, list: if isDoctor();
-    }
-
-    // Health Vitals:
-    // - For this app, we allow any authenticated user to simulate device writes.
-    // - Patients can read their own vitals (by querying on their patient_id, which matches their uid).
-    // - Doctors can read all vitals.
-    match /health_vitals/{vitalId} {
-      allow create: if request.auth != null;
-      allow read, list: if isDoctor() || (isPatient() && exists(/databases/$(database)/documents/patient_profiles/$(request.auth.uid)));
-    }
-
-    // Alert History:
-    // - We allow any authenticated user to create alerts for simulation.
-    // - Doctors can read all alerts.
-    // - Patients can read their own alerts.
-    // - Doctors can update (acknowledge) alerts.
-    match /alert_history/{alertId} {
-      allow create: if request.auth != null;
-      allow read, list: if isDoctor() || (isPatient() && request.query.patientId == request.auth.uid);
-      allow read: if isOwner(resource.data.patient_id);
-      allow update: if isDoctor();
-    }
+    // All medical data (patient profiles, vitals, alerts) are stored in GridDB
+    // and are governed by API-level permissions, not Firestore rules.
   }
 }

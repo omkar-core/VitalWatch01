@@ -1,4 +1,5 @@
 import type { Timestamp } from 'firebase/firestore';
+import { z } from 'zod';
 
 export type UserRole = 'doctor' | 'patient';
 
@@ -81,3 +82,59 @@ export type ESP32Data = {
   spo2: number;
   ppg_raw: number;
 };
+
+
+// AI-related types
+const VitalsSchema = z.object({
+  timestamp: z.string().describe('ISO 8601 timestamp of the reading.'),
+  'Heart Rate': z.number().describe('Heart rate in beats per minute (BPM).'),
+  SPO2: z.number().describe('Blood oxygen saturation percentage (SpO2).'),
+});
+
+export const EstimateHealthMetricsInputSchema = z.object({
+  age: z.number().describe('The age of the user.'),
+  gender: z.string().describe('The gender of the user.'),
+  medicalHistory: z
+    .string()
+    .optional()
+    .describe(
+      "A brief summary of the user's relevant medical history (e.g., existing conditions like diabetes, hypertension)."
+    ),
+  currentVitals: VitalsSchema.describe('The most recent vital signs reading.'),
+  recentVitals: z
+    .array(VitalsSchema)
+    .optional()
+    .describe(
+      'A series of recent vital signs readings for trend analysis, ordered from oldest to newest.'
+    ),
+});
+
+export type EstimateHealthMetricsInput = z.infer<
+  typeof EstimateHealthMetricsInputSchema
+>;
+
+export const EstimateHealthMetricsOutputSchema = z.object({
+  estimatedSystolic: z
+    .number()
+    .describe('The estimated systolic blood pressure in mmHg.'),
+  estimatedDiastolic: z
+    .number()
+    .describe('The estimated diastolic blood pressure in mmHg.'),
+  estimatedGlucose: z
+    .number()
+    .describe('The estimated blood glucose level in mg/dL.'),
+  confidenceScore: z
+    .number()
+    .min(0)
+    .max(1)
+    .describe('A confidence score (0-1) for the overall estimation.'),
+  reasoning: z
+    .string()
+    .describe(
+      'A brief, high-level reasoning for the estimations based on the provided inputs.'
+    ),
+});
+
+export type EstimateHealthMetricsOutput = z.infer<
+  typeof EstimateHealthMetricsOutputSchema
+>;

@@ -11,12 +11,16 @@ type ActionResult<T> = {
 // This is the action called by the patient dashboard "Scan Vitals" button
 export async function ingestVitalsAction(vitals: ESP32Data[]): Promise<ActionResult<string>> {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/vitals/ingest`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/vitals`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ vitals }),
+      body: JSON.stringify({ 
+        vitals,
+        // This secret bypasses the device-specific auth check for internal, server-side calls
+        internal_secret: process.env.INTERNAL_API_SECRET 
+      }),
     });
 
     if (!response.ok) {
@@ -54,20 +58,25 @@ export async function triggerVitalsScanFromTelegram(chatId: string, patientId: s
     
     // 3. Generate mock data and call the ingest API
     const mockESP32Data: ESP32Data[] = [{
-      deviceId: patientId,
+      deviceId: patientId, // For the demo, patientId is used as deviceId
       ts: new Date().toISOString(),
       heart_rate: 70 + Math.random() * 15,
       spo2: 96 + Math.random() * 3,
       ppg_raw: 1000 + Math.random() * 200,
     }];
     
-    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/vitals/ingest`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/vitals`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      // Pass both vitals and chatId to the ingest API
-      body: JSON.stringify({ vitals: mockESP32Data, chatId }),
+      // Pass both vitals and chatId to the ingest API for reporting
+      body: JSON.stringify({ 
+        vitals: mockESP32Data, 
+        chatId,
+        // This secret bypasses the device-specific auth check for internal, server-side calls
+        internal_secret: process.env.INTERNAL_API_SECRET
+      }),
     });
 
     if (!response.ok) {

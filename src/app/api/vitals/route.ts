@@ -1,24 +1,32 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import type { ESP32Data, PatientProfile, HealthVital, AlertHistory } from '@/lib/types';
 import { estimateHealthMetrics } from '@/ai/flows/suggest-initial-diagnoses';
 import { sendHealthReport, sendCriticalAlert } from '@/lib/telegram';
 import { putRows, getRows } from '@/lib/griddb-client';
+import { validateDeviceRequest } from '@/lib/device-auth';
 import { randomUUID } from 'crypto';
 
 type IngestRequestBody = {
   vitals: ESP32Data[];
   chatId?: string; // Optional chatId for Telegram reporting
+  internal_secret?: string; // Optional secret for internal calls
 }
 
-// Helper to add realistic variance to predictions
-const addVariance = (value: number, percent: number) => {
-    const variance = value * (percent / 100);
-    return value + (Math.random() * variance * 2 - variance);
-};
+export async function POST(request: NextRequest) {
+  const body: IngestRequestBody = await request.json();
+  
+  // 1. Authenticate Request
+  // Bypass device auth if the internal secret is provided and correct
+  const isInternalCall = body.internal_secret === process.env.INTERNAL_API_SECRET;
+  if (!isInternalCall) {
+    const authError = validateDeviceRequest(request);
+    if (authError) {
+      return NextResponse.json({ error: authError }, { status: 401 });
+    }
+  }
 
-export async function POST(request: Request) {
   try {
-    const { vitals: incomingVitals, chatId }: IngestRequestBody = await request.json();
+    const { vitals: incomingVitals, chatId } = body;
 
     if (!Array.isArray(incomingVitals) || incomingVitals.length === 0) {
       return NextResponse.json({ error: 'Invalid or empty vitals data' }, { status: 400 });
@@ -28,8 +36,8 @@ export async function POST(request: Request) {
 
     // Process each reading (usually just one from the bot/scan)
     for (const vital of incomingVitals) {
-      // 1. Fetch patient profile to get thresholds
-       const patientProfileResults = await getRows('patient_profiles', `patient_id='${vital.deviceId}'`);
+      // 2. Fetch patient profile to get context and thresholds
+      const patientProfileResults = await getRows('patient_profiles', `device_id='${vital.deviceId}'`);
       
       if (!patientProfileResults.results || patientProfileResults.results.length === 0) {
         console.warn(`No patient profile found for deviceId: ${vital.deviceId}. Skipping.`);
@@ -43,16 +51,13 @@ export async function POST(request: Request) {
           return obj;
       }, {});
 
-      // 2. Call ML model for predictions
+      // 3. Call Gemini AI model for predictions
       const predictionInput = {
           age: patientProfile.age || 50,
           gender: patientProfile.gender || 'Other',
-          medicalHistory: `Diabetes: ${patientProfile.has_diabetes}, Hypertension: ${patientProfile.has_hypertension}`,
+          medicalHistory: `Diabetes: ${patientProfile.has_diabetes}, Hypertension: ${patientProfile.has_hypertension}, Heart Condition: ${patientProfile.has_heart_condition}`,
           currentVitals: {
               timestamp: vital.ts,
-              Glucose: 0, // Placeholder, as we are predicting it
-              Systolic: 0, // Placeholder
-              Diastolic: 0, // Placeholder
               'Heart Rate': vital.heart_rate,
               SPO2: vital.spo2,
           }
@@ -60,55 +65,47 @@ export async function POST(request: Request) {
 
       const predictions = await estimateHealthMetrics(predictionInput);
 
-      // 3. Check for alerts
+      // 4. Evaluate alert conditions based on AI output and fixed thresholds
       let alert_flag = false;
       let alert_message = '';
       let alert_severity: 'Critical' | 'High' = 'High';
 
+      // Fixed threshold alerts
       if (vital.heart_rate > (patientProfile.alert_threshold_hr_high || 120)) {
         alert_flag = true;
         alert_message = `Critical heart rate detected: ${vital.heart_rate.toFixed(0)} BPM.`;
         alert_severity = 'Critical';
       }
-      if (vital.spo2 < (patientProfile.alert_threshold_spo2_low || 90)) {
+      if (vital.spo2 < (patientProfile.alert_threshold_spo2_low || 92)) {
         alert_flag = true;
         alert_message = `Critically Low SpO2 detected: ${vital.spo2.toFixed(1)}%.`;
         alert_severity = 'Critical';
       }
-       if ((predictions.estimatedBpCategory === 'High') && (patientProfile.alert_threshold_bp_systolic_high && predictions.confidenceScore > 0.6)) {
+      
+      // AI-driven alerts
+      if (predictions.estimatedSystolic > (patientProfile.alert_threshold_bp_systolic_high || 140) && predictions.confidenceScore > 0.5) {
          alert_flag = true;
-         alert_message = `High BP category predicted.`;
+         alert_message = `AI detected high systolic blood pressure risk: ~${predictions.estimatedSystolic.toFixed(0)} mmHg.`;
          alert_severity = 'Critical';
       }
-       if ((predictions.glucoseTrend === 'Risky') && (patientProfile.alert_threshold_glucose_high && predictions.confidenceScore > 0.6)) {
+      if (predictions.estimatedGlucose > (patientProfile.alert_threshold_glucose_high || 180) && predictions.confidenceScore > 0.5) {
          alert_flag = true;
-         alert_message = `Risky glucose trend predicted.`;
+         alert_message = `AI detected high blood glucose risk: ~${predictions.estimatedGlucose.toFixed(0)} mg/dL.`;
          alert_severity = 'Critical';
       }
 
-      // 4. Send Telegram alert if needed and if a chatId is available
-      if (alert_flag && chatId) {
-        // This sends a separate, priority alert message
-        await sendCriticalAlert(chatId, alert_severity, alert_message);
-      }
-      
       const now = new Date().toISOString();
       
-      // 5. Create more realistic predicted values
-      const baseSystolic = predictions.estimatedBpCategory === 'High' ? 145 : 120;
-      const baseDiastolic = predictions.estimatedBpCategory === 'High' ? 95 : 80;
-      const baseGlucose = predictions.glucoseTrend === 'Risky' ? 210 : 110;
-
-      // 5. Construct the full health vital record
+      // 5. Construct the full health vital record using AI estimations
       const healthVitalRecord: HealthVital = {
         timestamp: vital.ts,
         device_id: vital.deviceId,
         heart_rate: vital.heart_rate,
         spo2: vital.spo2,
         ppg_raw: vital.ppg_raw,
-        predicted_bp_systolic: addVariance(baseSystolic, 5), // +/- 5% variance
-        predicted_bp_diastolic: addVariance(baseDiastolic, 5),
-        predicted_glucose: addVariance(baseGlucose, 10), // +/- 10% variance
+        predicted_bp_systolic: predictions.estimatedSystolic,
+        predicted_bp_diastolic: predictions.estimatedDiastolic,
+        predicted_glucose: predictions.estimatedGlucose,
         alert_flag: alert_flag,
         created_at: now,
         confidence_score: predictions.confidenceScore,
@@ -128,18 +125,19 @@ export async function POST(request: Request) {
           healthVitalRecord.confidence_score,
       ];
 
-      // 6. Save to GridDB
+      // 6. Save vitals to GridDB
       await putRows('health_vitals', [healthVitalRow]);
       
       finalHealthVital = healthVitalRecord; // Keep the last processed vital for reporting
 
+      // 7. If alert triggered, save to GridDB and send Telegram notification
       if (alert_flag) {
         const alertRecord: AlertHistory = {
             alert_timestamp: vital.ts,
             alert_id: randomUUID(),
             device_id: vital.deviceId,
             patient_id: patientProfile.patient_id,
-            alert_type: "Vital Threshold Exceeded",
+            alert_type: "AI/Vital Threshold Exceeded",
             severity: alert_severity,
             alert_message: alert_message,
             heart_rate: vital.heart_rate,
@@ -172,22 +170,26 @@ export async function POST(request: Request) {
             alertRecord.created_at,
         ];
         await putRows('alert_history', [alertRow]);
+        
+        // Send Telegram alert to Doctor/Clinic
+        if (process.env.TELEGRAM_CHAT_ID) {
+          await sendCriticalAlert(process.env.TELEGRAM_CHAT_ID, alert_severity, `Patient ${patientProfile.name}: ${alert_message}`);
+        }
       }
     }
 
-    // 7. If the request came from Telegram, send the full report back
+    // 8. If the request came from Telegram, send the full report back to the patient
     if (chatId && finalHealthVital) {
       await sendHealthReport(chatId, finalHealthVital);
     }
 
-    return NextResponse.json({ message: 'Vitals ingested successfully.' });
+    return NextResponse.json({ message: 'Vitals ingested, analyzed, and stored successfully.' });
 
   } catch (error: any) {
-    console.error('[/api/vitals/ingest] Error:', error);
-    const body = await request.clone().json().catch(() => ({}));
+    console.error('[/api/vitals] Error:', error);
     const chatId = body.chatId;
     if (chatId) {
-        await sendCriticalAlert(chatId, 'Critical', 'Failed to process vitals. Please check the system logs.');
+        await sendCriticalAlert(chatId, 'Critical', 'Failed to process vitals. System error.');
     }
     return NextResponse.json({ error: error.message || 'An internal server error occurred.' }, { status: 500 });
   }

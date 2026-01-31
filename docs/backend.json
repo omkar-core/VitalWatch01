@@ -93,19 +93,7 @@
   "firestore": {
     "/users/{userId}": {
       "schema": { "$ref": "#/entities/user" },
-      "description": "Stores basic user auth info and role."
-    },
-    "/patient_profiles/{patientId}": {
-      "schema": { "$ref": "#/entities/patient_profile" },
-      "description": "Stores detailed patient profiles, linked to a user ID."
-    },
-    "/health_vitals/{vitalId}": {
-      "schema": { "$ref": "#/entities/health_vitals" },
-      "description": "A time-series collection of all incoming vital signs from all devices."
-    },
-    "/alert_history/{alertId}": {
-      "schema": { "$ref": "#/entities/alert_history" },
-      "description": "A log of all triggered alerts for all patients."
+      "description": "Stores basic user auth info and role. All other medical data is stored in GridDB."
     }
   }
 }

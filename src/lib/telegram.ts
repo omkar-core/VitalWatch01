@@ -89,17 +89,15 @@ export async function sendDeviceStatus(chatId: string, patient: PatientProfile |
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 📱 *Device Information:*
-• ID: ${patient?.device_id || 'N/A'}
+• ID: ${process.env.DEVICE_ID || 'N/A'}
 • Version: 6.0
-• Boot Count: 5
-• Measurements: 23
 • Uptime: 45 minutes
 
 📡 *Network Status:*
 • WiFi: ✅ Connected
 • SSID: MyWiFi_Network
 
-🌐 *Vercel Backend:*
+🌐 *Backend URL:*
 • Status: ✅ Connected
 • URL: ${process.env.NEXT_PUBLIC_APP_URL || 'https://your-app.vercel.app'}
 
@@ -208,19 +206,15 @@ export async function sendHealthReport(chatId: string, vital: HealthVital) {
   • Value: ${vital.spo2.toFixed(1)}%
   • Status: ${vital.spo2 >= 95 ? '✅ Normal' : '⚠️ Low'}
 
-🩸 *Blood Pressure (Estimated)*
+🩸 *Blood Pressure (AI Estimate)*
   • Value: ${vital.predicted_bp_systolic?.toFixed(0)}/${vital.predicted_bp_diastolic?.toFixed(0)} mmHg
   • Status: ${bpStatus}
   • Confidence: ${( (vital.confidence_score || 0) * 100).toFixed(0)}%
 
-🍬 *Glucose Trend (Estimated)*
+🍬 *Glucose (AI Estimate)*
   • Value: ${vital.predicted_glucose?.toFixed(0)} mg/dL
   • Status: ${glucoseStatus}
   • Confidence: ${( (vital.confidence_score || 0) * 100).toFixed(0)}%
-
-📊 *Additional Metrics*
-  • PPG Signal: ${vital.ppg_raw.toFixed(0)}
-  • Signal Quality: ✅ Excellent
 
 🌐 *View Full History:*
 ${process.env.NEXT_PUBLIC_APP_URL || 'https://your-app.vercel.app'}/patient/health-data
