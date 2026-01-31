@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { Suspense } from 'react';
 import {
   Card,
   CardContent,
@@ -35,7 +36,9 @@ export default function RegisterPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <RegisterForm />
+            <Suspense>
+              <RegisterForm />
+            </Suspense>
           </CardContent>
         </Card>
         <p className="px-8 text-center text-sm text-muted-foreground mt-4">

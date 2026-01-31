@@ -23,8 +23,8 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { signUp } from '@/firebase/auth/auth-service';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useState, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 import type { UserRole } from '@/lib/types';
 
@@ -39,8 +39,10 @@ const formSchema = z.object({
 
 export function RegisterForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const roleFromQuery = searchParams.get('role');
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -48,8 +50,16 @@ export function RegisterForm() {
       displayName: '',
       email: '',
       password: '',
+      role: undefined,
     },
   });
+
+  useEffect(() => {
+    if (roleFromQuery === 'doctor' || roleFromQuery === 'patient') {
+      form.setValue('role', roleFromQuery);
+    }
+  }, [roleFromQuery, form]);
+
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
@@ -129,7 +139,7 @@ export function RegisterForm() {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Role</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select a role" />
