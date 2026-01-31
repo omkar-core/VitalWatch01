@@ -1,6 +1,6 @@
 'use client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertTriangle, Info, Loader2 } from "lucide-react";
+import { AlertTriangle, Info, Loader2, Bell } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useUser } from "@/firebase/auth/use-user";
 import useSWR from 'swr';
@@ -39,13 +39,14 @@ export default function PatientAlertsPage() {
             ))
         ) : (
              <div className="flex flex-1 items-center justify-center">
-                <div className="flex flex-col items-center gap-1 text-center">
-                <h3 className="text-2xl font-bold tracking-tight">
-                    No Alerts or Advice
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                    You have no new health alerts or advice from your care team.
-                </p>
+                <div className="flex flex-col items-center gap-2 text-center">
+                  <Bell className="w-12 h-12 text-muted-foreground" />
+                  <h3 className="text-2xl font-bold tracking-tight">
+                      No Alerts or Advice
+                  </h3>
+                  <p className="text-sm text-muted-foreground max-w-sm">
+                      You have no new health alerts or advice from your care team. Any important updates will appear here.
+                  </p>
                 </div>
             </div>
         )}
